@@ -1,47 +1,301 @@
 plugins {
   id 'application'
-  id 'org.springframework.boot' version '2.1.6.RELEASE'
+  id 'checkstyle'
+  id 'jacoco'
+  id 'java'
+  id "io.freefair.lombok" version "6.5.1"
+  id 'io.spring.dependency-management' version '1.0.13.RELEASE'
+  id 'org.springframework.boot' version '2.7.3'
+  id 'com.github.kt3k.coveralls' version '2.8.2'
+  id 'com.github.ben-manes.versions' version '0.42.0'
+  id 'org.sonarqube' version '3.4.0.2513'
+  id 'uk.gov.hmcts.java' version '0.12.34'
 }
 
 group = 'uk.gov.hmcts.reform'
-version = '1.0.0'
+version = '0.0.1'
 
-sourceCompatibility = '11'
-targetCompatibility = '11'
-
-mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
-
-compileJava {
-  options.compilerArgs << '-parameters' << '-Xlint:deprecation'
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
 }
 
-compileTestJava {
-  options.compilerArgs << '-Xlint:deprecation'
+sourceSets {
+  functionalTest {
+    java {
+      compileClasspath += main.output
+      runtimeClasspath += main.output
+      srcDir file('src/functionalTest/java')
+    }
+    resources.srcDir file('src/functionalTest/resources')
+  }
+
+  integrationTest {
+    java {
+      compileClasspath += main.output
+      runtimeClasspath += main.output
+      srcDir file('src/integrationTest/java')
+    }
+    resources.srcDir file('src/integrationTest/resources')
+  }
+
+  smokeTest {
+    java {
+      compileClasspath += main.output
+      runtimeClasspath += main.output
+      srcDir file('src/smokeTest/java')
+    }
+    resources.srcDir file('src/smokeTest/resources')
+  }
+}
+
+configurations {
+  functionalTestImplementation.extendsFrom testImplementation
+  functionalTestRuntimeOnly.extendsFrom runtimeOnly
+
+  integrationTestImplementation.extendsFrom testImplementation
+  integrationTestRuntimeOnly.extendsFrom runtimeOnly
+
+  smokeTestImplementation.extendsFrom testImplementation
+  smokeTestRuntimeOnly.extendsFrom runtimeOnly
+}
+
+tasks.withType(JavaCompile) {
+  options.compilerArgs << "-Xlint:unchecked" << "-Werror"
+}
+
+// https://github.com/gradle/gradle/issues/16791
+tasks.withType(JavaExec).configureEach {
+  javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+}
+
+tasks.withType(Test) {
+  useJUnitPlatform()
+
+  testLogging {
+    exceptionFormat = 'full'
+  }
+}
+
+test {
+  failFast = true
+}
+
+task functional(type: Test) {
+  description = "Runs functional tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.functionalTest.output.classesDirs
+  classpath = sourceSets.functionalTest.runtimeClasspath
+}
+
+task integration(type: Test) {
+  description = "Runs integration tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.integrationTest.output.classesDirs
+  classpath = sourceSets.integrationTest.runtimeClasspath
+  failFast = true
+}
+
+task fortifyScan(type: JavaExec)  {
+  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+  classpath += sourceSets.test.runtimeClasspath
+  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
+  ignoreExitValue = true
+}
+
+task smoke(type: Test) {
+  description = "Runs Smoke Tests"
+  testClassesDirs = sourceSets.smokeTest.output.classesDirs
+  classpath = sourceSets.smokeTest.runtimeClasspath
+}
+
+checkstyle {
+  maxWarnings = 0
+  toolVersion = '9.2.1'
+  getConfigDirectory().set(new File(rootDir, 'config/checkstyle'))
+}
+
+jacocoTestReport {
+  executionData(test, integration)
+  reports {
+    xml.required = true
+    csv.required = false
+    xml.destination file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+  }
+}
+
+project.tasks['sonarqube'].dependsOn jacocoTestReport
+project.tasks['check'].dependsOn integration
+
+sonarqube {
+  properties {
+    property "sonar.projectName", "ccd-case-migration-starter"
+    property "sonar.projectKey", "ccd-case-migration-starter"
+    property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/CaseMigrationRunner.java,**/ccd/HttpMessageConverterConfiguration.java"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
+  }
+}
+
+// before committing a change, make sure task still works
+dependencyUpdates {
+  def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { qualifier -> version.toUpperCase().contains(qualifier) }
+    def regex = /^[0-9,.v-]+$/
+    return !stableKeyword && !(version ==~ regex)
+  }
+  rejectVersionIf { selection -> // <---- notice how the closure argument is named
+    return isNonStable(selection.candidate.version) && !isNonStable(selection.currentVersion)
+  }
+}
+
+// https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
+dependencyCheck {
+  // Specifies if the build should be failed if a CVSS score above a specified level is identified.
+  // range of 0-10 fails the build, anything greater and it doesn't fail the build
+  failBuildOnCVSS = 0
+  suppressionFile = 'config/owasp/suppressions.xml'
 }
 
 repositories {
   mavenLocal()
-  jcenter()
-
-  maven { url "https://dl.bintray.com/hmcts/hmcts-maven" }
-  maven { url "http://repo.maven.apache.org/maven2" }
+  mavenCentral()
+  maven { url 'https://jitpack.io' }
 }
 
-def versions = [
-  lombok: '1.18.8'
-]
+ext {
+  log4JVersion = "2.17.0"
+  restAssuredVersion = '4.3.0!!'
+  lombokVersion = "1.18.16"
+  junit_version = "4.12"
+  junitJupiterVersion = '5.7.1'
+  junitVintageVersion = '5.7.1'
+  powermockVersion = '2.0.7'
+  springSecurity   =  '5.7.1'
+  springCloudVersion = '2021.0.3'
+}
+
+ext['jackson.version'] = '2.14.1'
+ext['snakeyaml.version'] = '1.33'
+ext['spring-security.version'] = '5.7.3'
 
 dependencies {
-  annotationProcessor group: 'org.projectlombok', name: 'lombok', version: versions.lombok
-  compileOnly group: 'org.projectlombok', name: 'lombok', version: versions.lombok
+  implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  implementation group: 'org.springframework', name: 'spring-context-support'
+  implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '1.0.2'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.0.0'
+  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.3'
 
-  compile group: 'uk.gov.hmcts.reform.ccd-case-migration', name: 'processor', version: '1.0.0'
-  compile group: 'uk.gov.hmcts.reform.ccd-case-migration', name: 'domain', version: '1.0.0'
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+  testImplementation group: 'com.github.tomakehurst', name: 'wiremock', version: '2.23.2'
 
-  testCompile group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.5.0'
-  testCompile group: 'org.assertj', name: 'assertj-core', version: '3.11.1'
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.6.11'
+
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.0.1'
+
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
+  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '4.3.0'
+
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+
+  testImplementation('org.junit.jupiter:junit-jupiter:5.6.0')
+  testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
+  testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}"
+  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'3.6.0'
+  testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: powermockVersion
+  testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
+  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
+  implementation group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+  annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+  testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+
+  testImplementation 'com.github.hmcts:fortify-client:1.2.2:all'
+
+  implementation group: 'commons-io', name: 'commons-io', version: '2.8.0'
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-resource-server', version: springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-jose', version: springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-oauth2-core', version: springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-config', version: springSecurity
+}
+
+dependencyManagement {
+  imports {
+    mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+  }
+
+  dependencies {
+    dependency 'com.google.guava:guava:30.1-jre'
+
+    dependencySet(group: 'commons-beanutils', version: '1.9.4') {
+      entry 'commons-beanutils'
+    }
+
+    dependencySet(group: 'io.rest-assured', version: '4.3.0') {
+      entry 'json-path'
+      entry 'xml-path'
+    }
+    dependencySet(group: 'org.codehaus.groovy', version: '3.0.2') {
+      entry 'groovy'
+      entry 'groovy-xml'
+      entry 'groovy-json'
+    }
+  }
+}
+
+mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
+
+bootJar {
+  archiveFileName = 'ccd-case-migration.jar'
+  archiveBaseName = 'ccd-case-migration'
+  archiveVersion = project.version.toString()
+}
+
+wrapper {
+    distributionType = Wrapper.DistributionType.ALL
+}
+
+configurations.all {
+  exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
+  exclude group: 'org.springframework.boot', module: 'spring-boot-starter-security'
+  exclude group: 'org.springframework.security', module: 'spring-security-rsa'
 }
 
 test {
+  timeout = Duration.ofMinutes(30)
+  environment("AZURE_APPLICATIONINSIGHTS_INSTRUMENTATIONKEY", "some-key")
+  systemProperty 'java.locale.providers', 'COMPAT'
+
   useJUnitPlatform()
+
+  testLogging {
+    events "failed"
+    exceptionFormat "short"
+
+    debug {
+      events "passed", "started", "skipped", "failed"
+      exceptionFormat "full"
+    }
+
+    info.events = ["failed", "skipped"]
+  }
+
+  reports {
+    html.enabled = true
+  }
+
+  jvmArgs = [
+    '--add-modules', 'java.se',
+    '--add-exports', 'java.base/jdk.internal.ref=ALL-UNNAMED',
+    '--add-opens', 'java.base/java.lang=ALL-UNNAMED',
+    '--add-opens', 'java.base/java.nio=ALL-UNNAMED',
+    '--add-opens', 'java.base/sun.nio.ch=ALL-UNNAMED',
+    '--add-opens', 'java.management/sun.management=ALL-UNNAMED',
+    '--add-opens', 'jdk.management/com.sun.management.internal=ALL-UNNAMED'
+  ]
 }
