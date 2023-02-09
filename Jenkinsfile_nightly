@@ -8,8 +8,8 @@ properties([
 @Library("Infrastructure")
 
 def type = "java"
-def product = "ccd"
-def component = "migration"
+def product = "probate"
+def component = "cron-ccd-data-migration-tool"
 
 withNightlyPipeline(type, product, component) {
   enableAksStagingDeployment()
