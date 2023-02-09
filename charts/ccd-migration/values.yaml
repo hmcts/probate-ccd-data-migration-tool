@@ -1,5 +1,5 @@
 job:
-  image: 'hmctspublic.azurecr.io/ccd/migration:latest'
+  image: 'hmctspublic.azurecr.io/probate/corn-ccd-data-migration-tool:latest'
   kind: CronJob
   schedule: "0 22 * * *"
   ingressHost: probate-corn-ccd-data-migration-tool-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
