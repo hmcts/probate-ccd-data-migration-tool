@@ -3,8 +3,8 @@
 @Library("Infrastructure")
 
 def type = "java"
-def product = "ccd"
-def component = "migration"
+def product = "probate"
+def component = "corn-ccd-data-migration-tool"
 
 withPipeline(type, product, component) {
   enableAksStagingDeployment()
