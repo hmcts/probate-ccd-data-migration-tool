@@ -4,7 +4,7 @@
 
 def type = "java"
 def product = "probate"
-def component = "corn-ccd-data-migration-tool"
+def component = "cron-ccd-data-migration-tool"
 
 withPipeline(type, product, component) {
   enableAksStagingDeployment()

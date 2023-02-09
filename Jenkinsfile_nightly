@@ -9,7 +9,7 @@ properties([
 
 def type = "java"
 def product = "probate"
-def component = "corn-ccd-data-migration-tool"
+def component = "cron-ccd-data-migration-tool"
 
 withNightlyPipeline(type, product, component) {
   enableAksStagingDeployment()

@@ -1,7 +1,7 @@
 apiVersion: v2
 appVersion: "1.0"
 description: A Helm chart for ccd-migration App
-name: probate-corn-ccd-data-migration-tool
+name: probate-cron-ccd-data-migration-tool
 home: https://github.com/hmcts/ccd-case-migration-starter
 version: 0.0.3
 maintainers:
