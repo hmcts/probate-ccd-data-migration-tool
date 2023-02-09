@@ -132,6 +132,7 @@ sonarqube {
   properties {
     property "sonar.projectName", "probate-ccd-data-migration-tool"
     property "sonar.projectKey", "probate-ccd-data-migration-tool"
+    property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
     property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/ccd/*.java,,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java"
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
   }
