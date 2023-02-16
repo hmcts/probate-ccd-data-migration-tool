@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.auth.AuthUtil;
+import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +31,8 @@ public class CoreCaseDataService {
     @Autowired
     private CoreCaseDataApi coreCaseDataApi;
 
+    @Autowired
+    private DataMigrationService<Map<String, Object>> dataMigrationService;
 
     public int getNumberOfPages(String authorisation, String userId, Map<String, String> searchCriteria) {
         PaginatedSearchMetadata metadata = coreCaseDataApi.getPaginationInfoForSearchForCaseworkers(
@@ -84,7 +87,7 @@ public class CoreCaseDataService {
                     .summary(eventSummary)
                     .description(eventDescription)
                     .build()
-            ).data(updatedCaseDetails.getData())
+            ).data(dataMigrationService.migrate(updatedCaseDetails.getData()))
             .build();
 
         return coreCaseDataApi.submitEventForCaseWorker(
