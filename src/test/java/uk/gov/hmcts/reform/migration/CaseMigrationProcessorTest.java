@@ -15,11 +15,9 @@ import uk.gov.hmcts.reform.migration.repository.IdamRepository;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -44,7 +42,7 @@ public class CaseMigrationProcessorTest {
     private CoreCaseDataService coreCaseDataService;
 
     @Mock
-    private DataMigrationService dataMigrationService;
+    private DataMigrationService<Map<String, Object>> dataMigrationService;
 
     @Mock
     private ElasticSearchRepository elasticSearchRepository;
@@ -58,180 +56,53 @@ public class CaseMigrationProcessorTest {
     }
 
     @Test
-    public void shouldMigrateCasesOfSolGopTrustCorp() {
+    public void shouldMigrateCasesOfACaseType() {
         when(dataMigrationService.accepts()).thenReturn(candidate -> true);
         when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
         CaseDetails details = mock(CaseDetails.class);
         when(details.getId()).thenReturn(1677777777L);
-        Map<String, Object> caseDatas = new HashMap<>();
-        caseDatas.put("applicationType","Solicitor");
-        caseDatas.put("caseType", "gop");
-        caseDatas.put("titleAndClearingType", "TCTTrustCorpResWithSDJ");
-        when(details.getData()).thenReturn(caseDatas);
         List<CaseDetails> caseDetails = new ArrayList<>();
         caseDetails.add(details);
         when(elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE)).thenReturn(caseDetails);
         List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
         assertNotNull(listOfCaseDetails);
         when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details)).thenReturn(details);
+            EVENT_DESCRIPTION, CASE_TYPE, details))
+            .thenReturn(details);
         caseMigrationProcessor.migrateCases(CASE_TYPE);
         verify(coreCaseDataService, times(1))
             .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
-        assertEquals(details.getData().get("caseHandedOffToLegacySite"),"Yes");
+                EVENT_ID,
+                EVENT_SUMMARY,
+                EVENT_DESCRIPTION,
+                CASE_TYPE,
+                details);
     }
 
     @Test
-    public void shouldMigrateCasesOfSolIntestacyDeceasedDomicileInEngWales() {
+    public void shouldMigrateOnlyLimitedNumberOfCases() {
         when(dataMigrationService.accepts()).thenReturn(candidate -> true);
         when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
         CaseDetails details = mock(CaseDetails.class);
         when(details.getId()).thenReturn(1677777777L);
-        Map<String, Object> caseDatas = new HashMap<>();
-        caseDatas.put("applicationType","Solicitor");
-        caseDatas.put("caseType", "intestacy");
-        caseDatas.put("deceasedDomicileInEngWales", "No");
-        when(details.getData()).thenReturn(caseDatas);
+        CaseDetails details1 = mock(CaseDetails.class);
         List<CaseDetails> caseDetails = new ArrayList<>();
         caseDetails.add(details);
+        caseDetails.add(details1);
         when(elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE)).thenReturn(caseDetails);
         List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
         assertNotNull(listOfCaseDetails);
         when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details)).thenReturn(details);
+            EVENT_DESCRIPTION, CASE_TYPE, details))
+            .thenReturn(details);
         caseMigrationProcessor.migrateCases(CASE_TYPE);
         verify(coreCaseDataService, times(1))
             .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
-        assertEquals(details.getData().get("caseHandedOffToLegacySite"),"Yes");
-    }
-
-    @Test
-    public void shouldMigrateCasesOfSolAdmonWillWillAccess() {
-        when(dataMigrationService.accepts()).thenReturn(candidate -> true);
-        when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
-        CaseDetails details = mock(CaseDetails.class);
-        when(details.getId()).thenReturn(1677777777L);
-        Map<String, Object> caseDatas = new HashMap<>();
-        caseDatas.put("applicationType","Solicitor");
-        caseDatas.put("caseType", "admonWill");
-        caseDatas.put("willAccessOriginal", "No");
-        caseDatas.put("willAccessNotarial", "Yes");
-        when(details.getData()).thenReturn(caseDatas);
-        List<CaseDetails> caseDetails = new ArrayList<>();
-        caseDetails.add(details);
-        when(elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE)).thenReturn(caseDetails);
-        List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
-        assertNotNull(listOfCaseDetails);
-        when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details)).thenReturn(details);
-        caseMigrationProcessor.migrateCases(CASE_TYPE);
-        verify(coreCaseDataService, times(1))
-            .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
-        assertEquals(details.getData().get("caseHandedOffToLegacySite"),"Yes");
-    }
-
-    @Test
-    public void shouldMigrateCasesOfSolIntestacySolsApplicantRelationshipToDeceased() {
-        when(dataMigrationService.accepts()).thenReturn(candidate -> true);
-        when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
-        CaseDetails details = mock(CaseDetails.class);
-        when(details.getId()).thenReturn(1677777777L);
-        Map<String, Object> caseDatas = new HashMap<>();
-        caseDatas.put("applicationType","Solicitor");
-        caseDatas.put("caseType", "intestacy");
-        caseDatas.put("solsApplicantRelationshipToDeceased", "Yes");
-        when(details.getData()).thenReturn(caseDatas);
-        List<CaseDetails> caseDetails = new ArrayList<>();
-        caseDetails.add(details);
-        when(elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE)).thenReturn(caseDetails);
-        List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
-        assertNotNull(listOfCaseDetails);
-        when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details)).thenReturn(details);
-        caseMigrationProcessor.migrateCases(CASE_TYPE);
-        verify(coreCaseDataService, times(1))
-            .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
-        assertEquals(details.getData().get("caseHandedOffToLegacySite"),"Yes");
-    }
-
-    @Test
-    public void shouldMigrateCasesOfPersonalIntestacy() {
-        when(dataMigrationService.accepts()).thenReturn(candidate -> true);
-        when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
-        CaseDetails details = mock(CaseDetails.class);
-        when(details.getId()).thenReturn(1677777777L);
-        Map<String, Object> caseDatas = new HashMap<>();
-        caseDatas.put("applicationType","Personal");
-        caseDatas.put("caseType", "intestacy");
-        caseDatas.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
-        caseDatas.put("primaryApplicantAdoptionInEnglandOrWales", "Yes");
-        when(details.getData()).thenReturn(caseDatas);
-        List<CaseDetails> caseDetails = new ArrayList<>();
-        caseDetails.add(details);
-        when(elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE)).thenReturn(caseDetails);
-        List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
-        assertNotNull(listOfCaseDetails);
-        when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details)).thenReturn(details);
-        caseMigrationProcessor.migrateCases(CASE_TYPE);
-        verify(coreCaseDataService, times(1))
-            .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
-        assertEquals(details.getData().get("caseHandedOffToLegacySite"),"Yes");
-    }
-
-    @Test
-    public void shouldMigrateCasesOfOtherToDefalult() {
-        when(dataMigrationService.accepts()).thenReturn(candidate -> true);
-        when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
-        CaseDetails details = mock(CaseDetails.class);
-        when(details.getId()).thenReturn(1677777777L);
-        Map<String, Object> caseDatas = new HashMap<>();
-        caseDatas.put("applicationType","Personal");
-        caseDatas.put("caseType", "intestacy");
-        caseDatas.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
-        caseDatas.put("primaryApplicantAdoptionInEnglandOrWales", "No");
-        when(details.getData()).thenReturn(caseDatas);
-        List<CaseDetails> caseDetails = new ArrayList<>();
-        caseDetails.add(details);
-        when(elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE)).thenReturn(caseDetails);
-        List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
-        assertNotNull(listOfCaseDetails);
-        when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details)).thenReturn(details);
-        caseMigrationProcessor.migrateCases(CASE_TYPE);
-        verify(coreCaseDataService, times(1))
-            .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
-        assertEquals(details.getData().get("caseHandedOffToLegacySite"),"No");
+                EVENT_ID,
+                EVENT_SUMMARY,
+                EVENT_DESCRIPTION,
+                CASE_TYPE,
+                details);
     }
 
     @Test
