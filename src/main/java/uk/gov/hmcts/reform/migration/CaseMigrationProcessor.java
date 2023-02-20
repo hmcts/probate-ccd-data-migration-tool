@@ -173,7 +173,6 @@ public class CaseMigrationProcessor {
             Long id = caseDetails.getId();
             log.info("Updating case {} at state {}", id);
             try {
-                Map<String, Object> caseData = caseDetails.getData();
                 coreCaseDataService.update(
                     authorisation,
                     EVENT_ID,
