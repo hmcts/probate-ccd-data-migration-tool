@@ -173,7 +173,7 @@ public class CaseMigrationProcessor {
             Long id = caseDetails.getId();
             log.info("Updating case {} at state {}", id);
             try {
-                coreCaseDataService.update(
+                CaseDetails updateCaseDetails = coreCaseDataService.update(
                     authorisation,
                     EVENT_ID,
                     EVENT_SUMMARY,
@@ -181,8 +181,11 @@ public class CaseMigrationProcessor {
                     caseType,
                     caseDetails
                 );
-                log.info("Case {} successfully updated", id);
-                migratedCases.add(id);
+
+                if (updateCaseDetails != null) {
+                    log.info("Case {} successfully updated", id);
+                    migratedCases.add(id);
+                }
             } catch (Exception e) {
                 log.error("Case {} update failed due to : {}", id, e.getMessage());
                 failedCases.add(id);
