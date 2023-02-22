@@ -104,6 +104,36 @@ public class CaseMigrationProcessor {
                 executorService.shutdown();
                 executorService.awaitTermination(Integer.MAX_VALUE, TimeUnit.DAYS);
             }
+            log.info(
+                """
+                    PROBATE
+                    Data migration completed
+                    {}
+                    Total number of processed cases:
+                    {}
+                    Total number of migrations performed:
+                    {}
+                    {}
+                    """,
+                LOG_STRING,
+                LOG_STRING,
+                getMigratedCases().size() + getFailedCases().size(),
+                getMigratedCases().size(),
+                LOG_STRING
+            );
+
+            if (getMigratedCases().isEmpty()) {
+                log.info("Migrated cases: NONE ");
+            } else {
+                log.info("Migrated cases: {} ", getMigratedCases());
+            }
+
+            if (getFailedCases().isEmpty()) {
+                log.info("Failed cases: NONE ");
+            } else {
+                log.info("Failed cases: {} ", getFailedCases());
+            }
+            log.info("Data migration of cases completed");
         } catch (MigrationLimitReachedException ex) {
             throw ex;
         }
