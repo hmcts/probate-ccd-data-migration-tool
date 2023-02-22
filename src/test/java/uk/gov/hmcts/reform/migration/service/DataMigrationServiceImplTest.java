@@ -83,7 +83,7 @@ public class DataMigrationServiceImplTest {
         Map<String, Object> data = new HashMap<>();
         data.put("applicationType","Solicitor");
         data.put("caseType", "intestacy");
-        data.put("solsApplicantRelationshipToDeceased", "ChildAdopted");
+        data.put("solsApplicantRelationshipToDeceased", "Yes");
         Map<String, Object> result = service.migrate(data);
         assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
     }
