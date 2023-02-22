@@ -58,7 +58,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (caseData.containsKey("applicationType") && caseData.get("applicationType").equals("Solicitor")
             && caseData.containsKey("caseType") && caseData.get("caseType").equals("intestacy")
             && caseData.containsKey("solsApplicantRelationshipToDeceased")
-            && caseData.get("solsApplicantRelationshipToDeceased").equals("Yes")
+            && caseData.get("solsApplicantRelationshipToDeceased").equals("ChildAdopted")
         ) {
             return true;
         }
