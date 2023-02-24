@@ -136,7 +136,7 @@ public class CaseMigrationRollbackProcessor {
         showRollbackSummary();
     }
 
-    private void showRollbackSummary(){
+    private void showRollbackSummary() {
         log.info(
             """
                 PROBATE
