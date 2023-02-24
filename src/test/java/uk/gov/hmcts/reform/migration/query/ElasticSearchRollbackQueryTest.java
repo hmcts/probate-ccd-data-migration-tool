@@ -11,8 +11,9 @@ import static junit.framework.TestCase.assertEquals;
 public class ElasticSearchRollbackQueryTest {
 
     private static final int QUERY_SIZE = 100;
-    private static String START_DATETIME="2023-02-24T14:00:00";
-    private static String EBD_DATETIME="2023-02-25T16:00:00";
+    private static String START_DATETIME = "2023-02-24T14:00:00";
+    private static String EBD_DATETIME = "2023-02-25T16:00:00";
+
     @Test
     public void shouldReturnQuery() {
         ElasticSearchRollbackQuery elasticSearchQuery =  ElasticSearchRollbackQuery.builder()
