@@ -16,11 +16,20 @@ public class CaseMigrationRunner implements CommandLineRunner {
     @Autowired
     private CaseMigrationProcessor caseMigrationProcessor;
 
+    @Autowired
+    private CaseMigrationRollbackProcessor caseMigrationRollbackProcessor;
+
     @Value("${migration.caseType}")
     private String caseType;
 
     @Value("${default.thread.limit}")
     private int defaultThreadLimit;
+
+    @Value("${migration.rollback.start.datetime}")
+    private String migrationrollbackStartDatetime;
+
+    @Value("${migration.rollback.end.datetime}")
+    private String migrationrollbackEndDatetime;
 
     public static void main(String[] args) {
         SpringApplication.run(CaseMigrationRunner.class, args);
@@ -31,11 +40,26 @@ public class CaseMigrationRunner implements CommandLineRunner {
         try {
             if (defaultThreadLimit <= 1) {
                 log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
-                caseMigrationProcessor.migrateCases(caseType);
+                if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
+                    && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
+                    log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                        migrationrollbackStartDatetime, migrationrollbackEndDatetime);
+                    caseMigrationRollbackProcessor.rollbackCases(caseType);
+                } else {
+                    caseMigrationProcessor.migrateCases(caseType);
+                }
             } else {
                 log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
-                caseMigrationProcessor.process(caseType);
+                if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
+                    && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
+                    log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                        migrationrollbackStartDatetime, migrationrollbackEndDatetime);
+                    caseMigrationRollbackProcessor.processRollback(caseType);
+                } else {
+                    caseMigrationProcessor.process(caseType);
+                }
             }
+
 
         } catch (Exception e) {
             log.error("Migration failed with the following reason: {}", e.getMessage(), e);

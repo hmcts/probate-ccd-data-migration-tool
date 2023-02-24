@@ -15,6 +15,15 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     @Override
+    public Map<String, Object> rollback(Map<String, Object> data) {
+        if (data == null) {
+            return null;
+        }
+        data.remove("caseHandedOffToLegacySite");
+        return data;
+    }
+
+    @Override
     public Map<String, Object> migrate(Map<String, Object> data) {
         if (data == null) {
             return null;
