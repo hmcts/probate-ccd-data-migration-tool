@@ -19,7 +19,8 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         }
-        data.remove("caseHandedOffToLegacySite");
+        //data.remove("caseHandedOffToLegacySite");
+        //data.put("caseHandedOffToLegacySite",null);
         return data;
     }
 
@@ -28,7 +29,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         }
-        if (setCaseToHandedOffToLegacySite(data)) {
+        if (shouldCaseToHandedOffToLegacySite(data)) {
             data.put("caseHandedOffToLegacySite","Yes");
         } else {
             data.put("caseHandedOffToLegacySite","No");
@@ -36,7 +37,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         return data;
     }
 
-    private boolean setCaseToHandedOffToLegacySite(Map<String, Object> caseData) {
+    private boolean shouldCaseToHandedOffToLegacySite(Map<String, Object> caseData) {
         if (caseData.containsKey("applicationType") && caseData.get("applicationType").equals("Solicitor")
             && (caseData.containsKey("titleAndClearingType")
             && (caseData.get("titleAndClearingType").equals("TCTTrustCorpResWithSDJ")

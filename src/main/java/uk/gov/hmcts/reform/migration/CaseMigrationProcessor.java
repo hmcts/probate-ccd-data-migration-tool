@@ -201,7 +201,7 @@ public class CaseMigrationProcessor {
     private void updateCase(String authorisation, String caseType, CaseDetails caseDetails) {
         if (dataMigrationService.accepts().test(caseDetails)) {
             Long id = caseDetails.getId();
-            log.info("Updating case {} at state {}", id);
+            log.info("Updating case {}", id);
             try {
                 CaseDetails updateCaseDetails = coreCaseDataService.update(
                     authorisation,
