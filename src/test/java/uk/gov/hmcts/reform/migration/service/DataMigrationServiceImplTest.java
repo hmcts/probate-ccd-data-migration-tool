@@ -46,4 +46,67 @@ public class DataMigrationServiceImplTest {
         assertNull(result);
         assertEquals(null, result);
     }
+
+    @Test
+    public void shouldMigrateCasesOfSolGopTrustCorp() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Solicitor");
+        data.put("caseType", "gop");
+        data.put("titleAndClearingType", "TCTTrustCorpResWithSDJ");
+        Map<String, Object> result = service.migrate(data);
+        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+    }
+
+    @Test
+    public void shouldMigrateCasesOfSolIntestacyDeceasedDomicileInEngWales() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Solicitor");
+        data.put("caseType", "intestacy");
+        data.put("deceasedDomicileInEngWales", "No");
+        Map<String, Object> result = service.migrate(data);
+        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+    }
+
+    @Test
+    public void shouldMigrateCasesOfSolAdmonWillWillAccess() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Solicitor");
+        data.put("caseType", "admonWill");
+        data.put("willAccessOriginal", "No");
+        data.put("willAccessNotarial", "Yes");
+        Map<String, Object> result = service.migrate(data);
+        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+    }
+
+    @Test
+    public void shouldMigrateCasesOfSolIntestacySolsApplicantRelationshipToDeceased() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Solicitor");
+        data.put("caseType", "intestacy");
+        data.put("solsApplicantRelationshipToDeceased", "ChildAdopted");
+        Map<String, Object> result = service.migrate(data);
+        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+    }
+
+    @Test
+    public void shouldMigrateCasesOfPersonalIntestacy() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Personal");
+        data.put("caseType", "intestacy");
+        data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
+        data.put("primaryApplicantAdoptionInEnglandOrWales", "Yes");
+        Map<String, Object> result = service.migrate(data);
+        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+    }
+
+    @Test
+    public void shouldMigrateCasesOfOtherToDefalult() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Personal");
+        data.put("caseType", "intestacy");
+        data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
+        data.put("primaryApplicantAdoptionInEnglandOrWales", "No");
+        Map<String, Object> result = service.migrate(data);
+        assertEquals(result.get("caseHandedOffToLegacySite"),"No");
+    }
 }

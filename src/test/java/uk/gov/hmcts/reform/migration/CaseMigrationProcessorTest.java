@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -29,10 +30,10 @@ import static org.mockito.Mockito.when;
 public class CaseMigrationProcessorTest {
 
     private static final String USER_TOKEN = "Bearer eeeejjjttt";
-    private static final String EVENT_ID = "migrateCase";
-    private static final String EVENT_SUMMARY = "Migrate Case";
-    private static final String EVENT_DESCRIPTION = "Migrate Case";
-    private static final String CASE_TYPE = "Test_Case_Type";
+    private static final String EVENT_ID = "boHistoryCorrection";
+    private static final String EVENT_SUMMARY = "Data migration - hand off flag change";
+    private static final String EVENT_DESCRIPTION = "Data migration - hand off flag change";
+    private static final String CASE_TYPE = "GrantOfRepresentation";
 
     @InjectMocks
     private CaseMigrationProcessor caseMigrationProcessor;
@@ -41,7 +42,7 @@ public class CaseMigrationProcessorTest {
     private CoreCaseDataService coreCaseDataService;
 
     @Mock
-    private DataMigrationService dataMigrationService;
+    private DataMigrationService<Map<String, Object>> dataMigrationService;
 
     @Mock
     private ElasticSearchRepository elasticSearchRepository;
@@ -66,16 +67,16 @@ public class CaseMigrationProcessorTest {
         List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
         assertNotNull(listOfCaseDetails);
         when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details))
+            EVENT_DESCRIPTION, CASE_TYPE, details))
             .thenReturn(details);
         caseMigrationProcessor.migrateCases(CASE_TYPE);
         verify(coreCaseDataService, times(1))
             .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
+                EVENT_ID,
+                EVENT_SUMMARY,
+                EVENT_DESCRIPTION,
+                CASE_TYPE,
+                details);
     }
 
     @Test
@@ -92,16 +93,16 @@ public class CaseMigrationProcessorTest {
         List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(USER_TOKEN, CASE_TYPE);
         assertNotNull(listOfCaseDetails);
         when(coreCaseDataService.update(USER_TOKEN, EVENT_ID, EVENT_SUMMARY,
-                                        EVENT_DESCRIPTION, CASE_TYPE, details))
+            EVENT_DESCRIPTION, CASE_TYPE, details))
             .thenReturn(details);
         caseMigrationProcessor.migrateCases(CASE_TYPE);
         verify(coreCaseDataService, times(1))
             .update(USER_TOKEN,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    CASE_TYPE,
-                    details);
+                EVENT_ID,
+                EVENT_SUMMARY,
+                EVENT_DESCRIPTION,
+                CASE_TYPE,
+                details);
     }
 
     @Test

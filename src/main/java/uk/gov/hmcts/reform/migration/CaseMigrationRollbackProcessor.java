@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.ccd.client.model.SearchResult;
 import uk.gov.hmcts.reform.domain.exception.CaseMigrationException;
 import uk.gov.hmcts.reform.domain.exception.MigrationLimitReachedException;
 import uk.gov.hmcts.reform.migration.ccd.CoreCaseDataService;
-import uk.gov.hmcts.reform.migration.repository.ElasticSearchRepository;
+import uk.gov.hmcts.reform.migration.repository.ElasticSearchRollbackRepository;
 import uk.gov.hmcts.reform.migration.repository.IdamRepository;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
@@ -25,10 +25,10 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Component
-public class CaseMigrationProcessor {
+public class CaseMigrationRollbackProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - hand off flag change";
-    private static final String EVENT_DESCRIPTION = "Data migration - hand off flag change";
+    private static final String EVENT_SUMMARY = "Data migration - hand off flag Rollback change";
+    private static final String EVENT_DESCRIPTION = "Data migration - hand off flag Rollback change";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -38,7 +38,7 @@ public class CaseMigrationProcessor {
     private DataMigrationService<Map<String, Object>> dataMigrationService;
 
     @Autowired
-    private ElasticSearchRepository elasticSearchRepository;
+    private ElasticSearchRollbackRepository elasticSearchRollbackRepository;
 
     @Autowired
     private IdamRepository idamRepository;
@@ -58,15 +58,22 @@ public class CaseMigrationProcessor {
     @Value("${default.query.size}")
     private int defaultQuerySize;
 
-    public void process(String caseType) throws InterruptedException {
+    @Value("${migration.rollback.start.datetime}")
+    private String migrationrollbackStartDatetime;
+
+    @Value("${migration.rollback.end.datetime}")
+    private String migrationrollbackEndDatetime;
+
+    public void processRollback(String caseType) throws InterruptedException {
         try {
             validateCaseType(caseType);
-            log.info("Data migration of cases started for case type: {}", caseType);
-            log.info("Data migration of cases started for defaultThreadLimit: {} defaultQuerySize : {}",
+            log.info("Data migration rollback of cases started for case type: {}", caseType);
+            log.info("Data migration rollback of cases started for defaultThreadLimit: {} defaultQuerySize : {}",
                      defaultThreadLimit, defaultQuerySize);
             String userToken =  idamRepository.generateUserToken();
 
-            SearchResult searchResult = elasticSearchRepository.fetchFirstPage(userToken, caseType, defaultQuerySize);
+            SearchResult searchResult = elasticSearchRollbackRepository.fetchFirstPage(userToken, caseType,
+                defaultQuerySize);
             if (searchResult != null && searchResult.getTotal() > 0) {
                 ExecutorService executorService = Executors.newFixedThreadPool(defaultThreadLimit);
 
@@ -76,11 +83,11 @@ public class CaseMigrationProcessor {
                     .forEach(submitMigration(userToken, caseType, executorService));
                 String searchAfterValue = searchResultCases.get(searchResultCases.size() - 1).getId().toString();
 
-                log.info("Data migration of cases started for searchAfterValue : {}",searchAfterValue);
+                log.info("Data migration rollback of cases started for searchAfterValue : {}",searchAfterValue);
 
                 boolean keepSearching;
                 do {
-                    SearchResult subsequentSearchResult = elasticSearchRepository.fetchNextPage(userToken,
+                    SearchResult subsequentSearchResult = elasticSearchRollbackRepository.fetchNextPage(userToken,
                                                                         caseType,
                                                                         searchAfterValue,
                                                                         defaultQuerySize);
@@ -104,36 +111,7 @@ public class CaseMigrationProcessor {
                 executorService.shutdown();
                 executorService.awaitTermination(Integer.MAX_VALUE, TimeUnit.DAYS);
             }
-            log.info(
-                """
-                    PROBATE
-                    Data migration completed
-                    {}
-                    Total number of processed cases:
-                    {}
-                    Total number of migrations performed:
-                    {}
-                    {}
-                    """,
-                LOG_STRING,
-                LOG_STRING,
-                getMigratedCases().size() + getFailedCases().size(),
-                getMigratedCases().size(),
-                LOG_STRING
-            );
-
-            if (getMigratedCases().isEmpty()) {
-                log.info("Migrated cases: NONE ");
-            } else {
-                log.info("Migrated cases: {} ", getMigratedCases());
-            }
-
-            if (getFailedCases().isEmpty()) {
-                log.info("Failed cases: NONE ");
-            } else {
-                log.info("Failed cases: {} ", getFailedCases());
-            }
-            log.info("Data migration of cases completed");
+            showRollbackSummary();
         } catch (MigrationLimitReachedException ex) {
             throw ex;
         }
@@ -147,22 +125,26 @@ public class CaseMigrationProcessor {
     }
 
 
-    public void migrateCases(String caseType) {
+    public void rollbackCases(String caseType) {
         validateCaseType(caseType);
         log.info("Data migration of cases started for case type: {}", caseType);
         String userToken =  idamRepository.generateUserToken();
-        List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(userToken, caseType);
+        List<CaseDetails> listOfCaseDetails = elasticSearchRollbackRepository.findCaseByCaseType(userToken, caseType);
         listOfCaseDetails.stream()
             .limit(caseProcessLimit)
             .forEach(caseDetails -> updateCase(userToken, caseType, caseDetails));
+        showRollbackSummary();
+    }
+
+    private void showRollbackSummary() {
         log.info(
             """
                 PROBATE
-                Data migration completed
+                Data migration rollback completed
                 {}
-                Total number of processed cases:
+                Total number of rollback processed cases:
                 {}
-                Total number of migrations performed:
+                Total number of rollback migrations performed:
                 {}
                 {}
                 """,
@@ -174,17 +156,17 @@ public class CaseMigrationProcessor {
         );
 
         if (getMigratedCases().isEmpty()) {
-            log.info("Migrated cases: NONE ");
+            log.info("Rollback cases: NONE ");
         } else {
-            log.info("Migrated cases: {} ", getMigratedCases());
+            log.info("Rollback cases: {} ", getMigratedCases());
         }
 
         if (getFailedCases().isEmpty()) {
-            log.info("Failed cases: NONE ");
+            log.info("Failed Rollback cases: NONE ");
         } else {
-            log.info("Failed cases: {} ", getFailedCases());
+            log.info("Failed Rollback cases: {} ", getFailedCases());
         }
-        log.info("Data migration of cases completed");
+        log.info("Data migration Rollback of cases completed");
     }
 
     private void validateCaseType(String caseType) {
@@ -201,9 +183,9 @@ public class CaseMigrationProcessor {
     private void updateCase(String authorisation, String caseType, CaseDetails caseDetails) {
         if (dataMigrationService.accepts().test(caseDetails)) {
             Long id = caseDetails.getId();
-            log.info("Updating case {}", id);
+            log.info("Rollback case {}", id);
             try {
-                CaseDetails updateCaseDetails = coreCaseDataService.update(
+                CaseDetails updateCaseDetails = coreCaseDataService.rollback(
                     authorisation,
                     EVENT_ID,
                     EVENT_SUMMARY,
@@ -213,15 +195,15 @@ public class CaseMigrationProcessor {
                 );
 
                 if (updateCaseDetails != null) {
-                    log.info("Case {} successfully updated", id);
+                    log.info("Case {} successfully rollback", id);
                     migratedCases.add(id);
                 }
             } catch (Exception e) {
-                log.error("Case {} update failed due to : {}", id, e.getMessage());
+                log.error("Case {} rollback failed due to : {}", id, e.getMessage());
                 failedCases.add(id);
             }
         } else {
-            log.info("Case {} does not meet criteria for migration", caseDetails.getId());
+            log.info("Case {} does not meet criteria for rollback", caseDetails.getId());
         }
     }
 }

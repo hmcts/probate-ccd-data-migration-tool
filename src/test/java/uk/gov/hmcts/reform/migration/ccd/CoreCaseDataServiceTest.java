@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -39,6 +40,9 @@ public class CoreCaseDataServiceTest {
 
     @Mock
     CoreCaseDataApi coreCaseDataApi;
+
+    @Mock
+    private DataMigrationService<Map<String, Object>> dataMigrationService;
 
     @Mock
     private IdamClient idamClient;
@@ -95,10 +99,19 @@ public class CoreCaseDataServiceTest {
 
         when(authTokenGenerator.generate()).thenReturn(AUTH_TOKEN);
 
+        CaseDetails caseDetails = CaseDetails.builder()
+            .id(123456789L)
+            .data(data)
+            .build();
+
         StartEventResponse startEventResponse = StartEventResponse.builder()
             .eventId(EVENT_ID)
             .token(EVENT_TOKEN)
+            .caseDetails(caseDetails)
             .build();
+
+        when(dataMigrationService.migrate(data))
+            .thenReturn(data);
 
         when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, "30",
                                                      null, CASE_TYPE, CASE_ID, EVENT_ID
@@ -116,10 +129,7 @@ public class CoreCaseDataServiceTest {
             .ignoreWarning(false)
             .build();
 
-        CaseDetails caseDetails = CaseDetails.builder()
-            .id(123456789L)
-            .data(data)
-            .build();
+
         when(coreCaseDataApi.submitEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, USER_ID, null,
                                                       CASE_TYPE, CASE_ID, true, caseDataContent
         )).thenReturn(caseDetails);
