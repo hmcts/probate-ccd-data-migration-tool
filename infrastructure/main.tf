@@ -18,20 +18,6 @@ data "azurerm_user_assigned_identity" "rpe-shared-identity" {
   resource_group_name = "managed-identities-${var.env}-rg"
 }
 
-module "key-vault" {
-  source              = "git@github.com:hmcts/cnp-module-key-vault?ref=master"
-  product             = var.product
-  env                 = var.env
-  tenant_id           = var.tenant_id
-  object_id           = var.jenkins_AAD_objectId
-  resource_group_name = azurerm_resource_group.rg.name
-
-  # dcd_cc-dev group object ID
-  product_group_object_id     = "38f9dea6-e861-4a50-9e73-21e64f563537"
-  common_tags                 = var.common_tags
-  managed_identity_object_ids = ["${data.azurerm_user_assigned_identity.rpe-shared-identity.principal_id}"]
-}
-
 resource "azurerm_application_insights" "appinsights" {
   name                = "${var.product}-${var.component}-appinsights-${var.env}"
   location            = var.appinsights_location
