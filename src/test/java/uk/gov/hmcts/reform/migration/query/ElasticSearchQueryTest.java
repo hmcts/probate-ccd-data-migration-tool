@@ -23,19 +23,13 @@ public class ElasticSearchQueryTest {
         {
           "query": {
             "bool": {
-               "must_not": {
-                 {"match": { "data.bulkScanEnvelopes": "[]" }}
-               },
-                "must": [
-                      {"match": { "data.registryLocation": "Newcastle" }}
-                ],
-                "must": [
-                      {"match": { data.paperForm": "Yes" }}
-                ],
-                "must": [
-                      {"match": { "data.applicationType": "Solicitor" }}
-                ],
-            }
+              "must": [
+                     {"match": { "data.applicationType": "Solicitor" }},
+                     {"match": { "data.registryLocation": "Newcastle" }},
+                     {"match": { "data.paperForm": "Yes" }}
+                 ],
+                 "must_not": { "match": { "data.bulkScanEnvelopes": "[]" }}
+                  }
           },
           "size": 100,
           "sort": [
@@ -59,19 +53,13 @@ public class ElasticSearchQueryTest {
         {
           "query": {
             "bool": {
-               "must_not": {
-                 {"match": { "data.bulkScanEnvelopes": "[]" }}
-               },
-                "must": [
-                      {"match": { "data.registryLocation": "Newcastle" }}
-                ],
-                "must": [
-                      {"match": { data.paperForm": "Yes" }}
-                ],
-                "must": [
-                      {"match": { "data.applicationType": "Solicitor" }}
-                ],
-            }
+              "must": [
+                     {"match": { "data.applicationType": "Solicitor" }},
+                     {"match": { "data.registryLocation": "Newcastle" }},
+                     {"match": { "data.paperForm": "Yes" }}
+                 ],
+                 "must_not": { "match": { "data.bulkScanEnvelopes": "[]" }}
+                  }
           },
           "size": 100,
           "sort": [
