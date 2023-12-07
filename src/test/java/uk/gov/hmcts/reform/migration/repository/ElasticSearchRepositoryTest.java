@@ -38,6 +38,9 @@ public class ElasticSearchRepositoryTest {
                    "field": "data.caseHandedOffToLegacySite"
                  }
                },
+                "must": [
+                      {"match": { "data.registryLocation": "Newcastle" }}
+                ],
                 "should": [
                      {"match": { "state": "CaseCreated" }},
                      {"match": { "state": "CasePaymentFailed" }},
@@ -84,6 +87,9 @@ public class ElasticSearchRepositoryTest {
                    "field": "data.caseHandedOffToLegacySite"
                  }
                },
+                "must": [
+                      {"match": { "data.registryLocation": "Newcastle" }}
+                ],
                 "should": [
                      {"match": { "state": "CaseCreated" }},
                      {"match": { "state": "CasePaymentFailed" }},

@@ -54,7 +54,7 @@ public class DataMigrationServiceImplTest {
         data.put("caseType", "gop");
         data.put("titleAndClearingType", "TCTTrustCorpResWithSDJ");
         Map<String, Object> result = service.migrate(data);
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+        assertEquals("ctsc",result.get("registryLocation"));
     }
 
     @Test
@@ -64,7 +64,7 @@ public class DataMigrationServiceImplTest {
         data.put("caseType", "intestacy");
         data.put("deceasedDomicileInEngWales", "No");
         Map<String, Object> result = service.migrate(data);
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+        assertEquals("ctsc",result.get("registryLocation"));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class DataMigrationServiceImplTest {
         data.put("willAccessOriginal", "No");
         data.put("willAccessNotarial", "Yes");
         Map<String, Object> result = service.migrate(data);
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+        assertEquals("ctsc",result.get("registryLocation"));
     }
 
     @Test
@@ -85,7 +85,7 @@ public class DataMigrationServiceImplTest {
         data.put("caseType", "intestacy");
         data.put("solsApplicantRelationshipToDeceased", "ChildAdopted");
         Map<String, Object> result = service.migrate(data);
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+        assertEquals("ctsc",result.get("registryLocation"));
     }
 
     @Test
@@ -96,7 +96,7 @@ public class DataMigrationServiceImplTest {
         data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
         data.put("primaryApplicantAdoptionInEnglandOrWales", "Yes");
         Map<String, Object> result = service.migrate(data);
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
+        assertEquals("ctsc",result.get("registryLocation"));
     }
 
     @Test
