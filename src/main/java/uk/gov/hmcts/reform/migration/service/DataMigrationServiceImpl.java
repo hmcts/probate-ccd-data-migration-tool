@@ -30,7 +30,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             return null;
         }
         if (shouldCaseToHandedOffToLegacySite(data)) {
-            data.put("caseHandedOffToLegacySite","Yes");
+            data.put("registryLocation","ctsc");
         } else {
             data.put("caseHandedOffToLegacySite","No");
         }

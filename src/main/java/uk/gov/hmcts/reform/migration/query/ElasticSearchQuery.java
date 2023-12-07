@@ -47,16 +47,7 @@ public class ElasticSearchQuery {
             {
               "reference.keyword": "asc"
             }
-          ],
-          "script": {
-          UPDATE case_data
-          SET data = jsonb_set(data, '{registryLocation}', 'null'::jsonb)
-          WHERE jurisdiction = 'PROBATE'
-            AND data ->> 'applicationType' = 'Solicitor'
-            AND data ->> 'paperForm' = 'Yes'
-            AND data->>'bulkScanEnvelopes' != '[]'
-            AND data ->>'registryLocation' ='Newcastle'
-          }
+          ]
           """;
 
     private static final String END_QUERY = "\n    }";
