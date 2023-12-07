@@ -24,39 +24,17 @@ public class ElasticSearchQueryTest {
           "query": {
             "bool": {
                "must_not": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
+                 {"match": { "data.bulkScanEnvelopes": "[]" }}
                },
                 "must": [
                       {"match": { "data.registryLocation": "Newcastle" }}
                 ],
-                "should": [
-                     {"match": { "state": "CaseCreated" }},
-                     {"match": { "state": "CasePaymentFailed" }},
-                     {"match": { "state": "Stopped" }},
-                     {"match": { "state": "Dormant" }},
-                     {"match": { "state": "CasePrinted" }},
-                     {"match": { "state": "BOReadyForExamination" }},
-                     {"match": { "state": "BOExamining" }},
-                     {"match": { "state": "BOCaseStopped" }},
-                     {"match": { "state": "BOCaveatPermenant" }},
-                     {"match": { "state": "BORegistrarEscalation" }},
-                     {"match": { "state": "BOReadyToIssue" }},
-                     {"match": { "state": "BOCaseQA" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BOCaseMatchingExamining" }},
-                     {"match": { "state": "BOCaseClosed" }},
-                     {"match": { "state": "applyforGrantPaperApplication" }},
-                     {"match": { "state": "BOCaseImported" }},
-                     {"match": { "state": "BOExaminingReissue" }},
-                     {"match": { "state": "BOCaseMatchingReissue" }},
-                     {"match": { "state": "BOCaseStoppedReissue" }},
-                     {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BORedecNotificationSent" }},
-                     {"match": { "state": "BOSotGenerated" }}
-                ]
+                "must": [
+                      {"match": { data.paperForm": "Yes" }}
+                ],
+                "must": [
+                      {"match": { "data.applicationType": "Solicitor" }}
+                ],
             }
           },
           "size": 100,
@@ -82,39 +60,17 @@ public class ElasticSearchQueryTest {
           "query": {
             "bool": {
                "must_not": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
+                 {"match": { "data.bulkScanEnvelopes": "[]" }}
                },
                 "must": [
                       {"match": { "data.registryLocation": "Newcastle" }}
                 ],
-                "should": [
-                     {"match": { "state": "CaseCreated" }},
-                     {"match": { "state": "CasePaymentFailed" }},
-                     {"match": { "state": "Stopped" }},
-                     {"match": { "state": "Dormant" }},
-                     {"match": { "state": "CasePrinted" }},
-                     {"match": { "state": "BOReadyForExamination" }},
-                     {"match": { "state": "BOExamining" }},
-                     {"match": { "state": "BOCaseStopped" }},
-                     {"match": { "state": "BOCaveatPermenant" }},
-                     {"match": { "state": "BORegistrarEscalation" }},
-                     {"match": { "state": "BOReadyToIssue" }},
-                     {"match": { "state": "BOCaseQA" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BOCaseMatchingExamining" }},
-                     {"match": { "state": "BOCaseClosed" }},
-                     {"match": { "state": "applyforGrantPaperApplication" }},
-                     {"match": { "state": "BOCaseImported" }},
-                     {"match": { "state": "BOExaminingReissue" }},
-                     {"match": { "state": "BOCaseMatchingReissue" }},
-                     {"match": { "state": "BOCaseStoppedReissue" }},
-                     {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BORedecNotificationSent" }},
-                     {"match": { "state": "BOSotGenerated" }}
-                ]
+                "must": [
+                      {"match": { data.paperForm": "Yes" }}
+                ],
+                "must": [
+                      {"match": { "data.applicationType": "Solicitor" }}
+                ],
             }
           },
           "size": 100,
