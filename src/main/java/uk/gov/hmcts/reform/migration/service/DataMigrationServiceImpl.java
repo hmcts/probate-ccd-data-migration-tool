@@ -1,13 +1,19 @@
 package uk.gov.hmcts.reform.migration.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.domain.common.Organisation;
+import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
+import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
 import java.util.Map;
 import java.util.function.Predicate;
 
 @Service
+@RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
+    private final OrganisationsRetrievalService organisationsRetrievalService;
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -25,15 +31,31 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     @Override
-    public Map<String, Object> migrate(Map<String, Object> data) {
+    public Map<String, Object> migrate(Long id, Map<String, Object> data, String token) {
         if (data == null) {
             return null;
         }
-        if (shouldCaseToHandedOffToLegacySite(data)) {
+        OrganisationEntityResponse organisationEntityResponse = null;
+        if (null != token) {
+            organisationEntityResponse = organisationsRetrievalService.getOrganisationEntity(
+                id.toString(), token);
+        }
+        if (null != organisationEntityResponse) {
+            OrganisationPolicy policy = OrganisationPolicy.builder()
+                .organisation(Organisation.builder()
+                    .organisationID(organisationEntityResponse.getOrganisationIdentifier())
+                    .organisationName(organisationEntityResponse.getName())
+                    .build())
+                .orgPolicyReference(null)
+                .orgPolicyCaseAssignedRole("[APPLICANTSOLICITOR]")
+                .build();
+            data.put("applicantOrganisationPolicy", policy);
+        }
+        /*if (shouldCaseToHandedOffToLegacySite(data)) {
             data.put("caseHandedOffToLegacySite","Yes");
         } else {
             data.put("caseHandedOffToLegacySite","No");
-        }
+        }*/
         return data;
     }
 

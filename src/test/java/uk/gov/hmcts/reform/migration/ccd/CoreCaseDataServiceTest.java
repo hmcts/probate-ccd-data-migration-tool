@@ -110,7 +110,7 @@ public class CoreCaseDataServiceTest {
             .caseDetails(caseDetails)
             .build();
 
-        when(dataMigrationService.migrate(data))
+        when(dataMigrationService.migrate(1L,data, "token"))
             .thenReturn(data);
 
         when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, "30",

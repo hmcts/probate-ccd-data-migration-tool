@@ -58,7 +58,8 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.migrate(updatedCaseDetails.getData()))
+                ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
+                    startEventResponse.getToken()))
                 .build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
