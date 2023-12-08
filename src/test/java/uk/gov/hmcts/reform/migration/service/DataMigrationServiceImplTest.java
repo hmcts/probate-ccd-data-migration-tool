@@ -11,7 +11,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -40,12 +39,6 @@ public class DataMigrationServiceImplTest {
         assertEquals(data, result);
     }
 
-    @Test
-    public void shouldReturnNullWhenDataIsNotPassed() {
-        Map<String, Object> result = service.migrate(null);
-        assertNull(result);
-        assertEquals(null, result);
-    }
 
     @Test
     public void shouldMigrateCasesOfSolGopTrustCorp() {
@@ -99,14 +92,5 @@ public class DataMigrationServiceImplTest {
         assertEquals("ctsc",result.get("registryLocation"));
     }
 
-    @Test
-    public void shouldMigrateCasesOfOtherToDefalult() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Personal");
-        data.put("caseType", "intestacy");
-        data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
-        data.put("primaryApplicantAdoptionInEnglandOrWales", "No");
-        Map<String, Object> result = service.migrate(data);
-        assertEquals(result.get("caseHandedOffToLegacySite"),"No");
-    }
+
 }

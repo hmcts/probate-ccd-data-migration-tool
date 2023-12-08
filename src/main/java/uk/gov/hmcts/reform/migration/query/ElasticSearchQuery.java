@@ -12,9 +12,9 @@ public class ElasticSearchQuery {
               "must": [
                      {"match": { "data.applicationType": "Solicitor" }},
                      {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }}
-                 ],
-                 "must_not": { "match": { "data.bulkScanEnvelopes": "[]" }}
+                     {"match": { "data.paperForm": "Yes" }},
+                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                 ]
                   }
           },
           "size": %s,

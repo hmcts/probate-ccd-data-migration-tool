@@ -26,9 +26,9 @@ public class ElasticSearchQueryTest {
               "must": [
                      {"match": { "data.applicationType": "Solicitor" }},
                      {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }}
-                 ],
-                 "must_not": { "match": { "data.bulkScanEnvelopes": "[]" }}
+                     {"match": { "data.paperForm": "Yes" }},
+                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                 ]
                   }
           },
           "size": 100,
@@ -56,9 +56,9 @@ public class ElasticSearchQueryTest {
               "must": [
                      {"match": { "data.applicationType": "Solicitor" }},
                      {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }}
-                 ],
-                 "must_not": { "match": { "data.bulkScanEnvelopes": "[]" }}
+                     {"match": { "data.paperForm": "Yes" }},
+                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                 ]
                   }
           },
           "size": 100,
