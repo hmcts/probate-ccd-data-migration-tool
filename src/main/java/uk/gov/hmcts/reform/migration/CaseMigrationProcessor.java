@@ -202,7 +202,7 @@ public class CaseMigrationProcessor {
         if (dataMigrationService.accepts().test(caseDetails)) {
             Long id = caseDetails.getId();
             log.info("Updating case {}", id);
-            /*try {
+            try {
                 CaseDetails updateCaseDetails = coreCaseDataService.update(
                     authorisation,
                     EVENT_ID,
@@ -219,7 +219,7 @@ public class CaseMigrationProcessor {
             } catch (Exception e) {
                 log.error("Case {} update failed due to : {}", id, e.getMessage());
                 failedCases.add(id);
-            }*/
+            }
         } else {
             log.info("Case {} does not meet criteria for migration", caseDetails.getId());
         }

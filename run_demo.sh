@@ -7,6 +7,7 @@
 -Didam.client.redirect_uri="https://probate-frontend-demo.service.core-compute-demo.internal/oauth2/callback" \
 -Dcore_case_data.api.url="http://ccd-data-store-api-demo.service.core-compute-demo.internal" \
 -Didam.s2s-auth.url="http://rpe-service-auth-provider-demo.service.core-compute-demo.internal" \
+-Dprd.organisations.url="http://rd-professional-api-demo.service.core-compute-demo.internal" \
 -Didam.s2s-auth.microservice="probate_backend" \
 -Didam.s2s-auth.totp_secret="2MCCIH6ATQDXLBEH" \
 -Dmigration.idam.username="ProbateSchedulerDEMO@gmail.com" \

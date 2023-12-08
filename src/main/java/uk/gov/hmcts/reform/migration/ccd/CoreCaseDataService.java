@@ -49,7 +49,6 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (!updatedCaseDetails.getData().containsKey("caseHandedOffToLegacySite")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -59,7 +58,7 @@ public class CoreCaseDataService {
                         .description(eventDescription)
                         .build()
                 ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
-                    startEventResponse.getToken()))
+                    AuthUtil.getBearerToken(authorisation)))
                 .build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
@@ -70,9 +69,6 @@ public class CoreCaseDataService {
                 caseId,
                 true,
                 caseDataContent);
-        } else {
-            return null;
-        }
     }
 
     public CaseDetails rollback(String authorisation, String eventId,

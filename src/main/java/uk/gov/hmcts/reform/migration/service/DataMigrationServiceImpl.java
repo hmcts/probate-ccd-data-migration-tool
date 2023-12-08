@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.migration.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.Organisation;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 import java.util.Map;
 import java.util.function.Predicate;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
@@ -39,6 +41,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (null != token) {
             organisationEntityResponse = organisationsRetrievalService.getOrganisationEntity(
                 id.toString(), token);
+            log.info("Org response {}", organisationEntityResponse);
         }
         if (null != organisationEntityResponse) {
             OrganisationPolicy policy = OrganisationPolicy.builder()
@@ -50,6 +53,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
                 .orgPolicyCaseAssignedRole("[APPLICANTSOLICITOR]")
                 .build();
             data.put("applicantOrganisationPolicy", policy);
+            log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
         }
         /*if (shouldCaseToHandedOffToLegacySite(data)) {
             data.put("caseHandedOffToLegacySite","Yes");
