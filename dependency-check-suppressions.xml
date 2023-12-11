@@ -695,7 +695,7 @@
     </suppress>
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -704,7 +704,7 @@
 
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-actuator-autoconfigure-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-actuator-autoconfigure-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-actuator-autoconfigure-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -713,7 +713,7 @@
 
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-security-oauth2-resource-server-5.7.1.jar as it's a false positive or already mitigated (see: https://example.com/cve-2022-31692)
+   Suppressing CVEs for spring-security-oauth2-resource-server-5.7.1.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-security-oauth2-resource-server-5\.7\.1\.jar</filePath>
     <cve>CVE-2022-31692</cve>
@@ -724,7 +724,7 @@
   <!-- Suppressing CVEs for spring-security-web-5.7.3.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-security-web-5.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-34034)
+   Suppressing CVEs for spring-security-web-5.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-security-web-5\.7\.3\.jar</filePath>
     <cve>CVE-2023-34034</cve>
@@ -732,7 +732,7 @@
 
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-actuator-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-actuator-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-actuator-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -742,7 +742,7 @@
   <!-- Suppressing CVEs for spring-boot-autoconfigure-2.7.3.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-autoconfigure-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-autoconfigure-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-autoconfigure-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -752,7 +752,7 @@
 
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-starter-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-starter-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-starter-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -762,7 +762,7 @@
   <!-- Suppressing CVEs for spring-boot-starter-actuator-2.7.3.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-starter-actuator-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-starter-actuator-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-starter-actuator-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -772,7 +772,7 @@
   <!-- Suppressing CVEs for spring-boot-starter-aop-2.7.3.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-starter-aop-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-starter-aop-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-starter-aop-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -782,7 +782,7 @@
   <!-- Suppressing CVEs for spring-boot-starter-json-2.7.3.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-starter-json-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-starter-json-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-starter-json-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -792,7 +792,7 @@
   <!-- Suppressing CVEs for spring-boot-starter-logging-2.7.3.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-boot-starter-logging-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   Suppressing CVEs for spring-boot-starter-logging-2.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-boot-starter-logging-2\.7\.3\.jar</filePath>
     <cve>CVE-2023-20873</cve>
@@ -802,7 +802,7 @@
   <!-- Suppressing CVEs for spring-context-support-5.3.22.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-context-support-5.3.22.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20860)
+   Suppressing CVEs for spring-context-support-5.3.22.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-context-support-5\.3\.22\.jar</filePath>
     <cve>CVE-2023-20860</cve>
@@ -813,7 +813,7 @@
   <!-- Suppressing CVEs for spring-security-core-5.7.3.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-security-core-5.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-34034)
+   Suppressing CVEs for spring-security-core-5.7.3.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-security-core-5\.7\.3\.jar</filePath>
     <cve>CVE-2023-34034</cve>
@@ -822,7 +822,7 @@
   <!-- Suppressing CVEs for spring-security-oauth2-client-5.7.1.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-security-oauth2-client-5.7.1.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-34034)
+   Suppressing CVEs for spring-security-oauth2-client-5.7.1.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-security-oauth2-client-5\.7\.1\.jar</filePath>
     <cve>CVE-2023-34034</cve>
@@ -831,7 +831,7 @@
   <!-- Suppressing CVEs for spring-security-oauth2-core-5.7.1.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-security-oauth2-core-5.7.1.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-34034)
+   Suppressing CVEs for spring-security-oauth2-core-5.7.1.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-security-oauth2-core-5\.7\.1\.jar</filePath>
     <cve>CVE-2023-34034</cve>
@@ -840,7 +840,7 @@
   <!-- Suppressing CVEs for spring-security-oauth2-jose-5.7.1.jar -->
   <suppress>
     <notes><![CDATA[
-   Suppressing CVEs for spring-security-oauth2-jose-5.7.1.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-34034)
+   Suppressing CVEs for spring-security-oauth2-jose-5.7.1.jar as it's a false positive or already mitigated
    ]]></notes>
     <filePath regex="true">.*spring-security-oauth2-jose-5\.7\.1\.jar</filePath>
     <cve>CVE-2023-34034</cve>
