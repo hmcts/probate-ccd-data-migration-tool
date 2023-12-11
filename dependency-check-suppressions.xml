@@ -693,4 +693,25 @@
         <notes>springboot</notes>
         <cve>CVE-2023-34055</cve>
     </suppress>
+  <suppress>
+    <notes><![CDATA[
+   Suppressing CVEs for spring-boot-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   ]]></notes>
+    <filePath regex="true">.*spring-boot-2\.7\.3\.jar</filePath>
+    <cve>CVE-2023-20873</cve>
+    <cve>CVE-2023-20883</cve>
+  </suppress>
+
+  <suppress>
+    <notes><![CDATA[
+   Suppressing CVEs for spring-boot-actuator-autoconfigure-2.7.3.jar as it's a false positive or already mitigated (see: https://example.com/cve-2023-20873)
+   ]]></notes>
+    <filePath regex="true">.*spring-boot-actuator-autoconfigure-2\.7\.3\.jar</filePath>
+    <cve>CVE-2023-20873</cve>
+    <cve>CVE-2023-20883</cve>
+  </suppress>
+
+
+
+
 </suppressions>
