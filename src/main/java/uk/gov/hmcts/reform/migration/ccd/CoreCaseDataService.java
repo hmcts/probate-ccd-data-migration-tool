@@ -49,26 +49,29 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startEventResponse.getToken())
-            .event(
-                Event.builder()
-                    .id(startEventResponse.getEventId())
-                    .summary(eventSummary)
-                    .description(eventDescription)
-                    .build()
-            ).data(dataMigrationService.migrate(updatedCaseDetails.getData()))
-            .build();
-        return coreCaseDataApi.submitEventForCaseWorker(
-            AuthUtil.getBearerToken(authorisation),
-            authTokenGenerator.generate(),
-            userDetails.getId(),
-            updatedCaseDetails.getJurisdiction(),
-            caseType,
-            caseId,
-            true,
-            caseDataContent);
-
+        if (!updatedCaseDetails.getData().get("registryLocation").equals("Newcastle")) {
+            CaseDataContent caseDataContent = CaseDataContent.builder()
+                .eventToken(startEventResponse.getToken())
+                .event(
+                    Event.builder()
+                        .id(startEventResponse.getEventId())
+                        .summary(eventSummary)
+                        .description(eventDescription)
+                        .build()
+                ).data(dataMigrationService.migrate(updatedCaseDetails.getData()))
+                .build();
+            return coreCaseDataApi.submitEventForCaseWorker(
+                AuthUtil.getBearerToken(authorisation),
+                authTokenGenerator.generate(),
+                userDetails.getId(),
+                updatedCaseDetails.getJurisdiction(),
+                caseType,
+                caseId,
+                true,
+                caseDataContent);
+        } else {
+            return null;
+        }
     }
 
     public CaseDetails rollback(String authorisation, String eventId,

@@ -78,6 +78,7 @@ public class CoreCaseDataServiceTest {
         assertThat(update.getData().get("applicantLName"), is("Mamidi"));
         assertThat(update.getData().get("applicantFMName"), is("Prashanth"));
         assertThat(update.getData().get("appRespondentFMName"), is("TestRespondant"));
+        assertThat(update.getData().get("registryLocation"), is("ctsc"));
     }
 
     private CaseDetails createCaseDetails(String id, String value) {
@@ -88,6 +89,7 @@ public class CoreCaseDataServiceTest {
         data.put("applicantLName", "Mamidi");
         data.put("applicantFMName", "Prashanth");
         data.put("appRespondentFMName", "TestRespondant");
+        data.put("registryLocation", "ctsc");
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
