@@ -252,7 +252,7 @@ dependencyManagement {
 mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
 
 dependencyCheck {
-  suppressionFile = 'dependency-check-suppressions.xml'
+  suppressionFile = "${project.rootDir}/dependency-check-suppressions.xml"
 }
 
 bootJar {
