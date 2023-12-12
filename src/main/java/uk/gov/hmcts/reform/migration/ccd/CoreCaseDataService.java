@@ -93,7 +93,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().containsKey("caseHandedOffToLegacySite")) {
+        if (!updatedCaseDetails.getData().get("registryLocation").equals("ctsc")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(

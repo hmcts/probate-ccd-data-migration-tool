@@ -16,9 +16,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
 
     @Override
     public Map<String, Object> rollback(Map<String, Object> data) {
-        if (data == null) {
-            return null;
-        }
+        data.put("registryLocation","Newcastle");
         return data;
     }
 

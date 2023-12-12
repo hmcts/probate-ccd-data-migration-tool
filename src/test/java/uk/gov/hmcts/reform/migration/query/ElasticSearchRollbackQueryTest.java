@@ -26,11 +26,12 @@ public class ElasticSearchRollbackQueryTest {
         assertEquals("""
         {
           "query": {
-            "bool": {
-               "must": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
+            "bool": [
+                     {"match": { "data.applicationType": "Solicitor" }},
+                     {"match": { "data.registryLocation": "ctsc" }},
+                     {"match": { "data.paperForm": "Yes" }},
+                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                 ]
                },
              "filter": [
                {
@@ -41,39 +42,6 @@ public class ElasticSearchRollbackQueryTest {
                    }
                  }
                },
-              {
-                "bool": {
-                    "should": [
-                         {"match": { "state": "CaseCreated" }},
-                         {"match": { "state": "CasePaymentFailed" }},
-                         {"match": { "state": "Stopped" }},
-                         {"match": { "state": "Dormant" }},
-                         {"match": { "state": "CasePrinted" }},
-                         {"match": { "state": "BOReadyForExamination" }},
-                         {"match": { "state": "BOExamining" }},
-                         {"match": { "state": "BOCaseStopped" }},
-                         {"match": { "state": "BOCaveatPermenant" }},
-                         {"match": { "state": "BORegistrarEscalation" }},
-                         {"match": { "state": "BOReadyToIssue" }},
-                         {"match": { "state": "BOCaseQA" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BOCaseMatchingExamining" }},
-                         {"match": { "state": "BOCaseClosed" }},
-                         {"match": { "state": "applyforGrantPaperApplication" }},
-                         {"match": { "state": "BOCaseImported" }},
-                         {"match": { "state": "BOExaminingReissue" }},
-                         {"match": { "state": "BOCaseMatchingReissue" }},
-                         {"match": { "state": "BOCaseStoppedReissue" }},
-                         {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BORedecNotificationSent" }},
-                         {"match": { "state": "BOSotGenerated" }}
-                        ]
-                    }
-                }
-              ]
-            }
-          },
           "size": 100,
           "sort": [
             {
@@ -97,11 +65,12 @@ public class ElasticSearchRollbackQueryTest {
         assertEquals("""
         {
           "query": {
-            "bool": {
-               "must": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
+            "bool": [
+                     {"match": { "data.applicationType": "Solicitor" }},
+                     {"match": { "data.registryLocation": "ctsc" }},
+                     {"match": { "data.paperForm": "Yes" }},
+                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                 ]
                },
              "filter": [
                {
@@ -112,39 +81,6 @@ public class ElasticSearchRollbackQueryTest {
                    }
                  }
                },
-              {
-                "bool": {
-                    "should": [
-                         {"match": { "state": "CaseCreated" }},
-                         {"match": { "state": "CasePaymentFailed" }},
-                         {"match": { "state": "Stopped" }},
-                         {"match": { "state": "Dormant" }},
-                         {"match": { "state": "CasePrinted" }},
-                         {"match": { "state": "BOReadyForExamination" }},
-                         {"match": { "state": "BOExamining" }},
-                         {"match": { "state": "BOCaseStopped" }},
-                         {"match": { "state": "BOCaveatPermenant" }},
-                         {"match": { "state": "BORegistrarEscalation" }},
-                         {"match": { "state": "BOReadyToIssue" }},
-                         {"match": { "state": "BOCaseQA" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BOCaseMatchingExamining" }},
-                         {"match": { "state": "BOCaseClosed" }},
-                         {"match": { "state": "applyforGrantPaperApplication" }},
-                         {"match": { "state": "BOCaseImported" }},
-                         {"match": { "state": "BOExaminingReissue" }},
-                         {"match": { "state": "BOCaseMatchingReissue" }},
-                         {"match": { "state": "BOCaseStoppedReissue" }},
-                         {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BORedecNotificationSent" }},
-                         {"match": { "state": "BOSotGenerated" }}
-                        ]
-                    }
-                }
-              ]
-            }
-          },
           "size": 100,
           "sort": [
             {
