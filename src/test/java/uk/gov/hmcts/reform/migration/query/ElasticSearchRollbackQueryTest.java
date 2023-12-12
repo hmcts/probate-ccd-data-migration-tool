@@ -24,32 +24,34 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-          "query": {
-            "bool": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "ctsc" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-               },
-             "filter": [
-               {
-                 "range": {
-                   "last_modified": {
-                        "gte": "2023-02-24T14:00:00",
-                        "lte": "2023-02-25T16:00:00"
-                   }
-                 }
-               },
-          "size": 100,
-          "sort": [
             {
-              "reference.keyword": "asc"
-            }
-          ]
+              "query": {
+                "bool": {
+                  "must": [
+                         {"match": { "data.applicationType": "Solicitor" }},
+                         {"match": { "data.registryLocation": "ctsc" }},
+                         {"match": { "data.paperForm": "Yes" }},
+                         {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                     ],
+                      "filter":
+                             {
+                               "range": {
+                                 "last_modified": {
+                                      "gte": "2023-02-24T14:00:00",
+                                      "lte": "2023-02-25T16:00:00"
+                                 }
+                               }
+                             }
+                }
+              },
+              "size": 100,
+              "sort": [
+                {
+                  "reference.keyword": "asc"
+                }
+              ]
 
-            }""", query);
+                }""", query);
     }
 
     @Test
@@ -65,22 +67,24 @@ public class ElasticSearchRollbackQueryTest {
         assertEquals("""
         {
           "query": {
-            "bool": [
+            "bool": {
+              "must": [
                      {"match": { "data.applicationType": "Solicitor" }},
                      {"match": { "data.registryLocation": "ctsc" }},
                      {"match": { "data.paperForm": "Yes" }},
                      {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-               },
-             "filter": [
-               {
-                 "range": {
-                   "last_modified": {
-                        "gte": "2023-02-24T14:00:00",
-                        "lte": "2023-02-25T16:00:00"
-                   }
-                 }
-               },
+                 ],
+                  "filter":
+                         {
+                           "range": {
+                             "last_modified": {
+                                  "gte": "2023-02-24T14:00:00",
+                                  "lte": "2023-02-25T16:00:00"
+                             }
+                           }
+                         }
+            }
+          },
           "size": 100,
           "sort": [
             {

@@ -8,22 +8,24 @@ public class ElasticSearchRollbackQuery {
     private static final String START_QUERY = """
         {
           "query": {
-            "bool": [
+            "bool": {
+              "must": [
                      {"match": { "data.applicationType": "Solicitor" }},
                      {"match": { "data.registryLocation": "ctsc" }},
                      {"match": { "data.paperForm": "Yes" }},
                      {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-               },
-             "filter": [
-               {
-                 "range": {
-                   "last_modified": {
-                        "gte": "%s",
-                        "lte": "%s"
-                   }
-                 }
-               },
+                 ],
+                  "filter":
+                         {
+                           "range": {
+                             "last_modified": {
+                                  "gte": "%s",
+                                  "lte": "%s"
+                             }
+                           }
+                         }
+            }
+          },
           "size": %s,
           "sort": [
             {
