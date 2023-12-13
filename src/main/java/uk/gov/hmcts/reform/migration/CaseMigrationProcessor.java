@@ -27,8 +27,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - hand off flag change";
-    private static final String EVENT_DESCRIPTION = "Data migration - hand off flag change";
+    private static final String EVENT_SUMMARY = "Data migration - Changing RegistryLocation from Newcastle to ctsc";
+    private static final String EVENT_DESCRIPTION = "Data migration - Changing RegistryLocation from Newcastle to ctsc";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
