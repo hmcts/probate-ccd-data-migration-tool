@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.Organisation;
-import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -15,8 +17,8 @@ import java.util.function.Predicate;
 @Service
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
-    private final OrganisationsRetrievalService organisationsRetrievalService;
-
+    private final AuditEventService auditEventService;
+    private List<String> solicitorEvent = Arrays.asList("solicitorCreateApplication", "solicitorCreateCaveat");
     @Override
     public Predicate<CaseDetails> accepts() {
         return caseDetails -> caseDetails == null ? false : true;
@@ -33,21 +35,17 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     @Override
-    public Map<String, Object> migrate(Long id, Map<String, Object> data, String token) {
+    public Map<String, Object> migrate(Long caseId, Map<String, Object> data, String userToken, String authToken) {
         if (data == null) {
             return null;
         }
-        OrganisationEntityResponse organisationEntityResponse = null;
-        if (null != token) {
-            organisationEntityResponse = organisationsRetrievalService.getOrganisationEntity(
-                id.toString(), token);
-            log.info("Org response {}", organisationEntityResponse);
-        }
-        if (null != organisationEntityResponse) {
+        AuditEvent auditEvent = getAuditEvent(caseId, data, userToken, authToken);
+        log.info("Audit events {}", auditEvent);
+        if(data.get("applicantOrganisationPolicy") == null) {
             OrganisationPolicy policy = OrganisationPolicy.builder()
                 .organisation(Organisation.builder()
-                    .organisationID(organisationEntityResponse.getOrganisationIdentifier())
-                    .organisationName(organisationEntityResponse.getName())
+                    .organisationID(null)
+                    .organisationName(null)
                     .build())
                 .orgPolicyReference(null)
                 .orgPolicyCaseAssignedRole("[APPLICANTSOLICITOR]")
@@ -55,12 +53,13 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             data.put("applicantOrganisationPolicy", policy);
             log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
         }
-        /*if (shouldCaseToHandedOffToLegacySite(data)) {
-            data.put("caseHandedOffToLegacySite","Yes");
-        } else {
-            data.put("caseHandedOffToLegacySite","No");
-        }*/
         return data;
+    }
+
+    private AuditEvent getAuditEvent(Long caseId, Map<String, Object> data, String userToken, String authToken) {
+        return auditEventService.getLatestAuditEventByName(caseId.toString(), solicitorEvent,
+                userToken, authToken).orElseThrow(() -> new IllegalStateException(String
+            .format("Could not find %s event in audit", solicitorEvent)));
     }
 
     private boolean shouldCaseToHandedOffToLegacySite(Map<String, Object> caseData) {

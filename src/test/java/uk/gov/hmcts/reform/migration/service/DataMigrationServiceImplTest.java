@@ -18,9 +18,9 @@ import static org.junit.Assert.assertTrue;
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceImplTest {
     @Mock
-    private OrganisationsRetrievalService organisationsRetrievalService;
+    private AuditEventService auditEventService;
 
-    private DataMigrationServiceImpl service = new DataMigrationServiceImpl(organisationsRetrievalService);
+    private DataMigrationServiceImpl service = new DataMigrationServiceImpl(auditEventService);
 
     @Test
     public void shouldReturnTrueForCaseDetailsPassed() {
@@ -38,14 +38,14 @@ public class DataMigrationServiceImplTest {
     @Test
     public void shouldReturnPassedDataWhenMigrateCalled() {
         Map<String, Object> data = new HashMap<>();
-        Map<String, Object> result = service.migrate(1L, data, "token");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertNotNull(result);
         assertEquals(data, result);
     }
 
     @Test
     public void shouldReturnNullWhenDataIsNotPassed() {
-        Map<String, Object> result = service.migrate(1L, null, "token");
+        Map<String, Object> result = service.migrate(1L, null, "token", "serviceToken");
         assertNull(result);
         assertEquals(null, result);
     }
@@ -56,7 +56,7 @@ public class DataMigrationServiceImplTest {
         data.put("applicationType","Solicitor");
         data.put("caseType", "gop");
         data.put("titleAndClearingType", "TCTTrustCorpResWithSDJ");
-        Map<String, Object> result = service.migrate(1L, data, "token");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
     }
 
@@ -66,7 +66,7 @@ public class DataMigrationServiceImplTest {
         data.put("applicationType","Solicitor");
         data.put("caseType", "intestacy");
         data.put("deceasedDomicileInEngWales", "No");
-        Map<String, Object> result = service.migrate(1L, data, "token");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
     }
 
@@ -77,7 +77,7 @@ public class DataMigrationServiceImplTest {
         data.put("caseType", "admonWill");
         data.put("willAccessOriginal", "No");
         data.put("willAccessNotarial", "Yes");
-        Map<String, Object> result = service.migrate(1L, data, "token");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
     }
 
@@ -87,7 +87,7 @@ public class DataMigrationServiceImplTest {
         data.put("applicationType","Solicitor");
         data.put("caseType", "intestacy");
         data.put("solsApplicantRelationshipToDeceased", "ChildAdopted");
-        Map<String, Object> result = service.migrate(1L, data, "token");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
     }
 
@@ -98,7 +98,7 @@ public class DataMigrationServiceImplTest {
         data.put("caseType", "intestacy");
         data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
         data.put("primaryApplicantAdoptionInEnglandOrWales", "Yes");
-        Map<String, Object> result = service.migrate(1L, data, "token");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
     }
 
@@ -109,7 +109,7 @@ public class DataMigrationServiceImplTest {
         data.put("caseType", "intestacy");
         data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
         data.put("primaryApplicantAdoptionInEnglandOrWales", "No");
-        Map<String, Object> result = service.migrate(1L, data, "token");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertEquals(result.get("caseHandedOffToLegacySite"),"No");
     }
 }

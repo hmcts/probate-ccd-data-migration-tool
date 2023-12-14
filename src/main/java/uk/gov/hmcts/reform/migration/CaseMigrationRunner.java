@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.PropertySource;
 
 @Slf4j
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "uk.gov.hmcts.reform.migration")
+@EnableFeignClients(basePackages = "uk.gov.hmcts.reform.migration")
 @PropertySource("classpath:application.properties")
 public class CaseMigrationRunner implements CommandLineRunner {
 
