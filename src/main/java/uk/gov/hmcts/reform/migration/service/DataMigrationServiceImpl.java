@@ -48,8 +48,8 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if(data.get("applicantOrganisationPolicy") == null) {
             OrganisationPolicy policy = OrganisationPolicy.builder()
                 .organisation(Organisation.builder()
-                    .organisationID(null)
-                    .organisationName(null)
+                    .organisationID(response.getOrganisationIdentifier())
+                    .organisationName(response.getName())
                     .build())
                 .orgPolicyReference(null)
                 .orgPolicyCaseAssignedRole("[APPLICANTSOLICITOR]")
