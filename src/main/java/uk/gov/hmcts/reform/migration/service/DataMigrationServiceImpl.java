@@ -45,7 +45,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         log.info("Audit events {}", auditEvent);
         OrganisationEntityResponse response = getOrganisationDetails(userToken, authToken, auditEvent.getUserId());
         log.info("organisation response {}", response);
-        if(data.get("applicantOrganisationPolicy") == null) {
+        if (data.get("applicantOrganisationPolicy") == null) {
             OrganisationPolicy policy = OrganisationPolicy.builder()
                 .organisation(Organisation.builder()
                     .organisationID(response.getOrganisationIdentifier())
