@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.Organisation;
+import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
 import java.util.Arrays;
@@ -18,6 +19,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
+    private final OrganisationApi organisationApi;
     private List<String> solicitorEvent = Arrays.asList("solicitorCreateApplication", "solicitorCreateCaveat");
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -41,6 +43,8 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         }
         AuditEvent auditEvent = getAuditEvent(caseId, data, userToken, authToken);
         log.info("Audit events {}", auditEvent);
+        OrganisationEntityResponse response = getOrganisationDetails(userToken, authToken, auditEvent.getUserId());
+        log.info("organisation response {}", response);
         if(data.get("applicantOrganisationPolicy") == null) {
             OrganisationPolicy policy = OrganisationPolicy.builder()
                 .organisation(Organisation.builder()
@@ -60,6 +64,10 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         return auditEventService.getLatestAuditEventByName(caseId.toString(), solicitorEvent,
                 userToken, authToken).orElseThrow(() -> new IllegalStateException(String
             .format("Could not find %s event in audit", solicitorEvent)));
+    }
+
+    private OrganisationEntityResponse getOrganisationDetails(String userToken, String authToken, String userId) {
+        return organisationApi.findOrganisationOfSolicitor(userToken, authToken, userId);
     }
 
     private boolean shouldCaseToHandedOffToLegacySite(Map<String, Object> caseData) {
