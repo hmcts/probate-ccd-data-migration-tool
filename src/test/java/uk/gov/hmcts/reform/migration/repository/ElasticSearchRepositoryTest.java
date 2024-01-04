@@ -33,37 +33,48 @@ public class ElasticSearchRepositoryTest {
         {
           "query": {
             "bool": {
-               "must_not": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
-               },
-                "should": [
-                     {"match": { "state": "CaseCreated" }},
-                     {"match": { "state": "CasePaymentFailed" }},
-                     {"match": { "state": "Stopped" }},
-                     {"match": { "state": "Dormant" }},
-                     {"match": { "state": "CasePrinted" }},
-                     {"match": { "state": "BOReadyForExamination" }},
-                     {"match": { "state": "BOExamining" }},
-                     {"match": { "state": "BOCaseStopped" }},
-                     {"match": { "state": "BOCaveatPermenant" }},
-                     {"match": { "state": "BORegistrarEscalation" }},
-                     {"match": { "state": "BOReadyToIssue" }},
-                     {"match": { "state": "BOCaseQA" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BOCaseMatchingExamining" }},
-                     {"match": { "state": "BOCaseClosed" }},
-                     {"match": { "state": "applyforGrantPaperApplication" }},
-                     {"match": { "state": "BOCaseImported" }},
-                     {"match": { "state": "BOExaminingReissue" }},
-                     {"match": { "state": "BOCaseMatchingReissue" }},
-                     {"match": { "state": "BOCaseStoppedReissue" }},
-                     {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BORedecNotificationSent" }},
-                     {"match": { "state": "BOSotGenerated" }}
-                ]
+              "must": [
+                   {"match": { "data.applicationType": "Solicitor" }},
+                   {"match": { "data.paperForm": "No" }}
+              ],
+               "must_not": [
+                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
+                   {"exists": { "field": "supplementary_data" }}
+              ],
+              "filter":
+                   [
+                       {
+                           "range": {
+                                  "created_date": {
+                                      "gte": "2023-10-25T15:30:00",
+                                      "lte": "2023-10-26T14:15:00"
+                                  }
+                           }
+                       },
+                       {
+                           "bool": {
+                                "should":[
+                                     {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                   ]
+
             }
           },
           "size": 100,
@@ -79,37 +90,48 @@ public class ElasticSearchRepositoryTest {
         {
           "query": {
             "bool": {
-               "must_not": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
-               },
-                "should": [
-                     {"match": { "state": "CaseCreated" }},
-                     {"match": { "state": "CasePaymentFailed" }},
-                     {"match": { "state": "Stopped" }},
-                     {"match": { "state": "Dormant" }},
-                     {"match": { "state": "CasePrinted" }},
-                     {"match": { "state": "BOReadyForExamination" }},
-                     {"match": { "state": "BOExamining" }},
-                     {"match": { "state": "BOCaseStopped" }},
-                     {"match": { "state": "BOCaveatPermenant" }},
-                     {"match": { "state": "BORegistrarEscalation" }},
-                     {"match": { "state": "BOReadyToIssue" }},
-                     {"match": { "state": "BOCaseQA" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BOCaseMatchingExamining" }},
-                     {"match": { "state": "BOCaseClosed" }},
-                     {"match": { "state": "applyforGrantPaperApplication" }},
-                     {"match": { "state": "BOCaseImported" }},
-                     {"match": { "state": "BOExaminingReissue" }},
-                     {"match": { "state": "BOCaseMatchingReissue" }},
-                     {"match": { "state": "BOCaseStoppedReissue" }},
-                     {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                     {"match": { "state": "BORedecNotificationSent" }},
-                     {"match": { "state": "BOSotGenerated" }}
-                ]
+              "must": [
+                   {"match": { "data.applicationType": "Solicitor" }},
+                   {"match": { "data.paperForm": "No" }}
+              ],
+               "must_not": [
+                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
+                   {"exists": { "field": "supplementary_data" }}
+              ],
+              "filter":
+                   [
+                       {
+                           "range": {
+                                  "created_date": {
+                                      "gte": "2023-10-25T15:30:00",
+                                      "lte": "2023-10-26T14:15:00"
+                                  }
+                           }
+                       },
+                       {
+                           "bool": {
+                                "should":[
+                                     {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                   ]
+
             }
           },
           "size": 100,
