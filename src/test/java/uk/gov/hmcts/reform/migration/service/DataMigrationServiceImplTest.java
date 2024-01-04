@@ -1,26 +1,72 @@
 package uk.gov.hmcts.reform.migration.service;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.domain.common.AuditEvent;
+import uk.gov.hmcts.reform.domain.common.Organisation;
+import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
+import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
+import uk.gov.hmcts.reform.migration.client.CaseDataApiV2;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceImplTest {
     @Mock
     private AuditEventService auditEventService;
+    @Mock
+    private OrganisationApi organisationApi;
+    private OrganisationEntityResponse organisationEntityResponse;
+    @Mock
+    private CaseDataApiV2 caseDataApi;
+    @Mock
+    private AuditEvent event;
+    @InjectMocks
+    private DataMigrationServiceImpl service;
+    private OrganisationPolicy policy;
+    private static final String SOLICITOR_EVENT = "solicitorCreateApplication";
 
-    private DataMigrationServiceImpl service = new DataMigrationServiceImpl(auditEventService);
+    @Before
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        service = new DataMigrationServiceImpl(auditEventService, organisationApi,
+            caseDataApi);
+        AuditEvent mockedEvent = AuditEvent.builder().id(SOLICITOR_EVENT).userId("123").build();
+        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
+            .thenReturn(Optional.of(mockedEvent));
+        organisationEntityResponse = OrganisationEntityResponse.builder()
+            .organisationIdentifier("ABC").name("Org2 name").build();
+        when(organisationApi.findOrganisationOfSolicitor(anyString(), anyString(), anyString()))
+            .thenReturn(organisationEntityResponse);
+        policy = OrganisationPolicy.builder()
+            .organisation(Organisation.builder()
+                .organisationID("ABC")
+                .organisationName("Org2 name")
+                .build())
+            .orgPolicyReference(null)
+            .orgPolicyCaseAssignedRole("[APPLICANTSOLICITOR]")
+            .build();
+    }
 
     @Test
     public void shouldReturnTrueForCaseDetailsPassed() {
@@ -51,65 +97,70 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldMigrateCasesOfSolGopTrustCorp() {
+    public void shouldMigrateCasesWithOrgPolicy() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Solicitor");
+        data.put("caseType", "GrantOfRepresentation");
+        data.put("solsSolicitorWillSignSOT", "Yes");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+        assertEquals(policy, result.get("applicantOrganisationPolicy"));
+        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
+            anyList(), anyString(), anyString());
+        verify(organisationApi, times(1)).findOrganisationOfSolicitor(anyString(),
+            anyString(), anyString());
+    }
+
+    @Test
+    public void shouldNotMigrateCasesWhenResponseIsNull() {
+        when(organisationApi.findOrganisationOfSolicitor(anyString(), anyString(), anyString()))
+            .thenReturn(null);
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Solicitor");
+        data.put("caseType", "GrantOfRepresentation");
+        data.put("solsSolicitorWillSignSOT", "Yes");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+        assertNull(result.get("applicantOrganisationPolicy"));
+        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
+            anyList(), anyString(), anyString());
+        verify(organisationApi, times(1)).findOrganisationOfSolicitor(anyString(),
+            anyString(), anyString());
+    }
+
+    @Test
+    public void shouldMigrateCaveatCasesWithOrgPolicy() {
+        AuditEvent mockedEvent = AuditEvent.builder().id("solicitorCreateCaveat").userId("123").build();
+        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
+            .thenReturn(Optional.of(mockedEvent));
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("applicationType","Solicitor");
+        data.put("caseType", "Caveat");
+        data.put("solsSolicitorFirmName", "Firm");
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+        assertEquals(policy, result.get("applicantOrganisationPolicy"));
+        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
+            anyList(), anyString(), anyString());
+        verify(organisationApi, times(1)).findOrganisationOfSolicitor(anyString(),
+            anyString(), anyString());
+    }
+
+    @Test
+    public void shouldThrowErrorWhenNoEvent() {
         Map<String, Object> data = new HashMap<>();
         data.put("applicationType","Solicitor");
         data.put("caseType", "gop");
-        data.put("titleAndClearingType", "TCTTrustCorpResWithSDJ");
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
-    }
+        data.put("solsSolicitorWillSignSOT", "Yes");
+        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
+            .thenReturn(Optional.empty());
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> service.migrate(1L, data, "token", "serviceToken"));
 
-    @Test
-    public void shouldMigrateCasesOfSolIntestacyDeceasedDomicileInEngWales() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Solicitor");
-        data.put("caseType", "intestacy");
-        data.put("deceasedDomicileInEngWales", "No");
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
-    }
-
-    @Test
-    public void shouldMigrateCasesOfSolAdmonWillWillAccess() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Solicitor");
-        data.put("caseType", "admonWill");
-        data.put("willAccessOriginal", "No");
-        data.put("willAccessNotarial", "Yes");
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
-    }
-
-    @Test
-    public void shouldMigrateCasesOfSolIntestacySolsApplicantRelationshipToDeceased() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Solicitor");
-        data.put("caseType", "intestacy");
-        data.put("solsApplicantRelationshipToDeceased", "ChildAdopted");
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
-    }
-
-    @Test
-    public void shouldMigrateCasesOfPersonalIntestacy() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Personal");
-        data.put("caseType", "intestacy");
-        data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
-        data.put("primaryApplicantAdoptionInEnglandOrWales", "Yes");
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals("Yes",result.get("caseHandedOffToLegacySite"));
-    }
-
-    @Test
-    public void shouldMigrateCasesOfOtherToDefalult() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Personal");
-        data.put("caseType", "intestacy");
-        data.put("primaryApplicantRelationshipToDeceased", "adoptedChild");
-        data.put("primaryApplicantAdoptionInEnglandOrWales", "No");
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals(result.get("caseHandedOffToLegacySite"),"No");
+        assertEquals("Could not find [solicitorCreateApplication, solicitorCreateCaveat] event in audit",
+            exception.getMessage());
+        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
+            anyList(), anyString(), anyString());
+        verify(organisationApi, times(0)).findOrganisationOfSolicitor(anyString(),
+            anyString(), anyString());
     }
 }

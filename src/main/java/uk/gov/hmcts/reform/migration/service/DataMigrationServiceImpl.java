@@ -8,8 +8,10 @@ import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.Organisation;
 import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
+import uk.gov.hmcts.reform.migration.client.CaseDataApiV2;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -20,7 +22,9 @@ import java.util.function.Predicate;
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
     private final OrganisationApi organisationApi;
+    private final CaseDataApiV2 caseDataApiV2;
     private List<String> solicitorEvent = Arrays.asList("solicitorCreateApplication", "solicitorCreateCaveat");
+
     @Override
     public Predicate<CaseDetails> accepts() {
         return caseDetails -> caseDetails == null ? false : true;
@@ -31,8 +35,6 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         }
-        //data.remove("caseHandedOffToLegacySite");
-        //data.put("caseHandedOffToLegacySite",null);
         return data;
     }
 
@@ -41,11 +43,11 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         }
-        AuditEvent auditEvent = getAuditEvent(caseId, data, userToken, authToken);
+        AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
         log.info("Audit events {}", auditEvent);
         OrganisationEntityResponse response = getOrganisationDetails(userToken, authToken, auditEvent.getUserId());
         log.info("organisation response {}", response);
-        if (data.get("applicantOrganisationPolicy") == null) {
+        if (response != null) {
             OrganisationPolicy policy = OrganisationPolicy.builder()
                 .organisation(Organisation.builder()
                     .organisationID(response.getOrganisationIdentifier())
@@ -56,11 +58,17 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
                 .build();
             data.put("applicantOrganisationPolicy", policy);
             log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
+            Map<String, Object> usersMap = new HashMap<>();
+            usersMap.put("orgs_assigned_users." + response.getOrganisationIdentifier(), 1);
+            Map<String, Map<String, Map<String, Object>>> supplementaryData = new HashMap<>();
+            supplementaryData.put("supplementary_data_updates", Map.of("$set", usersMap));
+            caseDataApiV2.submitSupplementaryData(userToken, authToken,
+                caseId.toString(), supplementaryData);
         }
         return data;
     }
 
-    private AuditEvent getAuditEvent(Long caseId, Map<String, Object> data, String userToken, String authToken) {
+    private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
         return auditEventService.getLatestAuditEventByName(caseId.toString(), solicitorEvent,
                 userToken, authToken).orElseThrow(() -> new IllegalStateException(String
             .format("Could not find %s event in audit", solicitorEvent)));
@@ -69,52 +77,4 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     private OrganisationEntityResponse getOrganisationDetails(String userToken, String authToken, String userId) {
         return organisationApi.findOrganisationOfSolicitor(userToken, authToken, userId);
     }
-
-    private boolean shouldCaseToHandedOffToLegacySite(Map<String, Object> caseData) {
-        if (caseData.containsKey("applicationType") && caseData.get("applicationType").equals("Solicitor")
-            && (caseData.containsKey("titleAndClearingType")
-            && (caseData.get("titleAndClearingType").equals("TCTTrustCorpResWithSDJ")
-            || caseData.get("titleAndClearingType").equals("TCTTrustCorpResWithApp")))
-        ) {
-            return true;
-        }
-        if (caseData.containsKey("applicationType") && caseData.get("applicationType").equals("Solicitor")
-            && (caseData.containsKey("caseType")
-            && (caseData.get("caseType").equals("gop")
-            || caseData.get("caseType").equals("admonWill")
-            || caseData.get("caseType").equals("intestacy")))
-            && (caseData.containsKey("deceasedDomicileInEngWales")
-            && caseData.get("deceasedDomicileInEngWales").equals("No"))
-        ) {
-            return true;
-        }
-        if (caseData.containsKey("applicationType") && caseData.get("applicationType").equals("Solicitor")
-            && (caseData.containsKey("caseType")
-            && (caseData.get("caseType").equals("gop")
-            || caseData.get("caseType").equals("admonWill")
-            || caseData.get("caseType").equals("intestacy")))
-            && (caseData.containsKey("willAccessOriginal") && caseData.get("willAccessOriginal").equals("No"))
-            && (caseData.containsKey("willAccessNotarial") && caseData.get("willAccessNotarial").equals("Yes"))
-        ) {
-            return true;
-        }
-        if (caseData.containsKey("applicationType") && caseData.get("applicationType").equals("Solicitor")
-            && caseData.containsKey("caseType") && caseData.get("caseType").equals("intestacy")
-            && caseData.containsKey("solsApplicantRelationshipToDeceased")
-            && caseData.get("solsApplicantRelationshipToDeceased").equals("ChildAdopted")
-        ) {
-            return true;
-        }
-        if (caseData.containsKey("applicationType") && caseData.get("applicationType").equals("Personal")
-            && caseData.containsKey("caseType") && caseData.get("caseType").equals("intestacy")
-            && caseData.containsKey("primaryApplicantRelationshipToDeceased")
-            && caseData.get("primaryApplicantRelationshipToDeceased").equals("adoptedChild")
-            && caseData.containsKey("primaryApplicantAdoptionInEnglandOrWales")
-            && caseData.get("primaryApplicantAdoptionInEnglandOrWales").equals("Yes")
-        ) {
-            return true;
-        }
-        return false;
-    }
-
 }

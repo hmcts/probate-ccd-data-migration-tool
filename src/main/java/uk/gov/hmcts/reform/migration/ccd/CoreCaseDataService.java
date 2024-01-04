@@ -49,26 +49,25 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-            CaseDataContent caseDataContent = CaseDataContent.builder()
-                .eventToken(startEventResponse.getToken())
-                .event(
-                    Event.builder()
-                        .id(startEventResponse.getEventId())
-                        .summary(eventSummary)
-                        .description(eventDescription)
-                        .build()
-                ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
-                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate()))
-                .build();
-            return coreCaseDataApi.submitEventForCaseWorker(
-                AuthUtil.getBearerToken(authorisation),
-                authTokenGenerator.generate(),
-                userDetails.getId(),
-                updatedCaseDetails.getJurisdiction(),
-                caseType,
-                caseId,
-                true,
-                caseDataContent);
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .eventToken(startEventResponse.getToken())
+            .event(
+                Event.builder()
+                    .id(startEventResponse.getEventId())
+                    .summary(eventSummary)
+                    .description(eventDescription)
+                    .build()
+            ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
+                AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate())).build();
+        return coreCaseDataApi.submitEventForCaseWorker(
+            AuthUtil.getBearerToken(authorisation),
+            authTokenGenerator.generate(),
+            userDetails.getId(),
+            updatedCaseDetails.getJurisdiction(),
+            caseType,
+            caseId,
+            true,
+            caseDataContent);
     }
 
     public CaseDetails rollback(String authorisation, String eventId,
