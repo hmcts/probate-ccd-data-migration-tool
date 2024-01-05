@@ -7,12 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.Organisation;
 import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
-import uk.gov.hmcts.reform.migration.client.CaseDataApiV2;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,7 +38,7 @@ public class DataMigrationServiceImplTest {
     private OrganisationApi organisationApi;
     private OrganisationEntityResponse organisationEntityResponse;
     @Mock
-    private CaseDataApiV2 caseDataApi;
+    private CoreCaseDataApi coreCaseDataApi;
     @Mock
     private AuditEvent event;
     @InjectMocks
@@ -50,7 +50,7 @@ public class DataMigrationServiceImplTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         service = new DataMigrationServiceImpl(auditEventService, organisationApi,
-            caseDataApi);
+            coreCaseDataApi);
         AuditEvent mockedEvent = AuditEvent.builder().id(SOLICITOR_EVENT).userId("123").build();
         when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
             .thenReturn(Optional.of(mockedEvent));

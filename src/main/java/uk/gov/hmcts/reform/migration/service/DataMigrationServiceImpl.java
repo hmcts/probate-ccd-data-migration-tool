@@ -3,12 +3,12 @@ package uk.gov.hmcts.reform.migration.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.Organisation;
 import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
-import uk.gov.hmcts.reform.migration.client.CaseDataApiV2;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,7 +22,7 @@ import java.util.function.Predicate;
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
     private final OrganisationApi organisationApi;
-    private final CaseDataApiV2 caseDataApiV2;
+    private final CoreCaseDataApi coreCaseDataApi;
     private List<String> solicitorEvent = Arrays.asList("solicitorCreateApplication", "solicitorCreateCaveat");
 
     @Override
@@ -62,7 +62,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             usersMap.put("orgs_assigned_users." + response.getOrganisationIdentifier(), 1);
             Map<String, Map<String, Map<String, Object>>> supplementaryData = new HashMap<>();
             supplementaryData.put("supplementary_data_updates", Map.of("$set", usersMap));
-            caseDataApiV2.submitSupplementaryData(userToken, authToken,
+            coreCaseDataApi.submitSupplementaryData(userToken, authToken,
                 caseId.toString(), supplementaryData);
         }
         return data;

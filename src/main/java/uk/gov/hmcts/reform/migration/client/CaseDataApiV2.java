@@ -24,15 +24,4 @@ public interface CaseDataApiV2 {
         @RequestHeader("experimental") boolean experimental,
         @PathVariable("caseId") String caseId
     );
-
-    @RequestMapping(
-        method = RequestMethod.POST,
-        value = "/cases/{caseId}/supplementary-data"
-    )
-    CaseDetails submitSupplementaryData(
-        @RequestHeader("Authorization") String authorisation,
-        @RequestHeader("ServiceAuthorization") String serviceAuthorisation,
-        @PathVariable("caseId") String caseId,
-        @RequestBody Map<String, Map<String, Map<String, Object>>> supplementaryData
-    );
 }
