@@ -251,6 +251,10 @@ dependencyManagement {
 
 mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
 
+dependencyCheck {
+  suppressionFile = 'dependency-check-suppressions.xml'
+}
+
 bootJar {
   archiveFileName = 'ccd-case-migration.jar'
   archiveBaseName = 'ccd-case-migration'
