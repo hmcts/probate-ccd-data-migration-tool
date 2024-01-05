@@ -72,7 +72,6 @@ public class CoreCaseDataService {
         } else {
             return null;
         }
-
     }
 
     public CaseDetails rollback(String authorisation, String eventId,

@@ -24,64 +24,34 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-          "query": {
-            "bool": {
-               "must": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
-               },
-             "filter": [
-               {
-                 "range": {
-                   "last_modified": {
-                        "gte": "2023-02-24T14:00:00",
-                        "lte": "2023-02-25T16:00:00"
-                   }
-                 }
-               },
-              {
+            {
+              "query": {
                 "bool": {
-                    "should": [
-                         {"match": { "state": "CaseCreated" }},
-                         {"match": { "state": "CasePaymentFailed" }},
-                         {"match": { "state": "Stopped" }},
-                         {"match": { "state": "Dormant" }},
-                         {"match": { "state": "CasePrinted" }},
-                         {"match": { "state": "BOReadyForExamination" }},
-                         {"match": { "state": "BOExamining" }},
-                         {"match": { "state": "BOCaseStopped" }},
-                         {"match": { "state": "BOCaveatPermenant" }},
-                         {"match": { "state": "BORegistrarEscalation" }},
-                         {"match": { "state": "BOReadyToIssue" }},
-                         {"match": { "state": "BOCaseQA" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BOCaseMatchingExamining" }},
-                         {"match": { "state": "BOCaseClosed" }},
-                         {"match": { "state": "applyforGrantPaperApplication" }},
-                         {"match": { "state": "BOCaseImported" }},
-                         {"match": { "state": "BOExaminingReissue" }},
-                         {"match": { "state": "BOCaseMatchingReissue" }},
-                         {"match": { "state": "BOCaseStoppedReissue" }},
-                         {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BORedecNotificationSent" }},
-                         {"match": { "state": "BOSotGenerated" }}
-                        ]
-                    }
+                  "must": [
+                         {"match": { "data.applicationType": "Solicitor" }},
+                         {"match": { "data.registryLocation": "ctsc" }},
+                         {"match": { "data.paperForm": "Yes" }},
+                         {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                     ],
+                      "filter":
+                             {
+                               "range": {
+                                 "last_modified": {
+                                      "gte": "2023-02-24T14:00:00",
+                                      "lte": "2023-02-25T16:00:00"
+                                 }
+                               }
+                             }
+                }
+              },
+              "size": 100,
+              "sort": [
+                {
+                  "reference.keyword": "asc"
                 }
               ]
-            }
-          },
-          "size": 100,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
 
-            }""", query);
+                }""", query);
     }
 
     @Test
@@ -98,51 +68,21 @@ public class ElasticSearchRollbackQueryTest {
         {
           "query": {
             "bool": {
-               "must": {
-                 "exists": {
-                   "field": "data.caseHandedOffToLegacySite"
-                 }
-               },
-             "filter": [
-               {
-                 "range": {
-                   "last_modified": {
-                        "gte": "2023-02-24T14:00:00",
-                        "lte": "2023-02-25T16:00:00"
-                   }
-                 }
-               },
-              {
-                "bool": {
-                    "should": [
-                         {"match": { "state": "CaseCreated" }},
-                         {"match": { "state": "CasePaymentFailed" }},
-                         {"match": { "state": "Stopped" }},
-                         {"match": { "state": "Dormant" }},
-                         {"match": { "state": "CasePrinted" }},
-                         {"match": { "state": "BOReadyForExamination" }},
-                         {"match": { "state": "BOExamining" }},
-                         {"match": { "state": "BOCaseStopped" }},
-                         {"match": { "state": "BOCaveatPermenant" }},
-                         {"match": { "state": "BORegistrarEscalation" }},
-                         {"match": { "state": "BOReadyToIssue" }},
-                         {"match": { "state": "BOCaseQA" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BOCaseMatchingExamining" }},
-                         {"match": { "state": "BOCaseClosed" }},
-                         {"match": { "state": "applyforGrantPaperApplication" }},
-                         {"match": { "state": "BOCaseImported" }},
-                         {"match": { "state": "BOExaminingReissue" }},
-                         {"match": { "state": "BOCaseMatchingReissue" }},
-                         {"match": { "state": "BOCaseStoppedReissue" }},
-                         {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                         {"match": { "state": "BORedecNotificationSent" }},
-                         {"match": { "state": "BOSotGenerated" }}
-                        ]
-                    }
-                }
-              ]
+              "must": [
+                     {"match": { "data.applicationType": "Solicitor" }},
+                     {"match": { "data.registryLocation": "ctsc" }},
+                     {"match": { "data.paperForm": "Yes" }},
+                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                 ],
+                  "filter":
+                         {
+                           "range": {
+                             "last_modified": {
+                                  "gte": "2023-02-24T14:00:00",
+                                  "lte": "2023-02-25T16:00:00"
+                             }
+                           }
+                         }
             }
           },
           "size": 100,
