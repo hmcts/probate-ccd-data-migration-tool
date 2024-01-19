@@ -16,13 +16,13 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
 
     @Override
     public Map<String, Object> rollback(Map<String, Object> data) {
-        data.put("registryLocation","Newcastle");
+        data.put("registryLocation","ctsc");
         return data;
     }
 
     @Override
     public Map<String, Object> migrate(Map<String, Object> data) {
-        data.put("registryLocation","ctsc");
+        data.put("registryLocation","Newcastle");
         return data;
     }
 

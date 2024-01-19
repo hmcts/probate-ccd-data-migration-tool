@@ -31,6 +31,12 @@ public class CaseMigrationRunner implements CommandLineRunner {
     @Value("${migration.rollback.end.datetime}")
     private String migrationrollbackEndDatetime;
 
+    @Value("${case.migration.processing.caseReferences}")
+    private String caseReferences;
+
+    @Value("${rollback.processing.caseReferences}")
+    private boolean rollbackCaseReferences;
+
     public static void main(String[] args) {
         SpringApplication.run(CaseMigrationRunner.class, args);
     }
@@ -38,29 +44,37 @@ public class CaseMigrationRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            if (defaultThreadLimit <= 1) {
-                log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
-                if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
-                    && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                    log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
-                        migrationrollbackStartDatetime, migrationrollbackEndDatetime);
-                    caseMigrationRollbackProcessor.rollbackCases(caseType);
+            if (null != caseReferences && caseReferences.length() > 0) {
+                log.info("case References to be migrate :  {}",caseReferences);
+                log.info("CaseMigrationRunner rollbackCaseReferences = {} ", rollbackCaseReferences);
+                if (rollbackCaseReferences) {
+                    caseMigrationRollbackProcessor.rollbackCaseReferenceList(caseType,caseReferences);
                 } else {
-                    caseMigrationProcessor.migrateCases(caseType);
+                    caseMigrationProcessor.migrateCaseReferenceList(caseType,caseReferences);
                 }
             } else {
-                log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
-                if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
-                    && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                    log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
-                        migrationrollbackStartDatetime, migrationrollbackEndDatetime);
-                    caseMigrationRollbackProcessor.processRollback(caseType);
+                if (defaultThreadLimit <= 1) {
+                    log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
+                    if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
+                        && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
+                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                            migrationrollbackStartDatetime, migrationrollbackEndDatetime);
+                        caseMigrationRollbackProcessor.rollbackCases(caseType);
+                    } else {
+                        caseMigrationProcessor.migrateCases(caseType);
+                    }
                 } else {
-                    caseMigrationProcessor.process(caseType);
+                    log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
+                    if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
+                        && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
+                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                            migrationrollbackStartDatetime, migrationrollbackEndDatetime);
+                        caseMigrationRollbackProcessor.processRollback(caseType);
+                    } else {
+                        caseMigrationProcessor.process(caseType);
+                    }
                 }
             }
-
-
         } catch (Exception e) {
             log.error("Migration failed with the following reason: {}", e.getMessage(), e);
         }
