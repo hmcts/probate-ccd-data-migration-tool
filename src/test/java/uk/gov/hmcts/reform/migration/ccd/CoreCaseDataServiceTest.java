@@ -89,7 +89,7 @@ public class CoreCaseDataServiceTest {
         data.put("applicantLName", "Mamidi");
         data.put("applicantFMName", "Prashanth");
         data.put("appRespondentFMName", "TestRespondant");
-        data.put("registryLocation", "Newcastle");
+        data.put("registryLocation", "ctsc");
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
