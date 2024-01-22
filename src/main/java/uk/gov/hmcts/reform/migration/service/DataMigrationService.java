@@ -10,5 +10,5 @@ public interface DataMigrationService<T> {
 
     T migrate(Long id, Map<String, Object> data, String auth, String serviceAuth);
 
-    T rollback(Map<String, Object> data);
+    T rollback(Long id, Map<String, Object> data, String auth, String serviceAuth);
 }
