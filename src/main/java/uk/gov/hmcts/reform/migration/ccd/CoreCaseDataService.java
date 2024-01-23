@@ -93,7 +93,6 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -114,8 +113,5 @@ public class CoreCaseDataService {
                 caseId,
                 true,
                 caseDataContent);
-        } else {
-            return null;
-        }
     }
 }

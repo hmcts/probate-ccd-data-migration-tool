@@ -10,47 +10,20 @@ public class ElasticSearchRollbackQuery {
           "query": {
             "bool": {
               "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }}
-              ],
-               "must": [
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
-                   {"exists": { "field": "supplementary_data" }}
-              ],
-              "filter":
-                   [
-                       {
+                     {"match": { "data.applicationType": "Solicitor" }},
+                     {"match": { "data.registryLocation": "ctsc" }},
+                     {"match": { "data.paperForm": "Yes" }},
+                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
+                 ],
+                  "filter":
+                         {
                            "range": {
-                                  "last_modified": {
+                             "last_modified": {
                                   "gte": "%s",
                                   "lte": "%s"
                              }
                            }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
-                   ]
-
+                         }
             }
           },
           "size": %s,

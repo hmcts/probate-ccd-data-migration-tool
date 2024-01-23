@@ -44,8 +44,9 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
                 .orgPolicyCaseAssignedRole(null)
                 .build();
             data.put("applicantOrganisationPolicy", policy);
+            log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
             Map<String, Map<String, Map<String, Object>>> supplementaryData = new HashMap<>();
-            coreCaseDataApi.submitSupplementaryData(userToken, authToken, id.toString(), supplementaryData);
+            //coreCaseDataApi.submitSupplementaryData(userToken, authToken, id.toString(), supplementaryData);
         }
         return data;
     }
