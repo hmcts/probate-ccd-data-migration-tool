@@ -16,8 +16,10 @@ import uk.gov.hmcts.reform.migration.repository.IdamRepository;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -27,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationRollbackProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - hand off flag Rollback change";
-    private static final String EVENT_DESCRIPTION = "Data migration - hand off flag Rollback change";
+    private static final String EVENT_SUMMARY = "Data migration - Rollback RegistryLocation back to ctsc";
+    private static final String EVENT_DESCRIPTION = "Data migration - Rollback RegistryLocation back to ctsc";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -134,6 +136,22 @@ public class CaseMigrationRollbackProcessor {
             .limit(caseProcessLimit)
             .forEach(caseDetails -> updateCase(userToken, caseType, caseDetails));
         showRollbackSummary();
+    }
+
+    public void rollbackCaseReferenceList(String caseType, String caseReferences) {
+        String userToken =  idamRepository.generateUserToken();
+        List<String> caseReferenceList =  Arrays.asList(caseReferences.split(",", -1));;
+        for (String caseReference: caseReferenceList) {
+            log.info("Data migration of cases started for case reference: {}", caseReference);
+            Optional<CaseDetails> caseDetailsOptional =
+                elasticSearchRollbackRepository.findCaseByCaseId(userToken, caseReference);
+            if (caseDetailsOptional.isPresent()) {
+                CaseDetails caseDetails =  caseDetailsOptional.get();
+                updateCase(userToken, caseType, caseDetails);
+            }
+        }
+        showRollbackSummary();
+
     }
 
     private void showRollbackSummary() {
