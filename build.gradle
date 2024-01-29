@@ -292,7 +292,7 @@ test {
 
   reports {
     html.required = true
-    html.outputLocation file("${buildDir}/reports/jacoco/test")
+    html.outputLocation = file("${buildDir}/reports/jacoco/test")
   }
 
   jvmArgs = [
