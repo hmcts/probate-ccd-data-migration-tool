@@ -119,7 +119,7 @@ checkstyle {
 jacocoTestReport {
   executionData(test, integration)
   reports {
-    xml.required = true
+    xml.required = false
     csv.required = false
     xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
   }
