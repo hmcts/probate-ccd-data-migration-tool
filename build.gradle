@@ -290,10 +290,6 @@ test {
     info.events = ["failed", "skipped"]
   }
 
-  reports {
-    html.required = false
-  }
-
   jvmArgs = [
     '--add-modules', 'java.se',
     '--add-exports', 'java.base/jdk.internal.ref=ALL-UNNAMED',
