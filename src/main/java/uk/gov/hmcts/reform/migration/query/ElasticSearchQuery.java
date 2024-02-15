@@ -10,43 +10,16 @@ public class ElasticSearchQuery {
           "query": {
             "bool": {
               "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }}
-              ],
-               "must_not": [
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
-                   {"exists": { "field": "supplementary_data" }}
+                    {"exists": { "field": "data.paperForm" }}
               ],
               "filter":
                    [
                        {
                            "range": {
                                   "created_date": {
-                                      "gte": "2023-10-25T15:30:00",
-                                      "lte": "2023-11-30T14:15:00"
+                                      "gte": "2024-02-01T09:00:00",
+                                      "lte": "2024-02-14T17:00:00"
                                   }
-                           }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
                            }
                        }
                    ]
@@ -59,6 +32,7 @@ public class ElasticSearchQuery {
               "reference.keyword": "asc"
             }
           ]
+          }
           """;
 
     private static final String END_QUERY = "\n    }";
