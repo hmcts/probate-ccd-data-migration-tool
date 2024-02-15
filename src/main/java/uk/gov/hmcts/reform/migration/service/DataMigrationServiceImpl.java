@@ -23,7 +23,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     private final AuditEventService auditEventService;
     private final OrganisationApi organisationApi;
     private final CoreCaseDataApi coreCaseDataApi;
-    private List<String> solicitorEvent = Arrays.asList("solicitorCreateApplication", "solicitorCreateCaveat");
+    private List<String> createCaseFromBulkScanEventEvent = Arrays.asList("createCaseFromBulkScanEvent");
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -44,38 +44,30 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         }
-        AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
-        log.info("Audit events {}", auditEvent);
-        OrganisationEntityResponse response = getOrganisationDetails(userToken, authToken, auditEvent.getUserId());
-        log.info("organisation response {}", response);
-        if (response != null) {
-            OrganisationPolicy policy = OrganisationPolicy.builder()
-                .organisation(Organisation.builder()
-                    .organisationID(response.getOrganisationIdentifier())
-                    .organisationName(response.getName())
-                    .build())
-                .orgPolicyReference(null)
-                .orgPolicyCaseAssignedRole("[APPLICANTSOLICITOR]")
-                .build();
-            data.put("applicantOrganisationPolicy", policy);
-            log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
-            Map<String, Object> usersMap = new HashMap<>();
-            usersMap.put("orgs_assigned_users." + response.getOrganisationIdentifier(), 1);
-            Map<String, Map<String, Map<String, Object>>> supplementaryData = new HashMap<>();
-            supplementaryData.put("supplementary_data_updates", Map.of("$set", usersMap));
-            coreCaseDataApi.submitSupplementaryData(userToken, authToken,
-                caseId.toString(), supplementaryData);
+
+        System.out.println("paper Form field: " + data.get("paperForm"));
+
+        String channelChoice = "";
+        if("NO".equals(data.get("paperForm"))) { //determine the correct comparator
+            channelChoice = "Digital";
+        } else {
+            AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
+            log.info("Audit events {}", auditEvent);
+            if (auditEvent != null) {
+                channelChoice = "BulkScan";
+            } else {
+                channelChoice = "Paper";
+            }
         }
+        System.out.println(data.get("paperForm"));
+
+        data.put("paperForm", channelChoice);
+        //data.put("paperForm", channelChoice);
         return data;
     }
 
     private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
-        return auditEventService.getLatestAuditEventByName(caseId.toString(), solicitorEvent,
-                userToken, authToken).orElseThrow(() -> new IllegalStateException(String
-            .format("Could not find %s event in audit", solicitorEvent)));
-    }
-
-    private OrganisationEntityResponse getOrganisationDetails(String userToken, String authToken, String userId) {
-        return organisationApi.findOrganisationOfSolicitor(userToken, authToken, userId);
+        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScanEventEvent,
+            userToken, authToken).orElse(null);
     }
 }
