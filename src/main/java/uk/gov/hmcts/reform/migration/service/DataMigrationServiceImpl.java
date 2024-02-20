@@ -43,7 +43,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         System.out.println("paper Form field: " + data.get("paperForm"));
 
         String channelChoice = "";
-        if("No".equals(data.get("paperForm"))) {
+        if ("No".equals(data.get("paperForm"))) {
             channelChoice = "Digital";
         } else {
             AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
