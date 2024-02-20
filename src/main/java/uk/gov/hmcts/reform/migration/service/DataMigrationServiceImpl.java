@@ -3,15 +3,10 @@ package uk.gov.hmcts.reform.migration.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
-import uk.gov.hmcts.reform.domain.common.Organisation;
-import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
-import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -21,8 +16,6 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
-    private final OrganisationApi organisationApi;
-    private final CoreCaseDataApi coreCaseDataApi;
     private List<String> createCaseFromBulkScanEventEvent = Arrays.asList("createCaseFromBulkScanEvent");
 
     @Override
@@ -35,18 +28,8 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         } else {
-            OrganisationPolicy policy = OrganisationPolicy.builder()
-                .organisation(Organisation.builder()
-                    .organisationID(null)
-                    .organisationName(null)
-                    .build())
-                .orgPolicyReference(null)
-                .orgPolicyCaseAssignedRole(null)
-                .build();
-            data.put("applicantOrganisationPolicy", policy);
-            log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
-            Map<String, Map<String, Map<String, Object>>> supplementaryData = new HashMap<>();
-            //coreCaseDataApi.submitSupplementaryData(userToken, authToken, id.toString(), supplementaryData);
+            data.put("channelChoice", null);
+            log.info("channelChoice {}", data.get("channelChoice"));
         }
         return data;
     }
@@ -60,7 +43,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         System.out.println("paper Form field: " + data.get("paperForm"));
 
         String channelChoice = "";
-        if("NO".equals(data.get("paperForm"))) { //determine the correct comparator
+        if("No".equals(data.get("paperForm"))) {
             channelChoice = "Digital";
         } else {
             AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
