@@ -59,10 +59,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
                 channelChoice = "Paper";
             }
         }
-        System.out.println(data.get("paperForm"));
-
-        data.put("paperForm", channelChoice);
-        //data.put("paperForm", channelChoice);
+        data.put("channelChoice", channelChoice);
         return data;
     }
 
