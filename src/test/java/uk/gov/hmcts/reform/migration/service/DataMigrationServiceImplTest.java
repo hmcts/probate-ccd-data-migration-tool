@@ -49,23 +49,10 @@ public class DataMigrationServiceImplTest {
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new DataMigrationServiceImpl(auditEventService, organisationApi,
-            coreCaseDataApi);
+        service = new DataMigrationServiceImpl(auditEventService);
         AuditEvent mockedEvent = AuditEvent.builder().id(SOLICITOR_EVENT).userId("123").build();
         when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
             .thenReturn(Optional.of(mockedEvent));
-        organisationEntityResponse = OrganisationEntityResponse.builder()
-            .organisationIdentifier("ABC").name("Org2 name").build();
-        when(organisationApi.findOrganisationOfSolicitor(anyString(), anyString(), anyString()))
-            .thenReturn(organisationEntityResponse);
-        policy = OrganisationPolicy.builder()
-            .organisation(Organisation.builder()
-                .organisationID("ABC")
-                .organisationName("Org2 name")
-                .build())
-            .orgPolicyReference(null)
-            .orgPolicyCaseAssignedRole("[APPLICANTSOLICITOR]")
-            .build();
     }
 
     @Test
