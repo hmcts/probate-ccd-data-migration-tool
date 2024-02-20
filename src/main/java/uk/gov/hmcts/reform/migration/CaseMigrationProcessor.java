@@ -16,8 +16,10 @@ import uk.gov.hmcts.reform.migration.repository.IdamRepository;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -104,36 +106,7 @@ public class CaseMigrationProcessor {
                 executorService.shutdown();
                 executorService.awaitTermination(Integer.MAX_VALUE, TimeUnit.DAYS);
             }
-            log.info(
-                """
-                    PROBATE
-                    Data migration completed
-                    {}
-                    Total number of processed cases:
-                    {}
-                    Total number of migrations performed:
-                    {}
-                    {}
-                    """,
-                LOG_STRING,
-                LOG_STRING,
-                getMigratedCases().size() + getFailedCases().size(),
-                getMigratedCases().size(),
-                LOG_STRING
-            );
-
-            if (getMigratedCases().isEmpty()) {
-                log.info("Migrated cases: NONE ");
-            } else {
-                log.info("Migrated cases: {} ", getMigratedCases());
-            }
-
-            if (getFailedCases().isEmpty()) {
-                log.info("Failed cases: NONE ");
-            } else {
-                log.info("Failed cases: {} ", getFailedCases());
-            }
-            log.info("Data migration of cases completed");
+            showMigrationSummary();
         } catch (MigrationLimitReachedException ex) {
             throw ex;
         }
@@ -155,6 +128,26 @@ public class CaseMigrationProcessor {
         listOfCaseDetails.stream()
             .limit(caseProcessLimit)
             .forEach(caseDetails -> updateCase(userToken, caseType, caseDetails));
+        showMigrationSummary();
+    }
+
+    public void migrateCaseReferenceList(String caseType, String caseReferences) {
+        String userToken =  idamRepository.generateUserToken();
+        List<String> caseReferenceList =  Arrays.asList(caseReferences.split(",", -1));;
+        for (String caseReference: caseReferenceList) {
+            log.info("Data migration of cases started for case reference: {}", caseReference);
+            Optional<CaseDetails> caseDetailsOptional =
+                elasticSearchRepository.findCaseByCaseId(userToken, caseReference);
+            if (caseDetailsOptional.isPresent()) {
+                CaseDetails caseDetails =  caseDetailsOptional.get();
+                updateCase(userToken, caseType, caseDetails);
+            }
+        }
+        showMigrationSummary();
+
+    }
+
+    private void showMigrationSummary() {
         log.info(
             """
                 PROBATE
