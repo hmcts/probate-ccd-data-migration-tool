@@ -49,7 +49,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (!updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
+        if (updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -93,6 +93,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
+        if (updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -101,8 +102,7 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.rollback(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
-                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate()))
+                ).data(dataMigrationService.rollback(updatedCaseDetails.getId(), updatedCaseDetails.getData()))
                 .build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
@@ -113,5 +113,8 @@ public class CoreCaseDataService {
                 caseId,
                 true,
                 caseDataContent);
+        } else {
+            return null;
+        }
     }
 }

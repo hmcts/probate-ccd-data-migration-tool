@@ -31,7 +31,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     @Override
-    public Map<String, Object> rollback(Long id, Map<String, Object> data, String userToken, String authToken) {
+    public Map<String, Object> rollback(Long id, Map<String, Object> data) {
         if (data == null) {
             return null;
         } else {
@@ -45,8 +45,6 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
                 .build();
             data.put("applicantOrganisationPolicy", policy);
             log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
-            Map<String, Map<String, Map<String, Object>>> supplementaryData = new HashMap<>();
-            //coreCaseDataApi.submitSupplementaryData(userToken, authToken, id.toString(), supplementaryData);
         }
         return data;
     }
