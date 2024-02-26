@@ -12,6 +12,8 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.domain.common.Organisation;
+import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
@@ -92,6 +94,15 @@ public class CoreCaseDataServiceTest {
         data.put("applicantFMName", "Prashanth");
         data.put("appRespondentFMName", "TestRespondant");
         data.put("registryLocation", "ctsc");
+        OrganisationPolicy policy = OrganisationPolicy.builder()
+            .organisation(Organisation.builder()
+                .organisationID("123")
+                .organisationName("ABC")
+                .build())
+            .orgPolicyReference(null)
+            .orgPolicyCaseAssignedRole(null)
+            .build();
+        data.put("applicantOrganisationPolicy", policy);
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
