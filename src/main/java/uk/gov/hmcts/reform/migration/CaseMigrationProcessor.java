@@ -16,8 +16,10 @@ import uk.gov.hmcts.reform.migration.repository.IdamRepository;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -127,6 +129,22 @@ public class CaseMigrationProcessor {
             .limit(caseProcessLimit)
             .forEach(caseDetails -> updateCase(userToken, caseType, caseDetails));
         showMigrationSummary();
+    }
+
+    public void migrateCaseReferenceList(String caseType, String caseReferences) {
+        String userToken =  idamRepository.generateUserToken();
+        List<String> caseReferenceList =  Arrays.asList(caseReferences.split(",", -1));;
+        for (String caseReference: caseReferenceList) {
+            log.info("Data migration of cases started for case reference: {}", caseReference);
+            Optional<CaseDetails> caseDetailsOptional =
+                elasticSearchRepository.findCaseByCaseId(userToken, caseReference);
+            if (caseDetailsOptional.isPresent()) {
+                CaseDetails caseDetails =  caseDetailsOptional.get();
+                updateCase(userToken, caseType, caseDetails);
+            }
+        }
+        showMigrationSummary();
+
     }
 
     private void showMigrationSummary() {
