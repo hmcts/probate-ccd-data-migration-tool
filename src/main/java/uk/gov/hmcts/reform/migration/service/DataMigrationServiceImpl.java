@@ -35,18 +35,8 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         } else {
-            OrganisationPolicy policy = OrganisationPolicy.builder()
-                .organisation(Organisation.builder()
-                    .organisationID(null)
-                    .organisationName(null)
-                    .build())
-                .orgPolicyReference(null)
-                .orgPolicyCaseAssignedRole(null)
-                .build();
-            data.put("applicantOrganisationPolicy", policy);
-            log.info("Org policy {}", data.get("applicantOrganisationPolicy"));
+            return data;
         }
-        return data;
     }
 
     @Override
