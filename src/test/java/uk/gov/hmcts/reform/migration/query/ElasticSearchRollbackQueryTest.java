@@ -30,8 +30,7 @@ public class ElasticSearchRollbackQueryTest {
               "must": [
                    {"match": { "data.applicationType": "Solicitor" }},
                    {"match": { "data.paperForm": "No" }},
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
-                   {"exists": { "field": "supplementary_data" }}
+                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
               ],
               "filter":
                    [
@@ -96,8 +95,7 @@ public class ElasticSearchRollbackQueryTest {
               "must": [
                    {"match": { "data.applicationType": "Solicitor" }},
                    {"match": { "data.paperForm": "No" }},
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
-                   {"exists": { "field": "supplementary_data" }}
+                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
               ],
               "filter":
                    [
