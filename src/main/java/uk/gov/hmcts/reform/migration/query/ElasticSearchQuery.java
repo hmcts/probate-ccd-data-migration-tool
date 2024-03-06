@@ -7,33 +7,31 @@ public class ElasticSearchQuery {
 
     private static final String START_QUERY = """
         {
-          "query": {
-            "bool": {
-              "must": [
-                    {"exists": { "field": "data.paperForm" }}
-              ],
-              "filter":
-                   [
-                       {
-                           "range": {
-                                  "created_date": {
-                                      "gte": "2024-02-01T09:00:00",
-                                      "lte": "2024-02-14T17:00:00"
-                                  }
-                           }
-                       }
-                   ]
-
+            "query": {
+                "bool": {
+                      "must_not": [
+                        {
+                          "match": {
+                            "state": "Deleted"
+                          }
+                        }
+                      ],
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "data.paperForm"
+                            }
+                        }
+                    ]
+                }
             }
-          },
-          "size": %s,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
-          }
-          """;
+            "size": %s,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]
+        }""";
 
     private static final String END_QUERY = "\n    }";
 
