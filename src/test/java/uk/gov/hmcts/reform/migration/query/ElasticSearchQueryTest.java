@@ -29,20 +29,10 @@ public class ElasticSearchQueryTest {
                                     "field": "data.paperForm"
                                 }
                             }
-                        ],
-                        "filter": [
-                            {
-                                "range": {
-                                    "created_date": {
-                                        "gte": "2024-02-01T09:00:00",
-                                        "lte": "2024-02-14T17:00:00"
-                                    }
-                                }
-                            }
                         ]
                     }
                 }
-                "size": 100,
+                "size": %s,
                 "sort": [
                     {
                         "reference.keyword": "asc"
@@ -70,16 +60,6 @@ public class ElasticSearchQueryTest {
                                 "field": "data.paperForm"
                             }
                         }
-                    ],
-                    "filter": [
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2024-02-01T09:00:00",
-                                    "lte": "2024-02-14T17:00:00"
-                                }
-                            }
-                        }
                     ]
                 }
             }
@@ -88,8 +68,8 @@ public class ElasticSearchQueryTest {
                 {
                     "reference.keyword": "asc"
                 }
-            ],
-        \"search_after\": [1677777777]
+            ]
+        }, \"search_after\": [1677777777]
         }
         """, query);
     }
