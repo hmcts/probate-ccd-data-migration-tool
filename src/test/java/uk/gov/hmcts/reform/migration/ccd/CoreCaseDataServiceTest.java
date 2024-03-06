@@ -12,12 +12,13 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.service.AuditEventService;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -36,6 +37,8 @@ public class CoreCaseDataServiceTest {
     private static final String EVENT_TOKEN = "Bearer aaaadsadsasawewewewew";
     private static final String EVENT_SUMMARY = "Migrate Case";
     private static final String EVENT_DESC = "Migrate Case";
+    private static final List<String> createCaseFromBulkScanEventEvent = Arrays.asList("createCaseFromBulkScanEvent");
+
 
     @InjectMocks
     private CoreCaseDataService underTest;
@@ -52,11 +55,14 @@ public class CoreCaseDataServiceTest {
     @Mock
     private AuthTokenGenerator authTokenGenerator;
 
+    @Mock
+    private AuditEventService auditEventService;
 
     @Before
     public void setUp() {
     }
 
+    /*
     @Test
     public void shouldUpdateTheCase() {
         // given
@@ -83,19 +89,48 @@ public class CoreCaseDataServiceTest {
         assertThat(update.getData().get("registryLocation"), is("ctsc"));
     }
 
-    private CaseDetails createCaseDetails(String id, String value) {
+     */
+
+
+    /**
+     *  - Find out the structure of the 'userDetails' looking for a way to build our
+     *      existing paperForm channel.
+     *  - Once we know the structure we can create the userDetails object containing paperForm in the data field
+     *  - Once we build we can assert that the data we get through update() in CoreCaseDataService, shall match our
+     *      userDetails object.
+     */
+    @Test
+    public void shouldUpdateThePaperCase() {
+        // given
+        UserDetails userDetails = UserDetails.builder()
+            .id("30")
+            .email("test@test.com")
+            .forename("Test")
+            .surname("Surname")
+            .build();
+
+        CaseDetails caseDetails3 = createCaseDetailsPreMigration(CASE_ID);
+        setupMocks(userDetails, caseDetails3.getData());
+
+        //when
+        CaseDetails update = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, caseDetails3);
+        //then
+        assertThat(update.getData().get("channelChoice"), is ("Paper"));
+    }
+
+    private CaseDetails createCaseDetailsPreMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("solicitorEmail", "Padmaja.Ramisetti@hmcts.net");
-        data.put("solicitorName", "PADMAJA");
-        data.put("solicitorReference", "LL02");
-        data.put("applicantLName", "Mamidi");
-        data.put("applicantFMName", "Prashanth");
-        data.put("appRespondentFMName", "TestRespondant");
-        data.put("registryLocation", "ctsc");
+        data.put("PaperForm", "Yes");
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
             .build();
+    }
+
+    private Map<String, Object> createCaseDetailsPostMigration(String id) {
+        LinkedHashMap<String, Object> data = new LinkedHashMap<>();
+        data.put("channelChoice", "Paper");
+        return data;
     }
 
     private void setupMocks(UserDetails userDetails, Map<String, Object> data) {
@@ -114,7 +149,16 @@ public class CoreCaseDataServiceTest {
             .caseDetails(caseDetails)
             .build();
 
-        when(dataMigrationService.migrate(any(), any(), anyString(), anyString())).thenReturn(data);
+        when(dataMigrationService.migrate(any(), any(), anyString(), anyString()))
+            .thenReturn(createCaseDetailsPostMigration("1234567889"));
+
+        AuditEvent auditEvent = AuditEvent.builder()
+            .id("smsm")
+            .userFirstName("bob")
+            .build();
+
+        when(auditEventService.getLatestAuditEventByName("123456789", createCaseFromBulkScanEventEvent,
+            AUTH_TOKEN, AUTH_TOKEN)).thenReturn(Optional.of(auditEvent));
 
         when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, "30",
                                                      null, CASE_TYPE, CASE_ID, EVENT_ID
@@ -134,7 +178,7 @@ public class CoreCaseDataServiceTest {
 
 
         when(coreCaseDataApi.submitEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, USER_ID, null,
-                                                      CASE_TYPE, CASE_ID, true, caseDataContent
-        )).thenReturn(caseDetails);
+                                                      CASE_TYPE, CASE_ID, true, caseDataContent))
+            .thenReturn(caseDetails);
     }
 }
