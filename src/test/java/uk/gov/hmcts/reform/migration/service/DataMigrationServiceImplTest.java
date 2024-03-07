@@ -84,18 +84,41 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldMigrateCasesWithOrgPolicy() {
+    public void shouldMigrateDigitalCases() {
         Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Solicitor");
-        data.put("caseType", "GrantOfRepresentation");
-        data.put("solsSolicitorWillSignSOT", "Yes");
+        data.put("paperForm", "No");
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("channelChoice","Digital");
+
         Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals(policy, result.get("applicantOrganisationPolicy"));
-        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
-            anyList(), anyString(), anyString());
-        verify(organisationApi, times(1)).findOrganisationOfSolicitor(anyString(),
-            anyString(), anyString());
+        assertEquals(expectedData, result);
     }
+
+    @Test
+    public void shouldMigratePaperCases() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("paperForm", "Yes");
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("channelChoice","Paper");
+
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+        assertEquals(expectedData, result);
+    }
+
+    @Test
+    public void shouldMigrateBulkScanCases() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("paperForm", "Yes");
+
+        Map<String, Object> expectedData = new HashMap<>();
+        expectedData.put("channelChoice", "BulkScan");
+
+        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+        assertEquals(expectedData, result);
+    }
+
 
     @Test
     public void shouldNotMigrateCasesWhenResponseIsNull() {
