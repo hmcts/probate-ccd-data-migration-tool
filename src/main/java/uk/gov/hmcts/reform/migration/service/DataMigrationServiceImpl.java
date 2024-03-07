@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
-    private List<String> createCaseFromBulkScanEventEvent = Arrays.asList("createCaseFromBulkScanEvent");
+    private List<String> createCaseFromBulkScanEvent = Arrays.asList("createCaseFromBulkScanEvent");
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -40,10 +40,8 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             return null;
         }
 
-        System.out.println("paper Form field: " + data.get("PaperForm"));
-
         String channelChoice = "";
-        if ("No".equals(data.get("PaperForm"))) {
+        if ("No".equals(data.get("paperForm"))) {
             channelChoice = "Digital";
         } else {
             AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
@@ -55,11 +53,12 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             }
         }
         data.put("channelChoice", channelChoice);
+        data.remove("paperForm");
         return data;
     }
 
     private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
-        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScanEventEvent,
+        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScanEvent,
             userToken, authToken).orElse(null);
     }
 }
