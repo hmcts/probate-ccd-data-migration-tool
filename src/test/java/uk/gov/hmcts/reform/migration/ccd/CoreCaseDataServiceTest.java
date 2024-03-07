@@ -62,43 +62,6 @@ public class CoreCaseDataServiceTest {
     public void setUp() {
     }
 
-    /*
-    @Test
-    public void shouldUpdateTheCase() {
-        // given
-        UserDetails userDetails = UserDetails.builder()
-            .id("30")
-            .email("test@test.com")
-            .forename("Test")
-            .surname("Surname")
-            .build();
-
-        CaseDetails caseDetails3 = createCaseDetails(CASE_ID, "case-3");
-        setupMocks(userDetails, caseDetails3.getData());
-
-        //when
-        CaseDetails update = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, caseDetails3);
-        //then
-        assertThat(update.getId(), is(Long.parseLong(CASE_ID)));
-        assertThat(update.getData().get("solicitorEmail"), is("Padmaja.Ramisetti@hmcts.net"));
-        assertThat(update.getData().get("solicitorName"), is("PADMAJA"));
-        assertThat(update.getData().get("solicitorReference"), is("LL02"));
-        assertThat(update.getData().get("applicantLName"), is("Mamidi"));
-        assertThat(update.getData().get("applicantFMName"), is("Prashanth"));
-        assertThat(update.getData().get("appRespondentFMName"), is("TestRespondant"));
-        assertThat(update.getData().get("registryLocation"), is("ctsc"));
-    }
-
-     */
-
-
-    /**
-     *  - Find out the structure of the 'userDetails' looking for a way to build our
-     *      existing paperForm channel.
-     *  - Once we know the structure we can create the userDetails object containing paperForm in the data field
-     *  - Once we build we can assert that the data we get through update() in CoreCaseDataService, shall match our
-     *      userDetails object.
-     */
     @Test
     public void shouldUpdateThePaperCase() {
         // given
@@ -127,10 +90,13 @@ public class CoreCaseDataServiceTest {
             .build();
     }
 
-    private Map<String, Object> createCaseDetailsPostMigration(String id) {
+    private CaseDetails createCaseDetailsPostMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
         data.put("channelChoice", "Paper");
-        return data;
+        return CaseDetails.builder()
+            .id(Long.valueOf(id))
+            .data(data)
+            .build();
     }
 
     private void setupMocks(UserDetails userDetails, Map<String, Object> data) {
@@ -150,15 +116,12 @@ public class CoreCaseDataServiceTest {
             .build();
 
         when(dataMigrationService.migrate(any(), any(), anyString(), anyString()))
-            .thenReturn(createCaseDetailsPostMigration("1234567889"));
+            .thenReturn(createCaseDetailsPostMigration(CASE_ID).getData());
 
         AuditEvent auditEvent = AuditEvent.builder()
             .id("smsm")
             .userFirstName("bob")
             .build();
-
-        when(auditEventService.getLatestAuditEventByName("123456789", createCaseFromBulkScanEventEvent,
-            AUTH_TOKEN, AUTH_TOKEN)).thenReturn(Optional.of(auditEvent));
 
         when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, "30",
                                                      null, CASE_TYPE, CASE_ID, EVENT_ID
@@ -172,13 +135,13 @@ public class CoreCaseDataServiceTest {
                        .summary(EVENT_SUMMARY)
                        .build())
             .eventToken(EVENT_TOKEN)
-            .data(data)
+            .data(createCaseDetailsPostMigration(CASE_ID).getData())
             .ignoreWarning(false)
             .build();
 
 
         when(coreCaseDataApi.submitEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, USER_ID, null,
                                                       CASE_TYPE, CASE_ID, true, caseDataContent))
-            .thenReturn(caseDetails);
+            .thenReturn(createCaseDetailsPostMigration(CASE_ID));
     }
 }
