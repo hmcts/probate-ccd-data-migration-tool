@@ -53,7 +53,6 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             }
         }
         data.put("channelChoice", channelChoice);
-        data.remove("paperForm");
         return data;
     }
 
