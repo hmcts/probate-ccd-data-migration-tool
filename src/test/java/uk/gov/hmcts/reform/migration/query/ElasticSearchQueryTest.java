@@ -14,15 +14,23 @@ public class ElasticSearchQueryTest {
 
     @Test
     public void shouldReturnQuery() {
-        ElasticSearchQuery elasticSearchQuery =  ElasticSearchQuery.builder()
+        ElasticSearchQuery elasticSearchQuery = ElasticSearchQuery.builder()
             .initialSearch(true)
             .size(QUERY_SIZE)
             .build();
         String query = elasticSearchQuery.getQuery();
+
         assertEquals("""
             {
                 "query": {
                     "bool": {
+                        "must_not": [
+                            {
+                                "match": {
+                                    "state": "Deleted"
+                                }
+                            }
+                        ],
                         "must": [
                             {
                                 "exists": {
@@ -31,15 +39,15 @@ public class ElasticSearchQueryTest {
                             }
                         ]
                     }
-                }
-                "size": %s,
+                },
+                "size": 100,
                 "sort": [
                     {
                         "reference.keyword": "asc"
                     }
                 ]
             }
-          """, query);
+                }""", query);
     }
 
     @Test
@@ -54,6 +62,13 @@ public class ElasticSearchQueryTest {
         {
             "query": {
                 "bool": {
+                    "must_not": [
+                        {
+                            "match": {
+                                "state": "Deleted"
+                            }
+                        }
+                    ],
                     "must": [
                         {
                             "exists": {
@@ -62,15 +77,14 @@ public class ElasticSearchQueryTest {
                         }
                     ]
                 }
-            }
-            "size": %s,
+            },
+            "size": 100,
             "sort": [
                 {
                     "reference.keyword": "asc"
                 }
             ]
-        }, \"search_after\": [1677777777]
-        }
-        """, query);
+        },\"search_after\": [1677777777]
+            }""", query);
     }
 }
