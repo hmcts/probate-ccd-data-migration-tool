@@ -9,13 +9,13 @@ public class ElasticSearchQuery {
         {
             "query": {
                 "bool": {
-                      "must_not": [
+                    "must_not": [
                         {
-                          "match": {
-                            "state": "Deleted"
-                          }
+                            "match": {
+                                "state": "Deleted"
+                            }
                         }
-                      ],
+                    ],
                     "must": [
                         {
                             "exists": {
@@ -24,7 +24,7 @@ public class ElasticSearchQuery {
                         }
                     ]
                 }
-            }
+            },
             "size": %s,
             "sort": [
                 {
