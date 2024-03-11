@@ -7,56 +7,34 @@ public class ElasticSearchRollbackQuery {
 
     private static final String START_QUERY = """
         {
-          "query": {
-            "bool": {
-              "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }},
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
-              ],
-              "filter":
-                   [
-                       {
-                           "range": {
-                             "last_modified": {
-                                  "gte": "%s",
-                                  "lte": "%s"
-                             }
-                           }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
-                   ]
-
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "data.channelChoice"
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "range": {
+                                "created_date": {
+                                    "gte": "%s",
+                                    "lte": "%s"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "size": %s,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ]
             }
-          },
-          "size": %s,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
-          """;
+        }""";
 
     private static final String END_QUERY = "\n    }";
 
