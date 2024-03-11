@@ -18,7 +18,10 @@ import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.service.AuditEventService;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -78,7 +81,7 @@ public class CoreCaseDataServiceTest {
         //when
         CaseDetails update = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, caseDetails3);
         //then
-        assertThat(update.getData().get("channelChoice"), is ("Paper"));
+        assertThat(update.getData().get("channelChoice"), is("Paper"));
     }
 
     private CaseDetails createCaseDetailsPreMigration(String id) {
