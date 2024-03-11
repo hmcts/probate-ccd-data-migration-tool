@@ -7,32 +7,34 @@ public class ElasticSearchRollbackQuery {
 
     private static final String START_QUERY = """
         {
-          "query": {
-            "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "ctsc" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ],
-                  "filter":
-                         {
-                           "range": {
-                             "last_modified": {
-                                  "gte": "%s",
-                                  "lte": "%s"
-                             }
-                           }
-                         }
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "data.channelChoice"
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "range": {
+                                "created_date": {
+                                    "gte": "%s",
+                                    "lte": "%s"
+                                }
+                            }
+                        }
+                    ]
+                },
+                "size": %s,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ]
             }
-          },
-          "size": %s,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
-          """;
+        }""";
 
     private static final String END_QUERY = "\n    }";
 
