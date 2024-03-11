@@ -10,7 +10,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
-import uk.gov.hmcts.reform.domain.common.Organisation;
 import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
@@ -22,11 +21,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceImplTest {
@@ -123,67 +121,4 @@ public class DataMigrationServiceImplTest {
         Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
         assertEquals(expectedData, result);
     }
-
-/*
-    @Test
-    public void shouldNotMigrateCasesWhenResponseIsNull() {
-        //when(organisationApi.findOrganisationOfSolicitor(anyString(), anyString(), anyString())).thenReturn(null);
-        AuditEvent mockedEvent = AuditEvent.builder().id(CREATE_CASE_FROM_BULKSCAN_EVENT).userId("123").build();
-        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
-            .thenReturn(Optional.of(mockedEvent));
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Solicitor");
-        data.put("caseType", "GrantOfRepresentation");
-        data.put("solsSolicitorWillSignSOT", "Yes");
-
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertNull(result.get(CREATE_CASE_FROM_BULKSCAN_EVENT));
-
-        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
-            anyList(), anyString(), anyString());
-        verify(organisationApi, times(1)).findOrganisationOfSolicitor(anyString(),
-            anyString(), anyString());
-    }
-
-
-
-    @Test
-    public void shouldMigrateCaveatCasesWithOrgPolicy() {
-        AuditEvent mockedEvent = AuditEvent.builder().id("solicitorCreateCaveat").userId("123").build();
-        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
-            .thenReturn(Optional.of(mockedEvent));
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Solicitor");
-        data.put("caseType", "Caveat");
-        data.put("solsSolicitorFirmName", "Firm");
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals(policy, result.get("applicantOrganisationPolicy"));
-        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
-            anyList(), anyString(), anyString());
-        verify(organisationApi, times(1)).findOrganisationOfSolicitor(anyString(),
-            anyString(), anyString());
-    }
-
-    @Test
-    public void shouldThrowErrorWhenNoEvent() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationType","Solicitor");
-        data.put("caseType", "gop");
-        data.put("solsSolicitorWillSignSOT", "Yes");
-        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
-            .thenReturn(Optional.empty());
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> service.migrate(1L, data, "token", "serviceToken"));
-
-        assertEquals("Could not find [solicitorCreateApplication, solicitorCreateCaveat] event in audit",
-            exception.getMessage());
-        verify(auditEventService, times(1)).getLatestAuditEventByName(anyString(),
-            anyList(), anyString(), anyString());
-        verify(organisationApi, times(0)).findOrganisationOfSolicitor(anyString(),
-            anyString(), anyString());
-    }
-
- */
 }
