@@ -33,43 +33,58 @@ public class ElasticSearchRepositoryTest {
     {
         "query": {
             "bool": {
+                "must_not": [
+                    {
+                        "match": {
+                            "state": "Deleted"
+                        }
+                    }
+                ],
                 "must": [
                     {
                         "exists": {
                             "field": "data.paperForm"
                         }
                     }
-                ],
+                ]
             }
-        }
+        },
         "size": 100,
         "sort": [
             {
                 "reference.keyword": "asc"
             }
         ]
-    }""";
+    }
+        }""";
 
     private static final String SEARCH_AFTER_QUERY = """
     {
         "query": {
             "bool": {
+                "must_not": [
+                    {
+                        "match": {
+                            "state": "Deleted"
+                        }
+                    }
+                ],
                 "must": [
                     {
                         "exists": {
                             "field": "data.paperForm"
                         }
                     }
-                ],
+                ]
             }
-        }
+        },
         "size": 100,
         "sort": [
             {
                 "reference.keyword": "asc"
             }
         ]
-        ,\"search_after\": [1677777777]
+        },\"search_after\": [1677777777]
             }""";
 
     private static final int QUERY_SIZE = 100;
