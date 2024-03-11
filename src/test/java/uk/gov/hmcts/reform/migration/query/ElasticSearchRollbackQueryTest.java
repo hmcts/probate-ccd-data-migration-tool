@@ -24,35 +24,36 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "exists": {
-                                "field": "data.paperForm"
-                            }
-                        }
-                    ],
-                    "filter": [
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2023-02-24T14:00:00",
-                                    "lte": "2023-02-25T16:00:00"
+            {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "data.channelChoice"
                                 }
                             }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "created_date": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "size": 100,
+                    "sort": [
+                        {
+                            "reference.keyword": "asc"
                         }
                     ]
                 }
             }
-            "size": %s,
-            "sort": [
-                {
-                    "reference.keyword": "asc"
-                }
-            ]
-        }""", query);
+                }""", query);
     }
 
     @Test
@@ -66,35 +67,35 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-            "query": {
-                "bool": {
-                    "must": [
-                        {
-                            "exists": {
-                                "field": "data.paperForm"
-                            }
-                        }
-                    ],
-                    "filter": [
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2023-02-24T14:00:00",
-                                    "lte": "2023-02-25T16:00:00"
+            {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "data.channelChoice"
                                 }
                             }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "created_date": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "size": 100,
+                    "sort": [
+                        {
+                            "reference.keyword": "asc"
                         }
                     ]
                 }
-            }
-            "size": %s,
-            "sort": [
-                {
-                    "reference.keyword": "asc"
-                }
-            ]
-        ,\"search_after\": [1677777777]
-            }""", query);
+            },"search_after": [1677777777]
+                }""", query);
     }
 }
