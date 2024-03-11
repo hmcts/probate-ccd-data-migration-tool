@@ -84,8 +84,8 @@ public class ElasticSearchRepositoryTest {
                 "reference.keyword": "asc"
             }
         ]
-        },\"search_after\": [1677777777]
-            }""";
+    },"search_after": [1677777777]
+        }""";
 
     private static final int QUERY_SIZE = 100;
     private static final int CASE_PROCESS_LIMIT = 100;
