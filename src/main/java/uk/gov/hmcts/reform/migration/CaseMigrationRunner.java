@@ -59,7 +59,7 @@ public class CaseMigrationRunner implements CommandLineRunner {
                     log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
                     if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
                         && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
                             migrationrollbackStartDatetime, migrationrollbackEndDatetime);
                         caseMigrationRollbackProcessor.rollbackCases(caseType);
                     } else {
@@ -69,11 +69,13 @@ public class CaseMigrationRunner implements CommandLineRunner {
                     log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
                     if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
                         && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
                             migrationrollbackStartDatetime, migrationrollbackEndDatetime);
-                        caseMigrationRollbackProcessor.processRollback(caseType);
+                        caseMigrationRollbackProcessor.processRollback("GrantOfRepresentation");
+                        caseMigrationRollbackProcessor.processRollback("Caveat");
                     } else {
-                        caseMigrationProcessor.process(caseType);
+                        caseMigrationProcessor.process("GrantOfRepresentation");
+                        caseMigrationRollbackProcessor.processRollback("Caveat");
                     }
                 }
             }
