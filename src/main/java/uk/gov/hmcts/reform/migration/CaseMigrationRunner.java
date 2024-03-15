@@ -75,7 +75,7 @@ public class CaseMigrationRunner implements CommandLineRunner {
                         caseMigrationRollbackProcessor.processRollback("Caveat");
                     } else {
                         caseMigrationProcessor.process("GrantOfRepresentation");
-                        caseMigrationRollbackProcessor.processRollback("Caveat");
+                        caseMigrationProcessor.process("Caveat");
                     }
                 }
             }
