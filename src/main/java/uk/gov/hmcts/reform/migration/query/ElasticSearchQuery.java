@@ -22,8 +22,8 @@ public class ElasticSearchQuery {
                        {
                            "range": {
                                   "created_date": {
-                                      "gte": "2023-10-25T15:30:00",
-                                      "lte": "2023-11-30T14:15:00"
+                                      "gte": "2024-01-01T15:30:00",
+                                      "lte": "2024-01-14T14:15:00"
                                   }
                            }
                        },
