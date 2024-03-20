@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.PropertySource;
 
 @Slf4j
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "uk.gov.hmcts.reform.migration")
+@EnableFeignClients(basePackages = "uk.gov.hmcts.reform.migration")
 @PropertySource("classpath:application.properties")
 public class CaseMigrationRunner implements CommandLineRunner {
 
@@ -57,7 +59,7 @@ public class CaseMigrationRunner implements CommandLineRunner {
                     log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
                     if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
                         && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
                             migrationrollbackStartDatetime, migrationrollbackEndDatetime);
                         caseMigrationRollbackProcessor.rollbackCases(caseType);
                     } else {
@@ -67,11 +69,13 @@ public class CaseMigrationRunner implements CommandLineRunner {
                     log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
                     if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
                         && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetmie: {}",
+                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
                             migrationrollbackStartDatetime, migrationrollbackEndDatetime);
-                        caseMigrationRollbackProcessor.processRollback(caseType);
+                        caseMigrationRollbackProcessor.processRollback("GrantOfRepresentation");
+                        caseMigrationRollbackProcessor.processRollback("Caveat");
                     } else {
-                        caseMigrationProcessor.process(caseType);
+                        caseMigrationProcessor.process("GrantOfRepresentation");
+                        caseMigrationProcessor.process("Caveat");
                     }
                 }
             }

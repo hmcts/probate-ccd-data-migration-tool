@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Changing RegistryLocation back to Newcastle";
-    private static final String EVENT_DESCRIPTION = "Data migration - Changing RegistryLocation back to Newcastle";
+    private static final String EVENT_SUMMARY = "Data migration - Setting applicantOrganisationPolicy";
+    private static final String EVENT_DESCRIPTION = "Data migration - Setting applicantOrganisationPolicy";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
