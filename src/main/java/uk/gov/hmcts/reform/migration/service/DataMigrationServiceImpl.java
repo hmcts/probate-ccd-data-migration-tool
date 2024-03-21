@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
-    private List<String> createCaseFromBulkScanEvent = Arrays.asList("createCaseFromBulkScanEvent");
+    private List<String> createCaseFromBulkScanEvent = Arrays.asList("createCaseFromBulkScan");
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -49,7 +49,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             if (auditEvent != null) {
                 channelChoice = "BulkScan";
             } else {
-                channelChoice = "Paper";
+                channelChoice = "PaperForm";
             }
         }
         data.put("channelChoice", channelChoice);
