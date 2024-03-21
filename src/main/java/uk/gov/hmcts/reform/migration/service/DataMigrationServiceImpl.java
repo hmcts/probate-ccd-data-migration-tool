@@ -16,7 +16,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
-    private List<String> createCaseFromBulkScanEvent = Arrays.asList("createCaseFromBulkScan");
+    private List<String> createCaseFromBulkScan = Arrays.asList("createCaseFromBulkScan");
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -57,7 +57,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
-        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScanEvent,
+        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScan,
             userToken, authToken).orElse(null);
     }
 }
