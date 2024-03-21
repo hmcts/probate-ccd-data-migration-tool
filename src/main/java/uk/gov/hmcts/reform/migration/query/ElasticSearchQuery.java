@@ -7,23 +7,31 @@ public class ElasticSearchQuery {
 
     private static final String START_QUERY = """
         {
-          "query": {
-            "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": %s,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
-          """;
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {
+                            "match": {
+                                "state": "Deleted"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "data.paperForm"
+                            }
+                        }
+                    ]
+                }
+            },
+            "size": %s,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]
+        }""";
 
     private static final String END_QUERY = "\n    }";
 

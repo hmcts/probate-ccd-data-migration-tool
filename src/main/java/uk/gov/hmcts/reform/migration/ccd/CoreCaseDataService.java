@@ -49,7 +49,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().get("registryLocation").equals("ctsc")) {
+        if (!updatedCaseDetails.getData().containsKey("channelChoice")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -58,8 +58,8 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.migrate(updatedCaseDetails.getData()))
-                .build();
+                ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
+                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate())).build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
                 authTokenGenerator.generate(),
@@ -75,10 +75,10 @@ public class CoreCaseDataService {
     }
 
     public CaseDetails rollback(String authorisation, String eventId,
-                              String eventSummary,
-                              String eventDescription,
-                              String caseType,
-                              CaseDetails caseDetails) {
+                                String eventSummary,
+                                String eventDescription,
+                                String caseType,
+                                CaseDetails caseDetails) {
         String caseId = String.valueOf(caseDetails.getId());
         UserDetails userDetails = idamClient.getUserDetails(AuthUtil.getBearerToken(authorisation));
 
@@ -93,7 +93,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().get("registryLocation").equals("Newcastle")) {
+        if (updatedCaseDetails.getData().get("channelChoice") != null) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -102,7 +102,8 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.rollback(updatedCaseDetails.getData()))
+                ).data(dataMigrationService.rollback(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
+                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate()))
                 .build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),

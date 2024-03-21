@@ -14,31 +14,40 @@ public class ElasticSearchQueryTest {
 
     @Test
     public void shouldReturnQuery() {
-        ElasticSearchQuery elasticSearchQuery =  ElasticSearchQuery.builder()
+        ElasticSearchQuery elasticSearchQuery = ElasticSearchQuery.builder()
             .initialSearch(true)
             .size(QUERY_SIZE)
             .build();
         String query = elasticSearchQuery.getQuery();
-        assertEquals("""
-        {
-          "query": {
-            "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": 100,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
 
-            }""", query);
+        assertEquals("""
+            {
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            {
+                                "match": {
+                                    "state": "Deleted"
+                                }
+                            }
+                        ],
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "data.paperForm"
+                                }
+                            }
+                        ]
+                    }
+                },
+                "size": 100,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ]
+            }
+                }""", query);
     }
 
     @Test
@@ -51,23 +60,31 @@ public class ElasticSearchQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
         {
-          "query": {
-            "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": 100,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
-        ,\"search_after\": [1677777777]
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {
+                            "match": {
+                                "state": "Deleted"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "data.paperForm"
+                            }
+                        }
+                    ]
+                }
+            },
+            "size": 100,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]
+        },\"search_after\": [1677777777]
             }""", query);
     }
 }

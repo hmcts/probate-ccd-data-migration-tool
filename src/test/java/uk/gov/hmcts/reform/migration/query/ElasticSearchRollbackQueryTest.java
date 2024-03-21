@@ -25,32 +25,34 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-              "query": {
-                "bool": {
-                  "must": [
-                         {"match": { "data.applicationType": "Solicitor" }},
-                         {"match": { "data.registryLocation": "ctsc" }},
-                         {"match": { "data.paperForm": "Yes" }},
-                         {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                     ],
-                      "filter":
-                             {
-                               "range": {
-                                 "last_modified": {
-                                      "gte": "2023-02-24T14:00:00",
-                                      "lte": "2023-02-25T16:00:00"
-                                 }
-                               }
-                             }
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "data.channelChoice"
+                                }
+                            }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "created_date": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "size": 100,
+                    "sort": [
+                        {
+                            "reference.keyword": "asc"
+                        }
+                    ]
                 }
-              },
-              "size": 100,
-              "sort": [
-                {
-                  "reference.keyword": "asc"
-                }
-              ]
-
+            }
                 }""", query);
     }
 
@@ -65,33 +67,35 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-          "query": {
-            "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "ctsc" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ],
-                  "filter":
-                         {
-                           "range": {
-                             "last_modified": {
-                                  "gte": "2023-02-24T14:00:00",
-                                  "lte": "2023-02-25T16:00:00"
-                             }
-                           }
-                         }
-            }
-          },
-          "size": 100,
-          "sort": [
             {
-              "reference.keyword": "asc"
-            }
-          ]
-        ,\"search_after\": [1677777777]
-            }""", query);
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "data.channelChoice"
+                                }
+                            }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "created_date": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "size": 100,
+                    "sort": [
+                        {
+                            "reference.keyword": "asc"
+                        }
+                    ]
+                }
+            },"search_after": [1677777777]
+                }""", query);
     }
 }

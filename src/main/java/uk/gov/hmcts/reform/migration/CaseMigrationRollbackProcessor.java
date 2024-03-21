@@ -28,9 +28,9 @@ import java.util.function.Consumer;
 @Slf4j
 @Component
 public class CaseMigrationRollbackProcessor {
-    private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Rollback RegistryLocation back to ctsc";
-    private static final String EVENT_DESCRIPTION = "Data migration - Rollback RegistryLocation back to ctsc";
+    private static final String EVENT_ID = "boCorrection";
+    private static final String EVENT_SUMMARY = "Data migration - Rollback channelChoice";
+    private static final String EVENT_DESCRIPTION = "Data migration - Rollback channelChoice";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired

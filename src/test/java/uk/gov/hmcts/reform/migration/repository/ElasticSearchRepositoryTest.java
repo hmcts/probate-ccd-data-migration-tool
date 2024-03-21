@@ -30,46 +30,62 @@ public class ElasticSearchRepositoryTest {
     private static final String AUTH_TOKEN = "Test_Auth_Token";
 
     private static final String INITIAL_QUERY = """
-        {
-          "query": {
+    {
+        "query": {
             "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": 100,
-          "sort": [
-            {
-              "reference.keyword": "asc"
+                "must_not": [
+                    {
+                        "match": {
+                            "state": "Deleted"
+                        }
+                    }
+                ],
+                "must": [
+                    {
+                        "exists": {
+                            "field": "data.paperForm"
+                        }
+                    }
+                ]
             }
-          ]
-
-            }""";
+        },
+        "size": 100,
+        "sort": [
+            {
+                "reference.keyword": "asc"
+            }
+        ]
+    }
+        }""";
 
     private static final String SEARCH_AFTER_QUERY = """
-        {
-          "query": {
+    {
+        "query": {
             "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": 100,
-          "sort": [
-            {
-              "reference.keyword": "asc"
+                "must_not": [
+                    {
+                        "match": {
+                            "state": "Deleted"
+                        }
+                    }
+                ],
+                "must": [
+                    {
+                        "exists": {
+                            "field": "data.paperForm"
+                        }
+                    }
+                ]
             }
-          ]
-        ,\"search_after\": [1677777777]
-            }""";
+        },
+        "size": 100,
+        "sort": [
+            {
+                "reference.keyword": "asc"
+            }
+        ]
+    },"search_after": [1677777777]
+        }""";
 
     private static final int QUERY_SIZE = 100;
     private static final int CASE_PROCESS_LIMIT = 100;
