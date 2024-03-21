@@ -94,7 +94,7 @@ public class DataMigrationServiceImplTest {
 
     @Test
     public void shouldMigratePaperCases() {
-        AuditEvent mockedEvent = AuditEvent.builder().id("solicitorCreateCaveat").userId("123").build();
+        AuditEvent mockedEvent = AuditEvent.builder().id("createCaseFromBulkScan").userId("123").build();
         when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
             .thenReturn(Optional.ofNullable(null));
 
@@ -102,7 +102,7 @@ public class DataMigrationServiceImplTest {
         data.put("paperForm", "Yes");
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("channelChoice","Paper");
+        expectedData.put("channelChoice","PaperForm");
         expectedData.put("paperForm", "Yes");
 
         Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
