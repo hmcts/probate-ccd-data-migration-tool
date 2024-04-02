@@ -10,20 +10,44 @@ public class ElasticSearchRollbackQuery {
           "query": {
             "bool": {
               "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "ctsc" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ],
-                  "filter":
-                         {
+                   {"match": { "data.applicationType": "Solicitor" }},
+                   {"match": { "data.paperForm": "No" }},
+                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
+              ],
+              "filter":
+                   [
+                       {
                            "range": {
                              "last_modified": {
                                   "gte": "%s",
                                   "lte": "%s"
                              }
                            }
-                         }
+                       },
+                       {
+                           "bool": {
+                                "should":[
+                                     {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                   ]
+
             }
           },
           "size": %s,

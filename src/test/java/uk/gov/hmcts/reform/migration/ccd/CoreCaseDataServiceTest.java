@@ -21,6 +21,8 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,7 +41,7 @@ public class CoreCaseDataServiceTest {
     private CoreCaseDataService underTest;
 
     @Mock
-    CoreCaseDataApi coreCaseDataApi;
+    private CoreCaseDataApi coreCaseDataApi;
 
     @Mock
     private DataMigrationService<Map<String, Object>> dataMigrationService;
@@ -112,8 +114,7 @@ public class CoreCaseDataServiceTest {
             .caseDetails(caseDetails)
             .build();
 
-        when(dataMigrationService.migrate(data))
-            .thenReturn(data);
+        when(dataMigrationService.migrate(any(), any(), anyString(), anyString())).thenReturn(data);
 
         when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, "30",
                                                      null, CASE_TYPE, CASE_ID, EVENT_ID

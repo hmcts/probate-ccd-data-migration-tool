@@ -24,34 +24,58 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-            {
-              "query": {
-                "bool": {
-                  "must": [
-                         {"match": { "data.applicationType": "Solicitor" }},
-                         {"match": { "data.registryLocation": "ctsc" }},
-                         {"match": { "data.paperForm": "Yes" }},
-                         {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                     ],
-                      "filter":
-                             {
-                               "range": {
-                                 "last_modified": {
-                                      "gte": "2023-02-24T14:00:00",
-                                      "lte": "2023-02-25T16:00:00"
-                                 }
-                               }
+        {
+          "query": {
+            "bool": {
+              "must": [
+                   {"match": { "data.applicationType": "Solicitor" }},
+                   {"match": { "data.paperForm": "No" }},
+                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
+              ],
+              "filter":
+                   [
+                       {
+                           "range": {
+                             "last_modified": {
+                                  "gte": "2023-02-24T14:00:00",
+                                  "lte": "2023-02-25T16:00:00"
                              }
-                }
-              },
-              "size": 100,
-              "sort": [
-                {
-                  "reference.keyword": "asc"
-                }
-              ]
+                           }
+                       },
+                       {
+                           "bool": {
+                                "should":[
+                                     {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                   ]
 
-                }""", query);
+            }
+          },
+          "size": 100,
+          "sort": [
+            {
+              "reference.keyword": "asc"
+            }
+          ]
+
+            }""", query);
     }
 
     @Test
@@ -69,20 +93,44 @@ public class ElasticSearchRollbackQueryTest {
           "query": {
             "bool": {
               "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "ctsc" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ],
-                  "filter":
-                         {
+                   {"match": { "data.applicationType": "Solicitor" }},
+                   {"match": { "data.paperForm": "No" }},
+                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
+              ],
+              "filter":
+                   [
+                       {
                            "range": {
                              "last_modified": {
                                   "gte": "2023-02-24T14:00:00",
                                   "lte": "2023-02-25T16:00:00"
                              }
                            }
-                         }
+                       },
+                       {
+                           "bool": {
+                                "should":[
+                                     {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"match": { "case_type_id": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                   ]
+
             }
           },
           "size": 100,
