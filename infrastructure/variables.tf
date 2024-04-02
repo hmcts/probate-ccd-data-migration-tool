@@ -34,6 +34,6 @@ variable "common_tags" {
 }
 
 variable "appinsights_location" {
-  default     = "West Europe"
+  default     = "UK South"
   description = "Location for Application Insights"
 }
