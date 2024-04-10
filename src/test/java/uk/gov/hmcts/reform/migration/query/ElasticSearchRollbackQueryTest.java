@@ -24,58 +24,36 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-          "query": {
-            "bool": {
-              "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }},
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
-              ],
-              "filter":
-                   [
-                       {
-                           "range": {
-                             "last_modified": {
-                                  "gte": "2023-02-24T14:00:00",
-                                  "lte": "2023-02-25T16:00:00"
-                             }
-                           }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
-                   ]
-
-            }
-          },
-          "size": 100,
-          "sort": [
             {
-              "reference.keyword": "asc"
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "data.channelChoice"
+                                }
+                            }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "created_date": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "size": 100,
+                    "sort": [
+                        {
+                            "reference.keyword": "asc"
+                        }
+                    ]
+                }
             }
-          ]
-
-            }""", query);
+                }""", query);
     }
 
     @Test
@@ -89,57 +67,35 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-          "query": {
-            "bool": {
-              "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }},
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }}
-              ],
-              "filter":
-                   [
-                       {
-                           "range": {
-                             "last_modified": {
-                                  "gte": "2023-02-24T14:00:00",
-                                  "lte": "2023-02-25T16:00:00"
-                             }
-                           }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
-                   ]
-
-            }
-          },
-          "size": 100,
-          "sort": [
             {
-              "reference.keyword": "asc"
-            }
-          ]
-        ,\"search_after\": [1677777777]
-            }""", query);
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "exists": {
+                                    "field": "data.channelChoice"
+                                }
+                            }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "created_date": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    "size": 100,
+                    "sort": [
+                        {
+                            "reference.keyword": "asc"
+                        }
+                    ]
+                }
+            },"search_after": [1677777777]
+                }""", query);
     }
 }

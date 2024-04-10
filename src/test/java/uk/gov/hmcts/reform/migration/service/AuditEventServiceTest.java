@@ -24,7 +24,7 @@ public class AuditEventServiceTest {
     private static final String USER_TOKEN = "USER_TOKEN";
     private static final String SERVICE_TOKEN = "SERVICE_TOKEN";
     private static final String CASE_ID = "1111";
-    private static final String SOLICITOR_EVENT = "solicitorCreateApplication";
+    private static final String EVENT = "createCaseFromBulkScanEvent";
 
     @Mock
     private CaseDataApiV2 mockCaseDataApi;
@@ -43,8 +43,8 @@ public class AuditEventServiceTest {
 
     @Test
     public void shouldGetAuditEventByName() {
-        List<String> eventName = List.of(SOLICITOR_EVENT);
-        AuditEvent expectedAuditEvent = AuditEvent.builder().id(SOLICITOR_EVENT).userId("123").build();
+        List<String> eventName = List.of(EVENT);
+        AuditEvent expectedAuditEvent = AuditEvent.builder().id(EVENT).userId("123").build();
         when(mockCaseDataApi.getAuditEvents(USER_TOKEN, SERVICE_TOKEN, false, CASE_ID))
             .thenReturn(AuditEventsResponse.builder().auditEvents(List.of(expectedAuditEvent)).build());
 
@@ -59,7 +59,7 @@ public class AuditEventServiceTest {
 
     @Test
     public void shouldReturnEmptyOptionalIfAuditEventWithNameCannotBeFound() {
-        List<String> eventName = List.of(SOLICITOR_EVENT);
+        List<String> eventName = List.of(EVENT);
         AuditEvent expectedAuditEvent = AuditEvent.builder().id("abc").userId("123").build();
 
         when(auditEventsResponse.getAuditEvents()).thenReturn(List.of(expectedAuditEvent));

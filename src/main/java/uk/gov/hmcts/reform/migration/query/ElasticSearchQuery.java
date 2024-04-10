@@ -7,59 +7,31 @@ public class ElasticSearchQuery {
 
     private static final String START_QUERY = """
         {
-          "query": {
-            "bool": {
-              "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }}
-              ],
-               "must_not": [
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
-                   {"exists": { "field": "supplementary_data" }}
-              ],
-              "filter":
-                   [
-                       {
-                           "range": {
-                                  "created_date": {
-                                      "gte": "2023-10-25T15:30:00",
-                                      "lte": "2023-11-30T14:15:00"
-                                  }
-                           }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
-                   ]
-
-            }
-          },
-          "size": %s,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
-          """;
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {
+                            "match": {
+                                "state": "Deleted"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "data.paperForm"
+                            }
+                        }
+                    ]
+                }
+            },
+            "size": %s,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]
+        }""";
 
     private static final String END_QUERY = "\n    }";
 

@@ -30,118 +30,62 @@ public class ElasticSearchRepositoryTest {
     private static final String AUTH_TOKEN = "Test_Auth_Token";
 
     private static final String INITIAL_QUERY = """
-        {
-          "query": {
+    {
+        "query": {
             "bool": {
-              "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }}
-              ],
-               "must_not": [
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
-                   {"exists": { "field": "supplementary_data" }}
-              ],
-              "filter":
-                   [
-                       {
-                           "range": {
-                                  "created_date": {
-                                      "gte": "2023-10-25T15:30:00",
-                                      "lte": "2023-11-30T14:15:00"
-                                  }
-                           }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
-                   ]
-
+                "must_not": [
+                    {
+                        "match": {
+                            "state": "Deleted"
+                        }
+                    }
+                ],
+                "must": [
+                    {
+                        "exists": {
+                            "field": "data.paperForm"
+                        }
+                    }
+                ]
             }
-          },
-          "size": 100,
-          "sort": [
+        },
+        "size": 100,
+        "sort": [
             {
-              "reference.keyword": "asc"
+                "reference.keyword": "asc"
             }
-          ]
-
-            }""";
+        ]
+    }
+        }""";
 
     private static final String SEARCH_AFTER_QUERY = """
-        {
-          "query": {
+    {
+        "query": {
             "bool": {
-              "must": [
-                   {"match": { "data.applicationType": "Solicitor" }},
-                   {"match": { "data.paperForm": "No" }}
-              ],
-               "must_not": [
-                   {"exists": { "field": "data.applicantOrganisationPolicy" }},
-                   {"exists": { "field": "supplementary_data" }}
-              ],
-              "filter":
-                   [
-                       {
-                           "range": {
-                                  "created_date": {
-                                      "gte": "2023-10-25T15:30:00",
-                                      "lte": "2023-11-30T14:15:00"
-                                  }
-                           }
-                       },
-                       {
-                           "bool": {
-                                "should":[
-                                     {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "GrantOfRepresentation" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorWillSignSOT"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"match": { "case_type_id": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
-                   ]
-
+                "must_not": [
+                    {
+                        "match": {
+                            "state": "Deleted"
+                        }
+                    }
+                ],
+                "must": [
+                    {
+                        "exists": {
+                            "field": "data.paperForm"
+                        }
+                    }
+                ]
             }
-          },
-          "size": 100,
-          "sort": [
+        },
+        "size": 100,
+        "sort": [
             {
-              "reference.keyword": "asc"
+                "reference.keyword": "asc"
             }
-          ]
-        ,\"search_after\": [1677777777]
-            }""";
+        ]
+    },"search_after": [1677777777]
+        }""";
 
     private static final int QUERY_SIZE = 100;
     private static final int CASE_PROCESS_LIMIT = 100;
