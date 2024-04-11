@@ -16,16 +16,6 @@ public class ElasticSearchRollbackQuery {
                             }
                         }
                     ],
-                    "filter": [
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "%s",
-                                    "lte": "%s"
-                                }
-                            }
-                        }
-                    ]
                 },
                 "size": %s,
                 "sort": [
