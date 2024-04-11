@@ -34,16 +34,6 @@ public class ElasticSearchRollbackQueryTest {
                                 }
                             }
                         ],
-                        "filter": [
-                            {
-                                "range": {
-                                    "created_date": {
-                                        "gte": "2023-02-24T14:00:00",
-                                        "lte": "2023-02-25T16:00:00"
-                                    }
-                                }
-                            }
-                        ]
                     },
                     "size": 100,
                     "sort": [
@@ -77,16 +67,6 @@ public class ElasticSearchRollbackQueryTest {
                                 }
                             }
                         ],
-                        "filter": [
-                            {
-                                "range": {
-                                    "created_date": {
-                                        "gte": "2023-02-24T14:00:00",
-                                        "lte": "2023-02-25T16:00:00"
-                                    }
-                                }
-                            }
-                        ]
                     },
                     "size": 100,
                     "sort": [
