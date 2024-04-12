@@ -93,7 +93,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().get("channelChoice") != null) {
+        if (updatedCaseDetails.getData().containsKey("channelChoice")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
