@@ -30,8 +30,7 @@ public class ElasticSearchQuery {
                 {
                     "reference.keyword": "asc"
                 }
-            ]
-        }""";
+            ]""";
 
     private static final String END_QUERY = "\n    }";
 
