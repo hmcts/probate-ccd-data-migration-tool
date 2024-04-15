@@ -16,6 +16,7 @@ public class ElasticSearchRollbackQuery {
                             }
                         }
                     ],
+                    "_source": ["reference", "data.paperForm"],
                 },
                 "size": %s,
                 "sort": [
