@@ -45,8 +45,7 @@ public class CaseMigrationProcessor {
     @Autowired
     private IdamRepository idamRepository;
 
-    @Getter
-    private List<Long> migratedCases = new ArrayList<>();
+    private int migratedCases;
 
     @Getter
     private List<Long> failedCases = new ArrayList<>();
@@ -161,15 +160,14 @@ public class CaseMigrationProcessor {
                 """,
             LOG_STRING,
             LOG_STRING,
-            getMigratedCases().size() + getFailedCases().size(),
-            getMigratedCases().size(),
+            migratedCases + getFailedCases().size(),
             LOG_STRING
         );
 
-        if (getMigratedCases().isEmpty()) {
+        if (migratedCases == 0) {
             log.info("Migrated cases: NONE ");
         } else {
-            log.info("Migrated cases: {} ", getMigratedCases());
+            log.info("Migrated cases: {} ", migratedCases);
         }
 
         if (getFailedCases().isEmpty()) {
@@ -192,27 +190,27 @@ public class CaseMigrationProcessor {
 
 
     private void updateCase(String authorisation, String caseType, CaseDetails caseDetails) {
+        int count = 0;
         if (dataMigrationService.accepts().test(caseDetails)) {
             Long id = caseDetails.getId();
-            log.info("Updating case {}", id);
-            try {
-                CaseDetails updateCaseDetails = coreCaseDataService.update(
-                    authorisation,
-                    EVENT_ID,
-                    EVENT_SUMMARY,
-                    EVENT_DESCRIPTION,
-                    caseType,
-                    caseDetails
-                );
-
-                if (updateCaseDetails != null) {
-                    log.info("Case {} successfully updated", id);
-                    migratedCases.add(id);
-                }
-            } catch (Exception e) {
-                log.error("Case {} update failed due to : {}", id, e.getMessage());
-                failedCases.add(id);
+            log.info("Updating case {} {} {}", id, count++,caseDetails.getState());
+        try {
+            CaseDetails updateCaseDetails = coreCaseDataService.update(
+                authorisation,
+                EVENT_ID,
+                EVENT_SUMMARY,
+                EVENT_DESCRIPTION,
+                caseType,
+                caseDetails
+            );
+            if (updateCaseDetails != null) {
+                log.info("Case {} successfully updated", id);
+                migratedCases++;
             }
+        } catch (Exception e) {
+            log.error("Case {} update failed due to : {}", id, e.getMessage());
+            failedCases.add(id);
+        }
         } else {
             log.info("Case {} does not meet criteria for migration", caseDetails.getId());
         }
