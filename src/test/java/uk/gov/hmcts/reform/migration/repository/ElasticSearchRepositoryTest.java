@@ -40,6 +40,7 @@ public class ElasticSearchRepositoryTest {
                         }
                     }
                 ],
+                "_source": ["reference", "data.paperForm"],
                 "must": [
                     {
                         "exists": {
@@ -68,6 +69,7 @@ public class ElasticSearchRepositoryTest {
                         }
                     }
                 ],
+                "_source": ["reference", "data.paperForm"],
                 "must": [
                     {
                         "exists": {
