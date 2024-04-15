@@ -64,8 +64,8 @@ public class CaseMigrationProcessor {
             validateCaseType(caseType);
             log.info("Data migration of cases started for case type: {}", caseType);
             log.info("Data migration of cases started for defaultThreadLimit: {} defaultQuerySize : {}",
-                     defaultThreadLimit, defaultQuerySize);
-            String userToken =  idamRepository.generateUserToken();
+                defaultThreadLimit, defaultQuerySize);
+            String userToken = idamRepository.generateUserToken();
 
             SearchResult searchResult = elasticSearchRepository.fetchFirstPage(userToken, caseType, defaultQuerySize);
             if (searchResult != null && searchResult.getTotal() > 0) {
@@ -77,16 +77,16 @@ public class CaseMigrationProcessor {
                     .forEach(submitMigration(userToken, caseType, executorService));
                 String searchAfterValue = searchResultCases.get(searchResultCases.size() - 1).getId().toString();
 
-                log.info("Data migration of cases started for searchAfterValue : {}",searchAfterValue);
+                log.info("Data migration of cases started for searchAfterValue : {}", searchAfterValue);
 
                 boolean keepSearching;
                 do {
                     SearchResult subsequentSearchResult = elasticSearchRepository.fetchNextPage(userToken,
-                                                                        caseType,
-                                                                        searchAfterValue,
-                                                                        defaultQuerySize);
+                        caseType,
+                        searchAfterValue,
+                        defaultQuerySize);
 
-                    log.info("Data migration of cases started for searchAfterValue : {}",searchAfterValue);
+                    log.info("Data migration of cases started for searchAfterValue : {}", searchAfterValue);
 
                     keepSearching = false;
                     if (subsequentSearchResult != null) {
@@ -122,7 +122,7 @@ public class CaseMigrationProcessor {
     public void migrateCases(String caseType) {
         validateCaseType(caseType);
         log.info("Data migration of cases started for case type: {}", caseType);
-        String userToken =  idamRepository.generateUserToken();
+        String userToken = idamRepository.generateUserToken();
         List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(userToken, caseType);
         listOfCaseDetails.stream()
             .limit(caseProcessLimit)
@@ -131,14 +131,15 @@ public class CaseMigrationProcessor {
     }
 
     public void migrateCaseReferenceList(String caseType, String caseReferences) {
-        String userToken =  idamRepository.generateUserToken();
-        List<String> caseReferenceList =  Arrays.asList(caseReferences.split(",", -1));;
-        for (String caseReference: caseReferenceList) {
+        String userToken = idamRepository.generateUserToken();
+        List<String> caseReferenceList = Arrays.asList(caseReferences.split(",", -1));
+        ;
+        for (String caseReference : caseReferenceList) {
             log.info("Data migration of cases started for case reference: {}", caseReference);
             Optional<CaseDetails> caseDetailsOptional =
                 elasticSearchRepository.findCaseByCaseId(userToken, caseReference);
             if (caseDetailsOptional.isPresent()) {
-                CaseDetails caseDetails =  caseDetailsOptional.get();
+                CaseDetails caseDetails = caseDetailsOptional.get();
                 updateCase(userToken, caseType, caseDetails);
             }
         }
@@ -193,24 +194,24 @@ public class CaseMigrationProcessor {
         int count = 0;
         if (dataMigrationService.accepts().test(caseDetails)) {
             Long id = caseDetails.getId();
-            log.info("Updating case {} {} {}", id, count++,caseDetails.getState());
-        try {
-            CaseDetails updateCaseDetails = coreCaseDataService.update(
-                authorisation,
-                EVENT_ID,
-                EVENT_SUMMARY,
-                EVENT_DESCRIPTION,
-                caseType,
-                caseDetails
-            );
-            if (updateCaseDetails != null) {
-                log.info("Case {} successfully updated", id);
-                migratedCases++;
+            log.info("Updating case {} {} {}", id, count++, caseDetails.getState());
+            try {
+                CaseDetails updateCaseDetails = coreCaseDataService.update(
+                    authorisation,
+                    EVENT_ID,
+                    EVENT_SUMMARY,
+                    EVENT_DESCRIPTION,
+                    caseType,
+                    caseDetails
+                );
+                if (updateCaseDetails != null) {
+                    log.info("Case {} successfully updated", id);
+                    migratedCases++;
+                }
+            } catch (Exception e) {
+                log.error("Case {} update failed due to : {}", id, e.getMessage());
+                failedCases.add(id);
             }
-        } catch (Exception e) {
-            log.error("Case {} update failed due to : {}", id, e.getMessage());
-            failedCases.add(id);
-        }
         } else {
             log.info("Case {} does not meet criteria for migration", caseDetails.getId());
         }
