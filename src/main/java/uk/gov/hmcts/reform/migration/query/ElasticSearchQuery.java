@@ -16,6 +16,7 @@ public class ElasticSearchQuery {
                             }
                         }
                     ],
+                    "_source": ["reference", "data.paperForm"],
                     "must": [
                         {
                             "exists": {
