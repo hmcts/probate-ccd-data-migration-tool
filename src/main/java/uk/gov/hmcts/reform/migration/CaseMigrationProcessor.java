@@ -155,12 +155,14 @@ public class CaseMigrationProcessor {
                 {}
                 Total number of processed cases:
                 {}
+                {}
                 Total number of migrations performed:
                 {}
                 {}
                 """,
             LOG_STRING,
             migratedCases + getFailedCases().size(),
+            LOG_STRING,
             migratedCases,
             LOG_STRING
         );
