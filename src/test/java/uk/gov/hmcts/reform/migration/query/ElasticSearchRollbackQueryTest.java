@@ -14,7 +14,7 @@ public class ElasticSearchRollbackQueryTest {
 
     @Test
     public void shouldReturnQuery() {
-        ElasticSearchRollbackQuery elasticSearchQuery =  ElasticSearchRollbackQuery.builder()
+        ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(true)
             .size(QUERY_SIZE)
             .build();
@@ -29,23 +29,23 @@ public class ElasticSearchRollbackQueryTest {
                                     "field": "data.channelChoice"
                                 }
                             }
-                        ],
-                    },
-                    "_source": ["reference", "data.paperForm"],
-                    "size": 100,
-                    "sort": [
-                        {
-                            "reference.keyword": "asc"
-                        }
-                    ]
-                }
+                        ]
+                    }
+                },
+                "_source": ["reference", "data.paperForm"],
+                "size": 100,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ]
             }
                 }""", query);
     }
 
     @Test
     public void shouldReturnSearchAfterQuery() {
-        ElasticSearchRollbackQuery elasticSearchQuery =  ElasticSearchRollbackQuery.builder()
+        ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(false)
             .size(QUERY_SIZE)
             .searchAfterValue("1677777777")
@@ -61,16 +61,16 @@ public class ElasticSearchRollbackQueryTest {
                                     "field": "data.channelChoice"
                                 }
                             }
-                        ],
-                    },
-                    "_source": ["reference", "data.paperForm"],
-                    "size": 100,
-                    "sort": [
-                        {
-                            "reference.keyword": "asc"
-                        }
-                    ]
-                }
+                        ]
+                    }
+                },
+                "_source": ["reference", "data.paperForm"],
+                "size": 100,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ]
             },"search_after": [1677777777]
                 }""", query);
     }
