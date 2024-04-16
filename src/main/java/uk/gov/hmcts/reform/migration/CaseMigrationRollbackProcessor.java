@@ -164,9 +164,7 @@ public class CaseMigrationRollbackProcessor {
                 Total number of rollback migrations performed:
                 {}
                 {}
-                {}
                 """,
-            LOG_STRING,
             LOG_STRING,
             migratedCases + getFailedCases().size(),
             migratedCases,
