@@ -30,8 +30,8 @@ public class ElasticSearchRollbackQueryTest {
                                 }
                             }
                         ],
-                        "_source": ["reference", "data.paperForm"],
                     },
+                    "_source": ["reference", "data.paperForm"],
                     "size": 100,
                     "sort": [
                         {
@@ -62,8 +62,8 @@ public class ElasticSearchRollbackQueryTest {
                                 }
                             }
                         ],
-                        "_source": ["reference", "data.paperForm"],
                     },
+                    "_source": ["reference", "data.paperForm"],
                     "size": 100,
                     "sort": [
                         {

@@ -31,7 +31,6 @@ public class ElasticSearchQueryTest {
                                 }
                             }
                         ],
-                        "_source": ["reference", "data.paperForm"],
                         "must": [
                             {
                                 "exists": {
@@ -41,6 +40,7 @@ public class ElasticSearchQueryTest {
                         ]
                     }
                 },
+                "_source": ["reference", "data.paperForm"],
                 "size": 100,
                 "sort": [
                     {
@@ -69,7 +69,6 @@ public class ElasticSearchQueryTest {
                             }
                         }
                     ],
-                    "_source": ["reference", "data.paperForm"],
                     "must": [
                         {
                             "exists": {
@@ -79,6 +78,7 @@ public class ElasticSearchQueryTest {
                     ]
                 }
             },
+            "_source": ["reference", "data.paperForm"],
             "size": 100,
             "sort": [
                 {
