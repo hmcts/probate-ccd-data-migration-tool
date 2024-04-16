@@ -45,8 +45,7 @@ public class CaseMigrationRollbackProcessor {
     @Autowired
     private IdamRepository idamRepository;
 
-    @Getter
-    private List<Long> migratedCases = new ArrayList<>();
+    private int migratedCases;
 
     @Getter
     private List<Long> failedCases = new ArrayList<>();
@@ -168,15 +167,14 @@ public class CaseMigrationRollbackProcessor {
                 """,
             LOG_STRING,
             LOG_STRING,
-            getMigratedCases().size() + getFailedCases().size(),
-            getMigratedCases().size(),
+            migratedCases + getFailedCases().size(),
             LOG_STRING
         );
 
-        if (getMigratedCases().isEmpty()) {
+        if (migratedCases < 0) {
             log.info("Rollback cases: NONE ");
         } else {
-            log.info("Rollback cases: {} ", getMigratedCases());
+            log.info("Rollback cases: {} ", migratedCases);
         }
 
         if (getFailedCases().isEmpty()) {
@@ -214,7 +212,7 @@ public class CaseMigrationRollbackProcessor {
 
                 if (updateCaseDetails != null) {
                     log.info("Case {} successfully rollback", id);
-                    migratedCases.add(id);
+                    migratedCases++;
                 }
             } catch (Exception e) {
                 log.error("Case {} rollback failed due to : {}", id, e.getMessage());
