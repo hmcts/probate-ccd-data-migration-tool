@@ -24,8 +24,7 @@ public class ElasticSearchRollbackQuery {
                 {
                     "reference.keyword": "asc"
                 }
-            ]
-        }""";
+            ]""";
 
     private static final String END_QUERY = "\n    }";
 
