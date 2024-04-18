@@ -93,7 +93,7 @@ public class CaseMigrationRollbackProcessor {
                                                                         searchAfterValue,
                                                                         defaultQuerySize);
 
-                    log.info("Data migration of cases started for searchAfterValue : {}",searchAfterValue);
+                    log.info("Data migration rollback of cases started for searchAfterValue : {}",searchAfterValue);
 
                     keepSearching = false;
                     if (subsequentSearchResult != null) {

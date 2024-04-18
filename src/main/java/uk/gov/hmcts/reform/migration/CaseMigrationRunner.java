@@ -33,8 +33,10 @@ public class CaseMigrationRunner implements CommandLineRunner {
     @Value("${migration.rollback.end.datetime}")
     private String migrationrollbackEndDatetime;
 
+    @Value("${case.migration.processing.caseReferences}")
     private String caseReferences;
 
+    @Value("${rollback.processing.caseReferences}")
     private boolean rollbackCaseReferences;
 
     public static void main(String[] args) {
