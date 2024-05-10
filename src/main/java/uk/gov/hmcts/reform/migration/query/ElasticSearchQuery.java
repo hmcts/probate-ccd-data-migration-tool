@@ -25,13 +25,13 @@ public class ElasticSearchQuery {
                     ]
                 }
             },
+            "_source": ["reference", "data.paperForm"],
             "size": %s,
             "sort": [
                 {
                     "reference.keyword": "asc"
                 }
-            ]
-        }""";
+            ]""";
 
     private static final String END_QUERY = "\n    }";
 

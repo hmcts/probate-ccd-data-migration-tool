@@ -22,10 +22,6 @@ public class ElasticSearchRollbackRepository {
 
     private final AuthTokenGenerator authTokenGenerator;
 
-    private final String startDatetime;
-
-    private final String endDatetime;
-
     private final int querySize;
 
     private final int caseProcessLimit;
@@ -33,14 +29,10 @@ public class ElasticSearchRollbackRepository {
     @Autowired
     public ElasticSearchRollbackRepository(CoreCaseDataApi coreCaseDataApi,
                                    AuthTokenGenerator authTokenGenerator,
-                                   @Value("${migration.rollback.start.datetime}") String startDatetime,
-                                   @Value("${migration.rollback.end.datetime}") String  endDatetime,
                                    @Value("${case-migration.elasticsearch.querySize}") int querySize,
                                    @Value("${case-migration.processing.limit}") int caseProcessLimit) {
         this.coreCaseDataApi = coreCaseDataApi;
         this.authTokenGenerator = authTokenGenerator;
-        this.startDatetime = startDatetime;
-        this.endDatetime = endDatetime;
         this.querySize = querySize;
         this.caseProcessLimit = caseProcessLimit;
     }
@@ -57,8 +49,6 @@ public class ElasticSearchRollbackRepository {
     public List<CaseDetails> findCaseByCaseType(String userToken, String caseType) {
         ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(true)
-            .startDateTime(startDatetime)
-            .endDateTime(endDatetime)
             .size(querySize)
             .build();
 
@@ -80,8 +70,6 @@ public class ElasticSearchRollbackRepository {
             do {
                 ElasticSearchRollbackQuery subsequentElasticSearchQuery = ElasticSearchRollbackQuery.builder()
                     .initialSearch(false)
-                    .startDateTime(startDatetime)
-                    .endDateTime(endDatetime)
                     .size(querySize)
                     .searchAfterValue(searchAfterValue)
                     .build();
@@ -110,8 +98,6 @@ public class ElasticSearchRollbackRepository {
     public SearchResult fetchFirstPage(String userToken, String caseType, int querySize) {
         ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(true)
-            .startDateTime(startDatetime)
-            .endDateTime(endDatetime)
             .size(querySize)
             .build();
         log.info("Fetching the Rollback case details from elastic search for case type {}.", caseType);
@@ -131,8 +117,6 @@ public class ElasticSearchRollbackRepository {
 
         ElasticSearchRollbackQuery subsequentElasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(false)
-            .startDateTime(startDatetime)
-            .endDateTime(endDatetime)
             .size(querySize)
             .searchAfterValue(searchAfterValue)
             .build();

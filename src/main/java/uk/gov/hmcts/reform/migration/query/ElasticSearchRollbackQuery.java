@@ -15,26 +15,16 @@ public class ElasticSearchRollbackQuery {
                                 "field": "data.channelChoice"
                             }
                         }
-                    ],
-                    "filter": [
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "%s",
-                                    "lte": "%s"
-                                }
-                            }
-                        }
                     ]
-                },
-                "size": %s,
-                "sort": [
-                    {
-                        "reference.keyword": "asc"
-                    }
-                ]
-            }
-        }""";
+                }
+            },
+            "_source": ["reference", "data.paperForm"],
+            "size": %s,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]""";
 
     private static final String END_QUERY = "\n    }";
 
@@ -42,8 +32,6 @@ public class ElasticSearchRollbackQuery {
 
     private String searchAfterValue;
     private int size;
-    private String startDateTime;
-    private String endDateTime;
     private boolean initialSearch;
 
     public String getQuery() {
@@ -55,11 +43,11 @@ public class ElasticSearchRollbackQuery {
     }
 
     private String getInitialQuery() {
-        return String.format(START_QUERY, startDateTime, endDateTime, size) + END_QUERY;
+        return String.format(START_QUERY, size) + END_QUERY;
     }
 
     private String getSubsequentQuery() {
-        return String.format(START_QUERY, startDateTime, endDateTime, size) + ","
+        return String.format(START_QUERY, size) + ","
             + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
     }
 }

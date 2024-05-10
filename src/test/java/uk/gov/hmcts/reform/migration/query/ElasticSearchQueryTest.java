@@ -40,13 +40,13 @@ public class ElasticSearchQueryTest {
                         ]
                     }
                 },
+                "_source": ["reference", "data.paperForm"],
                 "size": 100,
                 "sort": [
                     {
                         "reference.keyword": "asc"
                     }
                 ]
-            }
                 }""", query);
     }
 
@@ -78,13 +78,13 @@ public class ElasticSearchQueryTest {
                     ]
                 }
             },
+            "_source": ["reference", "data.paperForm"],
             "size": 100,
             "sort": [
                 {
                     "reference.keyword": "asc"
                 }
-            ]
-        },\"search_after\": [1677777777]
+            ],\"search_after\": [1677777777]
             }""", query);
     }
 }
