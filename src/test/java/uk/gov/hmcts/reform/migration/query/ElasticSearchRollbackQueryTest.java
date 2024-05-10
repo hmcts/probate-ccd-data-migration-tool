@@ -24,11 +24,7 @@ public class ElasticSearchRollbackQueryTest {
                 "query": {
                     "bool": {
                         "must": [
-                            {
-                                "exists": {
-                                    "field": "data.channelChoice"
-                                }
-                            }
+                            { "exists": {"field": "data.channelChoice"}}
                         ]
                     }
                 },
@@ -55,11 +51,7 @@ public class ElasticSearchRollbackQueryTest {
                 "query": {
                     "bool": {
                         "must": [
-                            {
-                                "exists": {
-                                    "field": "data.channelChoice"
-                                }
-                            }
+                            { "exists": {"field": "data.channelChoice"}}
                         ]
                     }
                 },
