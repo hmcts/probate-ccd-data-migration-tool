@@ -10,7 +10,11 @@ public class ElasticSearchRollbackQuery {
             "query": {
                 "bool": {
                     "must": [
-                        { "exists": {"field": "data.channelChoice"}}
+                        {
+                            "exists": {
+                                "field": "data.channelChoice"
+                            }
+                        }
                     ]
                 }
             },
