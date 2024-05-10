@@ -47,7 +47,6 @@ public class ElasticSearchRollbackQuery {
     }
 
     private String getSubsequentQuery() {
-        return String.format(START_QUERY, size) + ","
-            + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
+        return String.format(START_QUERY, size) + "," + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
     }
 }
