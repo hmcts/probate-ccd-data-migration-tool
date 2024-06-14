@@ -33,23 +33,46 @@ public class ElasticSearchRepositoryTest {
     {
         "query": {
             "bool": {
-                "must_not": [
-                    {
-                        "match": {
-                            "state": "Deleted"
-                        }
-                    }
-                ],
                 "must": [
                     {
                         "exists": {
-                            "field": "data.paperForm"
+                            "field": "data.caseHandedOffToLegacySite"
+                        }
+                    }
+                ],
+                "should": [
+                    {"match": { "state": "CaseCreated" }},
+                    {"match": { "state": "CasePaymentFailed" }},
+                    {"match": { "state": "Stopped" }},
+                    {"match": { "state": "Dormant" }},
+                    {"match": { "state": "CasePrinted" }},
+                    {"match": { "state": "BOCaseStopped" }},
+                    {"match": { "state": "BOCaveatPermenant" }},
+                    {"match": { "state": "BORegistrarEscalation" }},
+                    {"match": { "state": "BOReadyToIssue" }},
+                    {"match": { "state": "BOCaseQA" }},
+                    {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                    {"match": { "state": "BOCaseClosed" }},
+                    {"match": { "state": "BOCaseImported" }},
+                    {"match": { "state": "BOExaminingReissue" }},
+                    {"match": { "state": "BOCaseMatchingReissue" }},
+                    {"match": { "state": "BOCaseStoppedReissue" }},
+                    {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                    {"match": { "state": "BORedecNotificationSent" }},
+                    {"match": { "state": "BOSotGenerated" }}
+                ],
+                "filter": [
+                    {
+                        "range": {
+                            "last_modified": {
+                                "gte": "2022-08-18T00:00:00"
+                            }
                         }
                     }
                 ]
             }
         },
-        "_source": ["reference", "data.paperForm"],
+        "_source": ["reference", "data.caseHandedOffToLegacySite"],
         "size": 100,
         "sort": [
             {
@@ -62,23 +85,46 @@ public class ElasticSearchRepositoryTest {
     {
         "query": {
             "bool": {
-                "must_not": [
-                    {
-                        "match": {
-                            "state": "Deleted"
-                        }
-                    }
-                ],
                 "must": [
                     {
                         "exists": {
-                            "field": "data.paperForm"
+                            "field": "data.caseHandedOffToLegacySite"
+                        }
+                    }
+                ],
+                "should": [
+                    {"match": { "state": "CaseCreated" }},
+                    {"match": { "state": "CasePaymentFailed" }},
+                    {"match": { "state": "Stopped" }},
+                    {"match": { "state": "Dormant" }},
+                    {"match": { "state": "CasePrinted" }},
+                    {"match": { "state": "BOCaseStopped" }},
+                    {"match": { "state": "BOCaveatPermenant" }},
+                    {"match": { "state": "BORegistrarEscalation" }},
+                    {"match": { "state": "BOReadyToIssue" }},
+                    {"match": { "state": "BOCaseQA" }},
+                    {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                    {"match": { "state": "BOCaseClosed" }},
+                    {"match": { "state": "BOCaseImported" }},
+                    {"match": { "state": "BOExaminingReissue" }},
+                    {"match": { "state": "BOCaseMatchingReissue" }},
+                    {"match": { "state": "BOCaseStoppedReissue" }},
+                    {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                    {"match": { "state": "BORedecNotificationSent" }},
+                    {"match": { "state": "BOSotGenerated" }}
+                ],
+                "filter": [
+                    {
+                        "range": {
+                            "last_modified": {
+                                "gte": "2022-08-18T00:00:00"
+                            }
                         }
                     }
                 ]
             }
         },
-        "_source": ["reference", "data.paperForm"],
+        "_source": ["reference", "data.caseHandedOffToLegacySite"],
         "size": 100,
         "sort": [
             {
