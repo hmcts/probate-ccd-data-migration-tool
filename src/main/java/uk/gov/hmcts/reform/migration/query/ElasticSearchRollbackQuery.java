@@ -35,7 +35,8 @@ public class ElasticSearchRollbackQuery {
                         {"match": { "state": "BOCaseStoppedReissue" }},
                         {"match": { "state": "BOCaseStoppedAwaitRedec" }},
                         {"match": { "state": "BORedecNotificationSent" }},
-                        {"match": { "state": "BOSotGenerated" }}
+                        {"match": { "state": "BOSotGenerated" }},
+                        {"match": { "state": "BOCaseWorkerEscalation" }}
                     ],
                     "filter": [
                         {

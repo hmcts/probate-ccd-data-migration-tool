@@ -50,7 +50,8 @@ public class ElasticSearchQueryTest {
                             {"match": { "state": "BOCaseStoppedReissue" }},
                             {"match": { "state": "BOCaseStoppedAwaitRedec" }},
                             {"match": { "state": "BORedecNotificationSent" }},
-                            {"match": { "state": "BOSotGenerated" }}
+                            {"match": { "state": "BOSotGenerated" }},
+                            {"match": { "state": "BOCaseWorkerEscalation" }}
                         ],
                         "filter": [
                             {
@@ -111,7 +112,8 @@ public class ElasticSearchQueryTest {
                         {"match": { "state": "BOCaseStoppedReissue" }},
                         {"match": { "state": "BOCaseStoppedAwaitRedec" }},
                         {"match": { "state": "BORedecNotificationSent" }},
-                        {"match": { "state": "BOSotGenerated" }}
+                        {"match": { "state": "BOSotGenerated" }},
+                        {"match": { "state": "BOCaseWorkerEscalation" }}
                     ],
                     "filter": [
                         {
