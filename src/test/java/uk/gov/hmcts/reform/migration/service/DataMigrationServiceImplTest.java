@@ -71,7 +71,7 @@ public class DataMigrationServiceImplTest {
 
         Map<String, Object> expectedData = new HashMap<>();
         List<CollectionMember<HandoffReason>> reason = new ArrayList<>();
-        reason.add(new CollectionMember<>(null, HandoffReason.builder().handoffReason("Spreadsheet").build()));
+        reason.add(new CollectionMember<>(null, HandoffReason.builder().caseHandoffReason("Spreadsheet").build()));
         expectedData.put("boHandoffReasonList", reason);
         expectedData.put("caseHandedOffToLegacySite", "Yes");
 
