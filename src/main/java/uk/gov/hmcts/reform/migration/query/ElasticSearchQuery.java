@@ -14,6 +14,11 @@ public class ElasticSearchQuery {
                             "exists": {
                                 "field": "data.caseHandedOffToLegacySite"
                             }
+                        },
+                        {
+                            "term": {
+                                "data.caseHandedOffToLegacySite": "Yes"
+                            }
                         }
                     ],
                     "should": [

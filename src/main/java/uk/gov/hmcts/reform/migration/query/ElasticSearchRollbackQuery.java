@@ -14,6 +14,11 @@ public class ElasticSearchRollbackQuery {
                             "exists": {
                                 "field": "data.boHandoffReasonList"
                             }
+                        },
+                        {
+                            "term": {
+                                "data.caseHandedOffToLegacySite": "Yes"
+                            }
                         }
                     ],
                     "should": [

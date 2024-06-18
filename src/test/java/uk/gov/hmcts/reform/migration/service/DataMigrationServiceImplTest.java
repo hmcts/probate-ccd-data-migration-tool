@@ -78,17 +78,4 @@ public class DataMigrationServiceImplTest {
         Map<String, Object> result = service.migrate(1L, data);
         assertEquals(expectedData, result);
     }
-
-    @Test
-    public void shouldNotMigrateHandoffReasonCases() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("caseHandedOffToLegacySite", "No");
-
-        Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("boHandoffReasonList", null);
-        expectedData.put("caseHandedOffToLegacySite", "No");
-
-        Map<String, Object> result = service.migrate(1L, data);
-        assertEquals(expectedData, result);
-    }
 }

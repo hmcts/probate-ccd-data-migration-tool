@@ -35,15 +35,11 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     public Map<String, Object> migrate(Long caseId, Map<String, Object> data) {
         if (data == null) {
             return null;
-        }
-        if ("Yes".equals(data.get("caseHandedOffToLegacySite"))) {
+        } else {
             List<CollectionMember<HandoffReason>> reason = new ArrayList<>();
             reason.add(new CollectionMember<>(null, HandoffReason.builder().caseHandoffReason("Spreadsheet").build()));
             data.put("boHandoffReasonList", reason);
-        } else {
-            data.put("boHandoffReasonList", null);
         }
-
         return data;
     }
 }

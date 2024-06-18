@@ -38,6 +38,11 @@ public class ElasticSearchRepositoryTest {
                         "exists": {
                             "field": "data.caseHandedOffToLegacySite"
                         }
+                    },
+                    {
+                        "term": {
+                            "data.caseHandedOffToLegacySite": "Yes"
+                        }
                     }
                 ],
                 "should": [
@@ -90,6 +95,11 @@ public class ElasticSearchRepositoryTest {
                     {
                         "exists": {
                             "field": "data.caseHandedOffToLegacySite"
+                        }
+                    },
+                    {
+                        "term": {
+                            "data.caseHandedOffToLegacySite": "Yes"
                         }
                     }
                 ],

@@ -32,6 +32,11 @@ public class ElasticSearchRollbackQueryTest {
                                 "exists": {
                                     "field": "data.boHandoffReasonList"
                                 }
+                            },
+                            {
+                                "term": {
+                                    "data.caseHandedOffToLegacySite": "Yes"
+                                }
                             }
                         ],
                         "should": [
@@ -96,6 +101,11 @@ public class ElasticSearchRollbackQueryTest {
                             {
                                 "exists": {
                                     "field": "data.boHandoffReasonList"
+                                }
+                            },
+                            {
+                                "term": {
+                                    "data.caseHandedOffToLegacySite": "Yes"
                                 }
                             }
                         ],
