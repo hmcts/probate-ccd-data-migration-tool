@@ -38,7 +38,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         }
         if ("Yes".equals(data.get("caseHandedOffToLegacySite"))) {
             List<CollectionMember<HandoffReason>> reason = new ArrayList<>();
-            reason.add(new CollectionMember<>(null, HandoffReason.builder().handoffReason("Spreadsheet").build()));
+            reason.add(new CollectionMember<>(null, HandoffReason.builder().caseHandoffReason("Spreadsheet").build()));
             data.put("boHandoffReasonList", reason);
         } else {
             data.put("boHandoffReasonList", null);
