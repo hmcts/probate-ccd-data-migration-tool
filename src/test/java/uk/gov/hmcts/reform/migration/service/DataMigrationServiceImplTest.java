@@ -10,23 +10,18 @@ import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
+import uk.gov.hmcts.reform.domain.common.Organisation;
 import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceImplTest {
@@ -42,19 +37,22 @@ public class DataMigrationServiceImplTest {
     @InjectMocks
     private DataMigrationServiceImpl service;
     private OrganisationPolicy policy;
-    private static final String CREATE_CASE_FROM_BULKSCAN_EVENT = "createCaseFromBulkScan";
+    private static final String POLICY_ROLE_APPLICANT_SOLICITOR = "[APPLICANTSOLICITOR]";
+    private static final String APPLICANT_ORG_POLICY = "applicantOrganisationPolicy";
+    private OrganisationPolicy organisationPolicy;
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new DataMigrationServiceImpl(auditEventService);
-        AuditEvent mockedEvent = AuditEvent.builder()
-            .id(CREATE_CASE_FROM_BULKSCAN_EVENT)
-            .userId("123")
-            .createdDate(LocalDateTime.now())
+        service = new DataMigrationServiceImpl();
+        organisationPolicy = OrganisationPolicy.builder()
+            .organisation(Organisation.builder()
+                .organisationID(null)
+                .organisationName(null)
+                .build())
+            .orgPolicyReference(null)
+            .orgPolicyCaseAssignedRole(POLICY_ROLE_APPLICANT_SOLICITOR)
             .build();
-        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
-            .thenReturn(Optional.of(mockedEvent));
     }
 
     @Test
@@ -73,43 +71,27 @@ public class DataMigrationServiceImplTest {
     @Test
     public void shouldReturnPassedDataWhenMigrateCalled() {
         Map<String, Object> data = new HashMap<>();
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+        Map<String, Object> result = service.migrate(data);
         assertNotNull(result);
         assertEquals(data, result);
     }
 
     @Test
     public void shouldReturnNullWhenDataIsNotPassed() {
-        Map<String, Object> result = service.migrate(1L, null, "token", "serviceToken");
+        Map<String, Object> result = service.migrate(null);
         assertNull(result);
         assertEquals(null, result);
     }
 
     @Test
-    public void shouldMigrateSubDateToCreateDate() {
+    public void shouldMigrateOrgPolicy() {
         Map<String, Object> data = new HashMap<>();
-        data.put("applicationSubmittedDate", null);
+        data.put("applicantOrganisationPolicy", null);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("applicationSubmittedDate", LocalDate.now().toString());
+        expectedData.put("applicantOrganisationPolicy", organisationPolicy);
 
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-
-        assertEquals(expectedData, result);
-    }
-
-    @Test
-    public void shouldNotMigrateAsDataDoesNotPassCondition() {
-        String date = LocalDate.now().toString();
-
-        Map<String, Object> data = new HashMap<>();
-        data.put("applicationSubmittedDate", date);
-
-        Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("applicationSubmittedDate", date);
-
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-
+        Map<String, Object> result = service.migrate(data);
         assertEquals(expectedData, result);
     }
 }

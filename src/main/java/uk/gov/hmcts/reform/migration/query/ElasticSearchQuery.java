@@ -10,19 +10,33 @@ public class ElasticSearchQuery {
             "query": {
                 "bool": {
                     "must_not": [
-                        { "match": { "state": "Deleted" }},
-                        { "match": { "state": "Draft" }},
-                        { "match": { "state": "Pending" }},
-                        { "match": { "state": "SolAdmonCreated" }},
-                        { "match": { "state": "SolAppCreatedDeceasedDtls" }},
-                        { "match": { "state": "SolAppUpdated" }},
-                        { "match": { "state": "CaseCreated" }},
-                        { "match": { "state": "CasePaymentFailed" }},
-                        { "match": { "state": "SolProbateCreated" }},
-                        { "match": { "state": "SolIntestacyCreated" }},
-                        { "match": { "state": "applyforGrantPaperApplication" }},
-                        { "match": { "state": "PAAppCreated" }},
-                        { "exists": { "field": "data.applicationSubmittedDate" }}
+                        {
+                            "match": {
+                                "state": "Deleted"
+                            }
+                        },
+                        {
+                            "match": {
+                                "state": "BOGrantIssued"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "data.applicantOrganisationPolicy"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "term": {
+                                "data.paperForm.keyword": "Yes"
+                            }
+                        },
+                        {
+                            "term": {
+                                "data.applicationType.keyword": "Solicitor"
+                            }
+                        }
                     ]
                 }
             },
@@ -32,8 +46,7 @@ public class ElasticSearchQuery {
                 {
                     "reference.keyword": "asc"
                 }
-            ]
-        }""";
+            ]""";
 
     private static final String END_QUERY = "\n    }";
 

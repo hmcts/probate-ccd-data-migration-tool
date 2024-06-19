@@ -21,6 +21,39 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            {
+                                "match": {
+                                    "state": "Deleted"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "state": "BOGrantIssued"
+                                }
+                            }
+                        ],
+                        "must": [
+                            {
+                                "term": {
+                                    "data.paperForm.keyword": "Yes"
+                                }
+                            },
+                            {
+                                "term": {
+                                    "data.applicationType.keyword": "Solicitor"
+                                }
+                            },
+                            {
+                                "exists": {
+                                    "field": "data.applicantOrganisationPolicy"
+                                }
+                            }
+                        ]
+                    }
+                },
                 "_source": ["reference"],
                 "size": 100,
                 "sort": [
@@ -41,6 +74,39 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            {
+                                "match": {
+                                    "state": "Deleted"
+                                }
+                            },
+                            {
+                                "match": {
+                                    "state": "BOGrantIssued"
+                                }
+                            }
+                        ],
+                        "must": [
+                            {
+                                "term": {
+                                    "data.paperForm.keyword": "Yes"
+                                }
+                            },
+                            {
+                                "term": {
+                                    "data.applicationType.keyword": "Solicitor"
+                                }
+                            },
+                            {
+                                "exists": {
+                                    "field": "data.applicantOrganisationPolicy"
+                                }
+                            }
+                        ]
+                    }
+                },
                 "_source": ["reference"],
                 "size": 100,
                 "sort": [

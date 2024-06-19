@@ -4,11 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.domain.common.AuditEvent;
+import uk.gov.hmcts.reform.domain.common.Organisation;
+import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -16,10 +14,8 @@ import java.util.function.Predicate;
 @Service
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
-    private final AuditEventService auditEventService;
-    private List<String> createCaseFromBulkScan = Arrays.asList("createCaseFromBulkScan");
-    private static final String DATE_FORMAT = "yyyy-MM-dd";
-    protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
+    private static final String POLICY_ROLE_APPLICANT_SOLICITOR = "[APPLICANTSOLICITOR]";
+    private static final String APPLICANT_ORG_POLICY = "applicantOrganisationPolicy";
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -27,33 +23,32 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     @Override
-    public Map<String, Object> rollback(Long id, Map<String, Object> data, String userToken, String authToken) {
+    public Map<String, Object> rollback(Map<String, Object> data) {
         if (data == null) {
             return null;
         } else {
-            data.put("applicationSubmittedDate", null);
+            data.put(APPLICANT_ORG_POLICY, null);
         }
         return data;
     }
 
     @Override
-    public Map<String, Object> migrate(Long caseId, Map<String, Object> data, String userToken, String authToken) {
+    public Map<String, Object> migrate(Map<String, Object> data) {
         if (data == null) {
             return null;
-        } else if (null == data.get("applicationSubmittedDate")) {
-            AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
-            log.info("Audit events {}", auditEvent);
+        }
 
-            String createdDate = dateTimeFormatter.format(auditEvent.getCreatedDate());
-            data.put("applicationSubmittedDate", createdDate);
+        if (null == data.get(APPLICANT_ORG_POLICY)) {
+            OrganisationPolicy policy = OrganisationPolicy.builder()
+                .organisation(Organisation.builder()
+                    .organisationID(null)
+                    .organisationName(null)
+                    .build())
+                .orgPolicyReference(null)
+                .orgPolicyCaseAssignedRole(POLICY_ROLE_APPLICANT_SOLICITOR)
+                .build();
+            data.put(APPLICANT_ORG_POLICY, policy);
         }
         return data;
-    }
-
-    private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
-        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScan,
-            userToken, authToken)
-            .orElseThrow(() -> new IllegalStateException(String
-            .format("Could not find any event other than %s event in audit", createCaseFromBulkScan)));
     }
 }

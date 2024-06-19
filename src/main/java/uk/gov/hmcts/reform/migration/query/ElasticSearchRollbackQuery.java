@@ -7,6 +7,39 @@ public class ElasticSearchRollbackQuery {
 
     private static final String START_QUERY = """
         {
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {
+                            "match": {
+                                "state": "Deleted"
+                            }
+                        },
+                        {
+                            "match": {
+                                "state": "BOGrantIssued"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "term": {
+                                "data.paperForm.keyword": "Yes"
+                            }
+                        },
+                        {
+                            "term": {
+                                "data.applicationType.keyword": "Solicitor"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "data.applicantOrganisationPolicy"
+                            }
+                        }
+                    ]
+                }
+            },
             "_source": ["reference"],
             "size": %s,
             "sort": [
