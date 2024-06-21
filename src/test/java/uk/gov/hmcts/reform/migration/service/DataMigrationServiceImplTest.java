@@ -4,14 +4,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.Organisation;
-import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
 import java.util.HashMap;
@@ -25,15 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceImplTest {
-    @Mock
-    private AuditEventService auditEventService;
-    @Mock
-    private OrganisationApi organisationApi;
-    private OrganisationEntityResponse organisationEntityResponse;
-    @Mock
-    private CoreCaseDataApi coreCaseDataApi;
-    @Mock
-    private AuditEvent event;
     @InjectMocks
     private DataMigrationServiceImpl service;
     private OrganisationPolicy policy;
@@ -86,10 +73,10 @@ public class DataMigrationServiceImplTest {
     @Test
     public void shouldMigrateOrgPolicy() {
         Map<String, Object> data = new HashMap<>();
-        data.put("applicantOrganisationPolicy", null);
+        data.put(APPLICANT_ORG_POLICY, null);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("applicantOrganisationPolicy", organisationPolicy);
+        expectedData.put(APPLICANT_ORG_POLICY, organisationPolicy);
 
         Map<String, Object> result = service.migrate(data);
         assertEquals(expectedData, result);
