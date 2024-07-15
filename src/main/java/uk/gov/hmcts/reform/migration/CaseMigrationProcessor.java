@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Setting HandoffReason";
-    private static final String EVENT_DESCRIPTION = "Data migration - Setting HandoffReason";
+    private static final String EVENT_SUMMARY = "Data migration - Setting applicationSubmittedDate";
+    private static final String EVENT_DESCRIPTION = "Data migration - Setting applicationSubmittedDate";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
