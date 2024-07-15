@@ -4,10 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.domain.common.CollectionMember;
-import uk.gov.hmcts.reform.domain.common.HandoffReason;
+import uk.gov.hmcts.reform.domain.common.AuditEvent;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -16,6 +15,8 @@ import java.util.function.Predicate;
 @Service
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
+    private final AuditEventService auditEventService;
+    private List<String> createCaseFromBulkScan = Arrays.asList("createCaseFromBulkScan");
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -23,23 +24,27 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     @Override
-    public Map<String, Object> rollback(Long id, Map<String, Object> data) {
+    public Map<String, Object> rollback(Long id, Map<String, Object> data, String userToken, String authToken) {
         if (data == null) {
             return null;
         } else {
-            return data;
+            data.put("applicationSubmittedDate", null);
+            log.info("applicationSubmittedDate {}", data.get("applicationSubmittedDate"));
         }
+        return data;
     }
 
     @Override
-    public Map<String, Object> migrate(Long caseId, Map<String, Object> data) {
+    public Map<String, Object> migrate(Long caseId, Map<String, Object> data, String userToken, String authToken) {
         if (data == null) {
             return null;
-        } else {
-            List<CollectionMember<HandoffReason>> reason = new ArrayList<>();
-            reason.add(new CollectionMember<>(null, HandoffReason.builder().caseHandoffReason("Spreadsheet").build()));
-            data.put("boHandoffReasonList", reason);
         }
+
+        if (null == data.get("applicationSubmittedDate")) {
+            Object applicationCreationDate = data.get("applicationCreationDate");
+            data.put("applicationSubmittedDate", applicationCreationDate);
+        }
+
         return data;
     }
 }
