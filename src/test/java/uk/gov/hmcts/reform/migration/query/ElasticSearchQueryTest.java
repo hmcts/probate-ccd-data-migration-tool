@@ -27,7 +27,7 @@ public class ElasticSearchQueryTest {
                     "must_not": [
                         {
                             "term": {
-                                "state": "Deleted"
+                                "state.keyword": "Deleted"
                             }
                         },
                         {
@@ -44,7 +44,7 @@ public class ElasticSearchQueryTest {
                         },
                         {
                             "term": {
-                                "data.paperForm.keyword": "Yes"
+                                "data.paperForm": "Yes"
                             }
                         }
                     ],
@@ -55,23 +55,23 @@ public class ElasticSearchQueryTest {
                                     {
                                         "bool" : {
                                             "must": [
-                                                 {"term": { "case_type_id": "GrantOfRepresentation" }},
+                                                 {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
                                                  {"term": {"data.channelChoice.keyword": "BulkScan"}}
                                             ],
                                             "must_not": [
-                                                {"term": { "state": "BOGrantIssued" }},
-                                                {"term": { "state": "BOCaseClosed"}}
+                                                {"term": { "state.keyword": "BOGrantIssued" }},
+                                                {"term": { "state.keyword": "BOCaseClosed"}}
                                             ]
                                         }
                                     },
                                     {
                                         "bool" : {
                                             "must": [
-                                                 {"term": { "case_type_id": "Caveat" }},
+                                                 {"term": { "case_type_id.keyword": "Caveat" }},
                                                  {"exists" : {"field" : "data.solsSolicitorFirmName"}}
                                             ],
                                             "must_not": [
-                                                {"term": { "state": "CaveatClosed" }}
+                                                {"term": { "state.keyword": "CaveatClosed" }}
                                             ]
                                         }
                                     }
@@ -106,7 +106,7 @@ public class ElasticSearchQueryTest {
                     "must_not": [
                         {
                             "term": {
-                                "state": "Deleted"
+                                "state.keyword": "Deleted"
                             }
                         },
                         {
@@ -123,7 +123,7 @@ public class ElasticSearchQueryTest {
                         },
                         {
                             "term": {
-                                "data.paperForm.keyword": "Yes"
+                                "data.paperForm": "Yes"
                             }
                         }
                     ],
@@ -134,23 +134,23 @@ public class ElasticSearchQueryTest {
                                     {
                                         "bool" : {
                                             "must": [
-                                                 {"term": { "case_type_id": "GrantOfRepresentation" }},
+                                                 {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
                                                  {"term": {"data.channelChoice.keyword": "BulkScan"}}
                                             ],
                                             "must_not": [
-                                                {"term": { "state": "BOGrantIssued" }},
-                                                {"term": { "state": "BOCaseClosed"}}
+                                                {"term": { "state.keyword": "BOGrantIssued" }},
+                                                {"term": { "state.keyword": "BOCaseClosed"}}
                                             ]
                                         }
                                     },
                                     {
                                         "bool" : {
                                             "must": [
-                                                 {"term": { "case_type_id": "Caveat" }},
+                                                 {"term": { "case_type_id.keyword": "Caveat" }},
                                                  {"exists" : {"field" : "data.solsSolicitorFirmName"}}
                                             ],
                                             "must_not": [
-                                                {"term": { "state": "CaveatClosed" }}
+                                                {"term": { "state.keyword": "CaveatClosed" }}
                                             ]
                                         }
                                     }
