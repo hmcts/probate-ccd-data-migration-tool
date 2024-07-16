@@ -9,13 +9,22 @@ public class ElasticSearchRollbackQuery {
         {
             "query": {
                 "bool": {
-                    "must": [
+                    "must_not": [
                         {
-                            "exists": {
-                                "field": "data.applicationSubmittedDate"
+                            "match": {
+                                "state": "Deleted"
                             }
                         }
-                    ]
+                    ],
+                    "filter":
+                    {
+                        "range": {
+                            "last_modified": {
+                                "gte": "%s",
+                                "lte": "%s"
+                            }
+                        }
+                    }
                 }
             },
             "_source": ["reference"],

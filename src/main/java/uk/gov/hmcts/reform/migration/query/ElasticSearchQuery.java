@@ -14,15 +14,21 @@ public class ElasticSearchQuery {
                             "match": {
                                 "state": "Deleted"
                             }
-                        }
-                    ],
-                    "must": [
+                        },
                         {
                             "exists": {
                                 "field": "data.applicationSubmittedDate"
                             }
                         }
-                    ]
+                    ],
+                    "filter": {
+                        "range": {
+                            "last_modified": {
+                                "gte": "%s",
+                                "lte": "%s"
+                            }
+                        }
+                    }
                 }
             },
             "_source": ["reference"],
@@ -31,7 +37,8 @@ public class ElasticSearchQuery {
                 {
                     "reference.keyword": "asc"
                 }
-            ]""";
+            ]
+        }""";
 
     private static final String END_QUERY = "\n    }";
 
