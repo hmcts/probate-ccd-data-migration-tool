@@ -18,13 +18,13 @@ import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.service.AuditEventService;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +65,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void shouldUpdateThePaperCase() {
+    public void shouldUpdateApplicationSubmittedDate() {
         // given
         UserDetails userDetails = UserDetails.builder()
             .id("30")
@@ -74,18 +74,18 @@ public class CoreCaseDataServiceTest {
             .surname("Surname")
             .build();
 
-        CaseDetails caseDetails3 = createCaseDetailsPreMigration(CASE_ID);
-        setupMocks(userDetails, caseDetails3.getData());
+        CaseDetails caseDetails = createCaseDetailsPreMigration(CASE_ID);
+        setupMocks(userDetails, caseDetails.getData());
 
         //when
-        CaseDetails update = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, caseDetails3);
+        CaseDetails update = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, caseDetails);
         //then
-        assertThat(update.getData().get("channelChoice"), is("Paper"));
+        assertEquals(update.getData().get("applicationSubmittedDate"), LocalDate.now().toString());
     }
 
     private CaseDetails createCaseDetailsPreMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("PaperForm", "Yes");
+        data.put("applicationSubmittedDate", null);
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
@@ -94,7 +94,8 @@ public class CoreCaseDataServiceTest {
 
     private CaseDetails createCaseDetailsPostMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("channelChoice", "Paper");
+        String date = LocalDate.now().toString();
+        data.put("applicationSubmittedDate", date);
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
