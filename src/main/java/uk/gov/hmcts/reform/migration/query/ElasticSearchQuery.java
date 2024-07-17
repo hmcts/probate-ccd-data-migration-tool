@@ -10,25 +10,17 @@ public class ElasticSearchQuery {
             "query": {
                 "bool": {
                     "must_not": [
-                        {
-                            "match": {
-                                "state": "Deleted"
-                            }
-                        },
-                        {
-                            "exists": {
-                                "field": "data.applicationSubmittedDate"
-                            }
-                        }
+                        { "match": { "state": "Deleted" }},
+                        { "exists": { "field": "data.applicationSubmittedDate" }}
                     ],
-                    "filter": {
+                    "filter": [
                         "range": {
                             "last_modified": {
-                                "gte": "%s",
-                                "lte": "%s"
+                                "gte": "2024-07-15T17:00:00",
+                                "lte": "2024-01-01T09:00:00"
                             }
                         }
-                    }
+                    ]
                 }
             },
             "_source": ["reference"],

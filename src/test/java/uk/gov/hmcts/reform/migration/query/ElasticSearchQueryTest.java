@@ -25,35 +25,28 @@ public class ElasticSearchQueryTest {
                 "query": {
                     "bool": {
                         "must_not": [
-                            {
-                                "match": {
-                                    "state": "Deleted"
-                                }
-                            },
-                            {
-                                "exists": {
-                                    "field": "data.applicationSubmittedDate"
-                                }
-                            }
+                            { "match": { "state": "Deleted" }},
+                            { "exists": { "field": "data.applicationSubmittedDate" }}
                         ],
-                        "filter": {
+                        "filter": [
                             "range": {
                                 "last_modified": {
                                     "gte": "2024-07-15T17:00:00",
                                     "lte": "2024-01-01T09:00:00"
                                 }
                             }
-                        }
+                        ]
                     }
                 },
                 "_source": ["reference"],
-                "size": %s,
+                "size": 100,
                 "sort": [
                     {
                         "reference.keyword": "asc"
                     }
                 ]
-            }""", query);
+            }
+                }""", query);
     }
 
     @Test
@@ -64,39 +57,33 @@ public class ElasticSearchQueryTest {
             .searchAfterValue("1677777777")
             .build();
         String query = elasticSearchQuery.getQuery();
+
         assertEquals("""
         {
             "query": {
                 "bool": {
                     "must_not": [
-                        {
-                            "match": {
-                            "state": "Deleted"
-                            }
-                        },
-                        {
-                            "exists": {
-                                "field": "data.applicationSubmittedDate"
-                            }
-                        }
+                        { "match": { "state": "Deleted" }},
+                        { "exists": { "field": "data.applicationSubmittedDate" }}
                     ],
-                    "filter": {
+                    "filter": [
                         "range": {
                             "last_modified": {
                                 "gte": "2024-07-15T17:00:00",
                                 "lte": "2024-01-01T09:00:00"
                             }
                         }
-                    }
+                    ]
                 }
             },
             "_source": ["reference"],
-            "size": %s,
+            "size": 100,
             "sort": [
                 {
                     "reference.keyword": "asc"
                 }
-            ],\"search_after\": [1677777777]
+            ]
+        },\"search_after\": [1677777777]
             }""", query);
     }
 }
