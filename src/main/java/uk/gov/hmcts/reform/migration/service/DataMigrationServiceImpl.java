@@ -29,7 +29,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             return null;
         } else {
             data.put("applicationSubmittedDate", null);
-            log.info("applicationSubmittedDate {}", data.get("applicationSubmittedDate"));
+            log.info("applicationSubmittedDate {}", data.get("createdDate"));
         }
         return data;
     }
@@ -38,13 +38,10 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     public Map<String, Object> migrate(Long caseId, Map<String, Object> data, String userToken, String authToken) {
         if (data == null) {
             return null;
+        } else if (null == data.get("applicationSubmittedDate")) {
+            Object createdDate = data.get("createdDate");
+            data.put("applicationSubmittedDate", createdDate);
         }
-
-        if (null == data.get("applicationSubmittedDate")) {
-            Object applicationCreationDate = data.get("applicationCreationDate");
-            data.put("applicationSubmittedDate", applicationCreationDate);
-        }
-
         return data;
     }
 }
