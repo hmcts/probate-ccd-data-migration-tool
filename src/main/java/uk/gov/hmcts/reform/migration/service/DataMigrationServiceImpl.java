@@ -52,6 +52,8 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
 
     private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
         return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScan,
-            userToken, authToken).orElse(null);
+            userToken, authToken)
+            .orElseThrow(() -> new IllegalStateException(String
+            .format("Could not find any event other than %s event in audit", createCaseFromBulkScan)));
     }
 }
