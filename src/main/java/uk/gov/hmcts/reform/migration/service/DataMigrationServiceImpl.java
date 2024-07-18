@@ -4,7 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.domain.common.AuditEvent;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +20,8 @@ import java.util.function.Predicate;
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
     private List<String> createCaseFromBulkScan = Arrays.asList("createCaseFromBulkScan");
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
     @Override
     public Predicate<CaseDetails> accepts() {
@@ -28,7 +34,6 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
             return null;
         } else {
             data.put("applicationSubmittedDate", null);
-            log.info("applicationSubmittedDate {}", data.get("createdDate"));
         }
         return data;
     }
@@ -38,9 +43,17 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         } else if (null == data.get("applicationSubmittedDate")) {
-            Object createdDate = data.get("createdDate");
+            AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
+            log.info("Audit events {}", auditEvent);
+
+            String createdDate = dateTimeFormatter.format(auditEvent.getCreatedDate());
             data.put("applicationSubmittedDate", createdDate);
         }
         return data;
+    }
+
+    private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
+        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScan,
+            userToken, authToken).orElse(null);
     }
 }
