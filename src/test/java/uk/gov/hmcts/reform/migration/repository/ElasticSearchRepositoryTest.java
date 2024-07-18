@@ -30,20 +30,46 @@ public class ElasticSearchRepositoryTest {
     private static final String AUTH_TOKEN = "Test_Auth_Token";
 
     private static final String INITIAL_QUERY = """
+        {
+            "query": {
+                "bool": {
+                    "must_not": [
+                        { "match": { "state": "Deleted" }},
+                        { "exists": { "field": "data.applicationSubmittedDate" }}
+                    ],
+                    "filter": [
+                        "range": {
+                            "last_modified": {
+                                "gte": "2024-07-15T17:00:00",
+                                "lte": "2024-01-01T09:00:00"
+                            }
+                        }
+                    ]
+                }
+            },
+            "_source": ["reference"],
+            "size": 100,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]
+        }
+            }""";
+
+    private static final String SEARCH_AFTER_QUERY = """
     {
         "query": {
             "bool": {
                 "must_not": [
-                    {
-                        "match": {
-                            "state": "Deleted"
-                        }
-                    }
+                    { "match": { "state": "Deleted" }},
+                    { "exists": { "field": "data.applicationSubmittedDate" }}
                 ],
-                "must": [
-                    {
-                        "exists": {
-                            "field": "data.applicationSubmittedDate"
+                "filter": [
+                    "range": {
+                        "last_modified": {
+                            "gte": "2024-07-15T17:00:00",
+                            "lte": "2024-01-01T09:00:00"
                         }
                     }
                 ]
@@ -56,35 +82,7 @@ public class ElasticSearchRepositoryTest {
                 "reference.keyword": "asc"
             }
         ]
-        }""";
-
-    private static final String SEARCH_AFTER_QUERY = """
-    {
-        "query": {
-            "bool": {
-                "must_not": [
-                    {
-                        "match": {
-                            "state": "Deleted"
-                        }
-                    }
-                ],
-                "must": [
-                    {
-                        "exists": {
-                            "field": "data.applicationSubmittedDate"
-                        }
-                    }
-                ]
-            }
-        },
-        "_source": ["reference"],
-        "size": 100,
-        "sort": [
-            {
-                "reference.keyword": "asc"
-            }
-        ],"search_after": [1677777777]
+    },"search_after": [1677777777]
         }""";
 
     private static final int QUERY_SIZE = 100;
