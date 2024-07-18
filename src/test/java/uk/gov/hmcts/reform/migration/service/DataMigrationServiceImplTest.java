@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -92,7 +91,7 @@ public class DataMigrationServiceImplTest {
         data.put("applicationSubmittedDate", null);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("applicationSubmittedDate", LocalDate.now());
+        expectedData.put("applicationSubmittedDate", LocalDate.now().toString());
 
         Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
 
