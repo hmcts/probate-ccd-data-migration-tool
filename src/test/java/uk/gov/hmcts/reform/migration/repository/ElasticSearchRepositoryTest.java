@@ -35,15 +35,18 @@ public class ElasticSearchRepositoryTest {
                 "bool": {
                     "must_not": [
                         { "match": { "state": "Deleted" }},
+                        { "match": { "state": "Draft" }},
+                        { "match": { "state": "Pending" }},
+                        { "match": { "state": "SolAdmonCreated" }},
+                        { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                        { "match": { "state": "SolAppUpdated" }},
+                        { "match": { "state": "CaseCreated" }},
+                        { "match": { "state": "CasePaymentFailed" }},
+                        { "match": { "state": "SolProbateCreated" }},
+                        { "match": { "state": "SolIntestacyCreated" }},
+                        { "match": { "state": "applyforGrantPaperApplication" }},
+                        { "match": { "state": "PAAppCreated" }},
                         { "exists": { "field": "data.applicationSubmittedDate" }}
-                    ],
-                    "filter": [
-                        "range": {
-                            "last_modified": {
-                                "gte": "2024-07-15T17:00:00",
-                                "lte": "2024-01-01T09:00:00"
-                            }
-                        }
                     ]
                 }
             },
@@ -63,15 +66,18 @@ public class ElasticSearchRepositoryTest {
             "bool": {
                 "must_not": [
                     { "match": { "state": "Deleted" }},
+                    { "match": { "state": "Draft" }},
+                    { "match": { "state": "Pending" }},
+                    { "match": { "state": "SolAdmonCreated" }},
+                    { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                    { "match": { "state": "SolAppUpdated" }},
+                    { "match": { "state": "CaseCreated" }},
+                    { "match": { "state": "CasePaymentFailed" }},
+                    { "match": { "state": "SolProbateCreated" }},
+                    { "match": { "state": "SolIntestacyCreated" }},
+                    { "match": { "state": "applyforGrantPaperApplication" }},
+                    { "match": { "state": "PAAppCreated" }},
                     { "exists": { "field": "data.applicationSubmittedDate" }}
-                ],
-                "filter": [
-                    "range": {
-                        "last_modified": {
-                            "gte": "2024-07-15T17:00:00",
-                            "lte": "2024-01-01T09:00:00"
-                        }
-                    }
                 ]
             }
         },
