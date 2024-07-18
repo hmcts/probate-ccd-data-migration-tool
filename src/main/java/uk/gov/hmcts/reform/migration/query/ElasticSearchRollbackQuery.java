@@ -7,26 +7,6 @@ public class ElasticSearchRollbackQuery {
 
     private static final String START_QUERY = """
         {
-            "query": {
-                "bool": {
-                    "must_not": [
-                        {
-                            "match": {
-                                "state": "Deleted"
-                            }
-                        }
-                    ],
-                    "filter":
-                    {
-                        "range": {
-                            "last_modified": {
-                                "gte": "%s",
-                                "lte": "%s"
-                            }
-                        }
-                    }
-                }
-            },
             "_source": ["reference"],
             "size": %s,
             "sort": [
