@@ -88,16 +88,14 @@ public class DataMigrationServiceImplTest {
 
     @Test
     public void shouldMigrateSubDateToCreateDate() {
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDateTime date = LocalDateTime.now();
-
         Map<String, Object> data = new HashMap<>();
         data.put("applicationSubmittedDate", null);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("applicationSubmittedDate", date.format(dateTimeFormatter));
+        expectedData.put("applicationSubmittedDate", LocalDate.now());
 
         Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+
         assertEquals(expectedData, result);
     }
 
