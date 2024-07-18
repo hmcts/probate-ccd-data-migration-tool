@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.migration.service;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
@@ -12,14 +14,19 @@ import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceImplTest {
@@ -37,6 +44,18 @@ public class DataMigrationServiceImplTest {
     private OrganisationPolicy policy;
     private static final String CREATE_CASE_FROM_BULKSCAN_EVENT = "createCaseFromBulkScan";
 
+    @Before
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
+        service = new DataMigrationServiceImpl(auditEventService);
+        AuditEvent mockedEvent = AuditEvent.builder()
+            .id(CREATE_CASE_FROM_BULKSCAN_EVENT)
+            .userId("123")
+            .createdDate(LocalDateTime.now())
+            .build();
+        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
+            .thenReturn(Optional.of(mockedEvent));
+    }
 
     @Test
     public void shouldReturnTrueForCaseDetailsPassed() {
