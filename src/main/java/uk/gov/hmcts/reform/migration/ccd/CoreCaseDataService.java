@@ -93,7 +93,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().get("applicationSubmittedDate") == null) {
+        if (updatedCaseDetails.getData().get("applicationSubmittedDate") != null) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
