@@ -21,17 +21,6 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "exists": {
-                                    "field": "data.applicationSubmittedDate"
-                                }
-                            }
-                        ]
-                    }
-                },
                 "_source": ["reference"],
                 "size": 100,
                 "sort": [
@@ -52,17 +41,6 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-                "query": {
-                    "bool": {
-                        "must": [
-                            {
-                                "exists": {
-                                    "field": "data.applicationSubmittedDate"
-                                }
-                            }
-                        ]
-                    }
-                },
                 "_source": ["reference"],
                 "size": 100,
                 "sort": [
