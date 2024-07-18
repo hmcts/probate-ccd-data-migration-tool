@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -87,18 +88,17 @@ public class DataMigrationServiceImplTest {
 
     @Test
     public void shouldMigrateSubDateToCreateDate() {
-        String date = LocalDate.now().toString();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDateTime date = LocalDateTime.now();
 
         Map<String, Object> data = new HashMap<>();
         data.put("applicationSubmittedDate", null);
-        data.put("createdDate", date);
 
         Map<String, Object> expectedData = new HashMap<>();
-        Object createdDate = data.get("createdDate");
-        expectedData.put("applicationSubmittedDate", createdDate);
+        expectedData.put("applicationSubmittedDate", date.format(dateTimeFormatter));
 
         Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-        assertEquals(expectedData.get("applicationSubmittedDate"), result.get("applicationSubmittedDate"));
+        assertEquals(expectedData, result);
     }
 
     @Test
