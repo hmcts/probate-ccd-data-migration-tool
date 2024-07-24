@@ -26,7 +26,6 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -118,7 +117,7 @@ public class CoreCaseDataServiceTest {
             .caseDetails(caseDetails)
             .build();
 
-        when(dataMigrationService.migrate(any(), any(), anyString(), anyString()))
+        when(dataMigrationService.migrate(any(), any()))
             .thenReturn(createCaseDetailsPostMigration(CASE_ID).getData());
 
         AuditEvent auditEvent = AuditEvent.builder()
