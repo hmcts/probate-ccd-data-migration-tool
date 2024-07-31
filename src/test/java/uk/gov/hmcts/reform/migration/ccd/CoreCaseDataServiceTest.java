@@ -118,7 +118,7 @@ public class CoreCaseDataServiceTest {
             .caseDetails(caseDetails)
             .build();
 
-        when(dataMigrationService.migrate(any(), any()))
+        when(dataMigrationService.migrate(any(), any(), any(), any()))
             .thenReturn(createCaseDetailsPostMigration(CASE_ID).getData());
 
         AuditEvent auditEvent = AuditEvent.builder()
