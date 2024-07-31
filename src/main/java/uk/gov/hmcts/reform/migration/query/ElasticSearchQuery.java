@@ -9,58 +9,31 @@ public class ElasticSearchQuery {
         {
             "query": {
                 "bool": {
-                    "must": [
-                        {
-                            "exists": {
-                                "field": "data.caseHandedOffToLegacySite"
-                            }
-                        },
-                        {
-                            "term": {
-                                "data.caseHandedOffToLegacySite": "Yes"
-                            }
-                        }
-                    ],
-                    "should": [
-                        {"match": { "state": "CaseCreated" }},
-                        {"match": { "state": "CasePaymentFailed" }},
-                        {"match": { "state": "Stopped" }},
-                        {"match": { "state": "Dormant" }},
-                        {"match": { "state": "CasePrinted" }},
-                        {"match": { "state": "BOCaseStopped" }},
-                        {"match": { "state": "BOCaveatPermenant" }},
-                        {"match": { "state": "BORegistrarEscalation" }},
-                        {"match": { "state": "BOReadyToIssue" }},
-                        {"match": { "state": "BOCaseQA" }},
-                        {"match": { "state": "BOCaseMatchingIssueGrant" }},
-                        {"match": { "state": "BOCaseClosed" }},
-                        {"match": { "state": "BOCaseImported" }},
-                        {"match": { "state": "BOExaminingReissue" }},
-                        {"match": { "state": "BOCaseMatchingReissue" }},
-                        {"match": { "state": "BOCaseStoppedReissue" }},
-                        {"match": { "state": "BOCaseStoppedAwaitRedec" }},
-                        {"match": { "state": "BORedecNotificationSent" }},
-                        {"match": { "state": "BOSotGenerated" }},
-                        {"match": { "state": "BOCaseWorkerEscalation" }}
-                    ],
-                    "filter": [
-                        {
-                            "range": {
-                                "last_modified": {
-                                    "gte": "2022-08-18T00:00:00"
-                                }
-                            }
-                        }
+                    "must_not": [
+                        { "match": { "state": "Deleted" }},
+                        { "match": { "state": "Draft" }},
+                        { "match": { "state": "Pending" }},
+                        { "match": { "state": "SolAdmonCreated" }},
+                        { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                        { "match": { "state": "SolAppUpdated" }},
+                        { "match": { "state": "CaseCreated" }},
+                        { "match": { "state": "CasePaymentFailed" }},
+                        { "match": { "state": "SolProbateCreated" }},
+                        { "match": { "state": "SolIntestacyCreated" }},
+                        { "match": { "state": "applyforGrantPaperApplication" }},
+                        { "match": { "state": "PAAppCreated" }},
+                        { "exists": { "field": "data.applicationSubmittedDate" }}
                     ]
                 }
             },
-            "_source": ["reference", "data.caseHandedOffToLegacySite"],
+            "_source": ["reference"],
             "size": %s,
             "sort": [
                 {
                     "reference.keyword": "asc"
                 }
-            ]""";
+            ]
+        }""";
 
     private static final String END_QUERY = "\n    }";
 

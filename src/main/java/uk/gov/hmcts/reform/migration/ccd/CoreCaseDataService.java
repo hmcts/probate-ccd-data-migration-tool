@@ -49,7 +49,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (!updatedCaseDetails.getData().containsKey("boHandoffReasonList")) {
+        if (updatedCaseDetails.getData().get("applicationSubmittedDate") == null) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -58,7 +58,8 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData())).build();
+                ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
+                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate())).build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
                 authTokenGenerator.generate(),
@@ -92,7 +93,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().containsKey("boHandoffReasonList")) {
+        if (updatedCaseDetails.getData().get("applicationSubmittedDate") != null) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -101,7 +102,8 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.rollback(updatedCaseDetails.getId(), updatedCaseDetails.getData()))
+                ).data(dataMigrationService.rollback(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
+                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate()))
                 .build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
