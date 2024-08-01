@@ -7,13 +7,60 @@ public class ElasticSearchRollbackQuery {
 
     private static final String START_QUERY = """
         {
+            "query": {
+                "bool": {
+                    "must": [
+                        {
+                            "exists": {
+                                "field": "data.lastModifiedDateForDormant"
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "range": {
+                                "last_modified": {
+                                    "gte": "%s",
+                                    "lte": "%s"
+                                }
+                            }
+                        },
+                        {
+                            "bool": {
+                                "should": [
+                                   { "match": { "state": "BOCaseMatchingExamining" }},
+                                   { "match": { "state": "BOCaseMatchingIssueGrant" }},
+                                   { "match": { "state": "BOCaseQA" }},
+                                   { "match": { "state": "BOReadyToIssue" }},
+                                   { "match": { "state": "BORegistrarEscalation" }},
+                                   { "match": { "state": "BOCaseStopped" }},
+                                   { "match": { "state": "CasePrinted" }},
+                                   { "match": { "state": "CaseCreated" }},
+                                   { "match": { "state": "BOSotGenerated" }},
+                                   { "match": { "state": "Dormant" }},
+                                   { "match": { "state": "BORedecNotificationSent" }},
+                                   { "match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                   { "match": { "state": "BOCaseStoppedReissue" }},
+                                   { "match": { "state": "BOCaseMatchingReissue" }},
+                                   { "match": { "state": "BOExaminingReissue" }},
+                                   { "match": { "state": "BOCaseImported" }},
+                                   { "match": { "state": "BOCaveatPermenant" }},
+                                   { "match": { "state": "BOCaseWorkerEscalation" }},
+                                   { "match": { "state": "BOPostGrantIssued" }}
+                                ]
+                           }
+                        }
+                    ]
+                }
+            },
             "_source": ["reference"],
             "size": %s,
             "sort": [
                 {
                     "reference.keyword": "asc"
                 }
-            ]""";
+            ]
+        }""";
 
     private static final String END_QUERY = "\n    }";
 

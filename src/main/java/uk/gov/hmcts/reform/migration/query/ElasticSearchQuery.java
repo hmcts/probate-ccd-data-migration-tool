@@ -9,24 +9,42 @@ public class ElasticSearchQuery {
         {
             "query": {
                 "bool": {
-                    "must_not": [
-                        { "match": { "state": "Deleted" }},
-                        { "match": { "state": "Draft" }},
-                        { "match": { "state": "Pending" }},
-                        { "match": { "state": "SolAdmonCreated" }},
-                        { "match": { "state": "SolAppCreatedDeceasedDtls" }},
-                        { "match": { "state": "SolAppUpdated" }},
-                        { "match": { "state": "CaseCreated" }},
-                        { "match": { "state": "CasePaymentFailed" }},
-                        { "match": { "state": "SolProbateCreated" }},
-                        { "match": { "state": "SolIntestacyCreated" }},
-                        { "match": { "state": "applyforGrantPaperApplication" }},
-                        { "match": { "state": "PAAppCreated" }},
-                        { "exists": { "field": "data.applicationSubmittedDate" }}
+                    "filter": [
+                        {
+                            "range": {
+                                "last_modified": {
+                                    "gte": "2024-08-01T00:00:00"
+                                }
+                            }
+                        },
+                        {
+                            "bool": {
+                                "should": [
+                                   { "match": { "state": "BOCaseMatchingExamining" }},
+                                   { "match": { "state": "BOCaseMatchingIssueGrant" }},
+                                   { "match": { "state": "BOCaseQA" }},
+                                   { "match": { "state": "BOReadyToIssue" }},
+                                   { "match": { "state": "BORegistrarEscalation" }},
+                                   { "match": { "state": "BOCaseStopped" }},
+                                   { "match": { "state": "CasePrinted" }},
+                                   { "match": { "state": "CaseCreated" }},
+                                   { "match": { "state": "BOSotGenerated" }},
+                                   { "match": { "state": "Dormant" }},
+                                   { "match": { "state": "BORedecNotificationSent" }},
+                                   { "match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                   { "match": { "state": "BOCaseStoppedReissue" }},
+                                   { "match": { "state": "BOCaseMatchingReissue" }},
+                                   { "match": { "state": "BOExaminingReissue" }},
+                                   { "match": { "state": "BOCaseImported" }},
+                                   { "match": { "state": "BOCaveatPermenant" }},
+                                   { "match": { "state": "BOCaseWorkerEscalation" }},
+                                   { "match": { "state": "BOPostGrantIssued" }}
+                                ]
+                           }
+                        }
                     ]
                 }
             },
-            "_source": ["reference"],
             "size": %s,
             "sort": [
                 {

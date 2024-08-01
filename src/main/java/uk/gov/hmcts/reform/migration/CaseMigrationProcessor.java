@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Setting applicationSubmittedDate";
-    private static final String EVENT_DESCRIPTION = "Data migration - Setting applicationSubmittedDate";
+    private static final String EVENT_SUMMARY = "Data migration - Setting lastModifiedDateForDormant";
+    private static final String EVENT_DESCRIPTION = "Data migration - Setting lastModifiedDateForDormant";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -72,6 +72,7 @@ public class CaseMigrationProcessor {
                 ExecutorService executorService = Executors.newFixedThreadPool(defaultThreadLimit);
 
                 List<CaseDetails> searchResultCases = searchResult.getCases();
+                log.info("cases : {}", searchResultCases);
                 searchResultCases
                     .stream()
                     .forEach(submitMigration(userToken, caseType, executorService));
