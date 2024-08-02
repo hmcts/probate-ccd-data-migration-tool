@@ -72,7 +72,6 @@ public class CaseMigrationProcessor {
                 ExecutorService executorService = Executors.newFixedThreadPool(defaultThreadLimit);
 
                 List<CaseDetails> searchResultCases = searchResult.getCases();
-                log.info("cases : {}", searchResultCases);
                 searchResultCases
                     .stream()
                     .forEach(submitMigration(userToken, caseType, executorService));
