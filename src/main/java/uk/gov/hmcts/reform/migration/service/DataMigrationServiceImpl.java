@@ -17,7 +17,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
-    private List<String> excludedEventList = Arrays.asList("boHistoryCorrection", "boCorrection");
+    private static final List<String> EXCLUDED_EVENT_LIST = Arrays.asList("boHistoryCorrection", "boCorrection");
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
@@ -48,9 +48,9 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
-        return auditEventService.getLatestAuditEventByName(caseId.toString(), excludedEventList,
+        return auditEventService.getLatestAuditEventByName(caseId.toString(), EXCLUDED_EVENT_LIST,
             userToken, authToken)
             .orElseThrow(() -> new IllegalStateException(String
-            .format("Could not find any event other than %s event in audit", excludedEventList)));
+            .format("Could not find any event other than %s event in audit", EXCLUDED_EVENT_LIST)));
     }
 }

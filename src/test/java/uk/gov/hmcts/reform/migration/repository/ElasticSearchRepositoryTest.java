@@ -35,29 +35,54 @@ public class ElasticSearchRepositoryTest {
                 "bool": {
                     "must_not": [
                         { "match": { "state": "Deleted" }},
-                        { "match": { "state": "Draft" }},
                         { "match": { "state": "Pending" }},
                         { "match": { "state": "SolAdmonCreated" }},
                         { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                        { "match": { "state": "SolAppCreatedSolicitorDtls" }},
                         { "match": { "state": "SolAppUpdated" }},
                         { "match": { "state": "CaseCreated" }},
+                        { "match": { "state": "BOCaseClosed" }},
                         { "match": { "state": "CasePaymentFailed" }},
                         { "match": { "state": "SolProbateCreated" }},
                         { "match": { "state": "SolIntestacyCreated" }},
-                        { "match": { "state": "applyforGrantPaperApplication" }},
-                        { "match": { "state": "PAAppCreated" }},
-                        { "exists": { "field": "data.applicationSubmittedDate" }}
+                        { "match": { "state": "Stopped" }},
+                        { "match": { "state": "PAAppCreated" }}
+                    ],
+                    "filter": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {"match": { "state": "BOCaseMatchingExamining" }},
+                                    {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                                    {"match": { "state": "BOCaseQA" }},
+                                    {"match": { "state": "BOReadyToIssue" }},
+                                    {"match": { "state": "BORegistrarEscalation" }},
+                                    {"match": { "state": "BOCaseStopped" }},
+                                    {"match": { "state": "CasePrinted" }},
+                                    {"match": { "state": "BOSotGenerated" }},
+                                    {"match": { "state": "BORedecNotificationSent" }},
+                                    {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                    {"match": { "state": "BOCaseStoppedReissue" }},
+                                    {"match": { "state": "BOCaseMatchingReissue" }},
+                                    {"match": { "state": "BOExaminingReissue" }},
+                                    {"match": { "state": "BOCaseImported" }},
+                                    {"match": { "state": "BOCaveatPermenant" }},
+                                    {"match": { "state": "BOCaseWorkerEscalation" }},
+                                    {"match": { "state": "Dormant" }},
+                                    {"match": { "state": "BOPostGrantIssued" }}
+                                ]
+                            }
+                        }
                     ]
                 }
             },
-            "_source": ["reference"],
+            "_source": ["reference", "state"],
             "size": 100,
             "sort": [
                 {
                     "reference.keyword": "asc"
                 }
             ]
-        }
             }""";
 
     private static final String SEARCH_AFTER_QUERY = """
@@ -66,29 +91,54 @@ public class ElasticSearchRepositoryTest {
             "bool": {
                 "must_not": [
                     { "match": { "state": "Deleted" }},
-                    { "match": { "state": "Draft" }},
                     { "match": { "state": "Pending" }},
                     { "match": { "state": "SolAdmonCreated" }},
                     { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                    { "match": { "state": "SolAppCreatedSolicitorDtls" }},
                     { "match": { "state": "SolAppUpdated" }},
                     { "match": { "state": "CaseCreated" }},
+                    { "match": { "state": "BOCaseClosed" }},
                     { "match": { "state": "CasePaymentFailed" }},
                     { "match": { "state": "SolProbateCreated" }},
                     { "match": { "state": "SolIntestacyCreated" }},
-                    { "match": { "state": "applyforGrantPaperApplication" }},
-                    { "match": { "state": "PAAppCreated" }},
-                    { "exists": { "field": "data.applicationSubmittedDate" }}
+                    { "match": { "state": "Stopped" }},
+                    { "match": { "state": "PAAppCreated" }}
+                ],
+                "filter": [
+                    {
+                        "bool": {
+                            "should": [
+                                {"match": { "state": "BOCaseMatchingExamining" }},
+                                {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                                {"match": { "state": "BOCaseQA" }},
+                                {"match": { "state": "BOReadyToIssue" }},
+                                {"match": { "state": "BORegistrarEscalation" }},
+                                {"match": { "state": "BOCaseStopped" }},
+                                {"match": { "state": "CasePrinted" }},
+                                {"match": { "state": "BOSotGenerated" }},
+                                {"match": { "state": "BORedecNotificationSent" }},
+                                {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                {"match": { "state": "BOCaseStoppedReissue" }},
+                                {"match": { "state": "BOCaseMatchingReissue" }},
+                                {"match": { "state": "BOExaminingReissue" }},
+                                {"match": { "state": "BOCaseImported" }},
+                                {"match": { "state": "BOCaveatPermenant" }},
+                                {"match": { "state": "BOCaseWorkerEscalation" }},
+                                {"match": { "state": "Dormant" }},
+                                {"match": { "state": "BOPostGrantIssued" }}
+                            ]
+                        }
+                    }
                 ]
             }
         },
-        "_source": ["reference"],
+        "_source": ["reference", "state"],
         "size": 100,
         "sort": [
             {
                 "reference.keyword": "asc"
             }
-        ]
-    },"search_after": [1677777777]
+        ],"search_after": [1677777777]
         }""";
 
     private static final int QUERY_SIZE = 100;

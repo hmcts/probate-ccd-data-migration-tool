@@ -21,7 +21,52 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-                "_source": ["reference"],
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            { "match": { "state": "Deleted" }},
+                            { "match": { "state": "Pending" }},
+                            { "match": { "state": "SolAdmonCreated" }},
+                            { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                            { "match": { "state": "SolAppCreatedSolicitorDtls" }},
+                            { "match": { "state": "SolAppUpdated" }},
+                            { "match": { "state": "CaseCreated" }},
+                            { "match": { "state": "BOCaseClosed" }},
+                            { "match": { "state": "CasePaymentFailed" }},
+                            { "match": { "state": "SolProbateCreated" }},
+                            { "match": { "state": "SolIntestacyCreated" }},
+                            { "match": { "state": "Stopped" }},
+                            { "match": { "state": "PAAppCreated" }}
+                        ],
+                        "filter": [
+                            {
+                                "bool": {
+                                    "should": [
+                                        {"match": { "state": "BOCaseMatchingExamining" }},
+                                        {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                                        {"match": { "state": "BOCaseQA" }},
+                                        {"match": { "state": "BOReadyToIssue" }},
+                                        {"match": { "state": "BORegistrarEscalation" }},
+                                        {"match": { "state": "BOCaseStopped" }},
+                                        {"match": { "state": "CasePrinted" }},
+                                        {"match": { "state": "BOSotGenerated" }},
+                                        {"match": { "state": "BORedecNotificationSent" }},
+                                        {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                        {"match": { "state": "BOCaseStoppedReissue" }},
+                                        {"match": { "state": "BOCaseMatchingReissue" }},
+                                        {"match": { "state": "BOExaminingReissue" }},
+                                        {"match": { "state": "BOCaseImported" }},
+                                        {"match": { "state": "BOCaveatPermenant" }},
+                                        {"match": { "state": "BOCaseWorkerEscalation" }},
+                                        {"match": { "state": "Dormant" }},
+                                        {"match": { "state": "BOPostGrantIssued" }}
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "_source": ["reference", "state"],
                 "size": 100,
                 "sort": [
                     {
@@ -41,7 +86,52 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-                "_source": ["reference"],
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            { "match": { "state": "Deleted" }},
+                            { "match": { "state": "Pending" }},
+                            { "match": { "state": "SolAdmonCreated" }},
+                            { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                            { "match": { "state": "SolAppCreatedSolicitorDtls" }},
+                            { "match": { "state": "SolAppUpdated" }},
+                            { "match": { "state": "CaseCreated" }},
+                            { "match": { "state": "BOCaseClosed" }},
+                            { "match": { "state": "CasePaymentFailed" }},
+                            { "match": { "state": "SolProbateCreated" }},
+                            { "match": { "state": "SolIntestacyCreated" }},
+                            { "match": { "state": "Stopped" }},
+                            { "match": { "state": "PAAppCreated" }}
+                        ],
+                        "filter": [
+                            {
+                                "bool": {
+                                    "should": [
+                                        {"match": { "state": "BOCaseMatchingExamining" }},
+                                        {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                                        {"match": { "state": "BOCaseQA" }},
+                                        {"match": { "state": "BOReadyToIssue" }},
+                                        {"match": { "state": "BORegistrarEscalation" }},
+                                        {"match": { "state": "BOCaseStopped" }},
+                                        {"match": { "state": "CasePrinted" }},
+                                        {"match": { "state": "BOSotGenerated" }},
+                                        {"match": { "state": "BORedecNotificationSent" }},
+                                        {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                        {"match": { "state": "BOCaseStoppedReissue" }},
+                                        {"match": { "state": "BOCaseMatchingReissue" }},
+                                        {"match": { "state": "BOExaminingReissue" }},
+                                        {"match": { "state": "BOCaseImported" }},
+                                        {"match": { "state": "BOCaveatPermenant" }},
+                                        {"match": { "state": "BOCaseWorkerEscalation" }},
+                                        {"match": { "state": "Dormant" }},
+                                        {"match": { "state": "BOPostGrantIssued" }}
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "_source": ["reference", "state"],
                 "size": 100,
                 "sort": [
                     {
