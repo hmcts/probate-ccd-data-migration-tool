@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.migration.service;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -85,7 +84,7 @@ public class DataMigrationServiceImplTest {
     public void shouldReturnNullWhenDataIsNotPassed() {
         Map<String, Object> result = service.migrate(1L, null, "token", "serviceToken");
         assertNull(result);
-        assertEquals(null, result);
+        assertNull(result);
     }
 
     @Test
@@ -102,20 +101,15 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldNotMigratecaseWithExcludedEvent() {
+    public void shouldNotMigrateCaseWithExcludedEvent() {
         Map<String, Object> data = new HashMap<>();
         data.put("lastModifiedDateForDormant", null);
-        AuditEvent event = AuditEvent.builder()
-            .id("boHistoryCorrection")
-            .userId("123")
-            .createdDate(dateTime)
-            .build();
         when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
             .thenReturn(Optional.empty());
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
             () -> service.migrate(1L, data, "token", "serviceToken"));
-        Assert.assertEquals("Could not find any event other than [boHistoryCorrection, boCorrection] "
+        assertEquals("Could not find any event other than [boHistoryCorrection, boCorrection] "
             + "event in audit", exception.getMessage());
     }
 }
