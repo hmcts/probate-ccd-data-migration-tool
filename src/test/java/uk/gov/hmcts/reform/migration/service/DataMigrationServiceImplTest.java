@@ -87,7 +87,7 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldMigrateLastModifiedDateForDormantWithCreateDate() {
+    public void shouldMigrateCaseWithEventCreatedDateWhenEventIsNotMatchedWithExcludedEvent() {
         Map<String, Object> data = new HashMap<>();
         data.put("lastModifiedDateForDormant", null);
 
@@ -100,7 +100,7 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldNotMigrateCaseWithExcludedEvent() {
+    public void shouldNotMigrateCaseWithEventCreatedDateWhenEventIsMatchedWithExcludedEvent() {
         Map<String, Object> data = new HashMap<>();
         data.put("lastModifiedDateForDormant", null);
         when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
