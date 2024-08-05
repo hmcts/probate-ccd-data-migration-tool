@@ -84,7 +84,6 @@ public class DataMigrationServiceImplTest {
     public void shouldReturnNullWhenDataIsNotPassed() {
         Map<String, Object> result = service.migrate(1L, null, "token", "serviceToken");
         assertNull(result);
-        assertNull(result);
     }
 
     @Test
