@@ -35,6 +35,14 @@ public class ElasticSearchRollbackQuery {
                     ],
                     "filter": [
                         {
+                            "range": {
+                                "last_modified": {
+                                    "gte": "%s",
+                                    "lte": "%s"
+                                }
+                            }
+                        },
+                        {
                             "bool": {
                                 "should": [
                                     {
@@ -80,6 +88,8 @@ public class ElasticSearchRollbackQuery {
 
     private String searchAfterValue;
     private int size;
+    private String startDateTime;
+    private String endDateTime;
     private boolean initialSearch;
 
     public String getQuery() {
@@ -91,10 +101,11 @@ public class ElasticSearchRollbackQuery {
     }
 
     private String getInitialQuery() {
-        return String.format(START_QUERY, size) + END_QUERY;
+        return String.format(START_QUERY, startDateTime, endDateTime, size) + END_QUERY;
     }
 
     private String getSubsequentQuery() {
-        return String.format(START_QUERY, size) + "," + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
+        return String.format(START_QUERY, startDateTime, endDateTime, size) + ","
+            + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
     }
 }
