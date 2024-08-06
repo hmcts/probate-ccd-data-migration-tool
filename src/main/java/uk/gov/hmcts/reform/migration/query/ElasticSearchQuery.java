@@ -52,7 +52,7 @@ public class ElasticSearchQuery {
                     ]
                 }
             },
-            "_source": ["reference", "state"],
+            "_source": ["reference"],
             "size": %s,
             "sort": [
                 {

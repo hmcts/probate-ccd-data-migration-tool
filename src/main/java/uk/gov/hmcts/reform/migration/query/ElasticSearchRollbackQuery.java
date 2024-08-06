@@ -60,7 +60,7 @@ public class ElasticSearchRollbackQuery {
                     ]
                 }
             },
-            "_source": ["reference", "state"],
+            "_source": ["reference"],
             "size": %s,
             "sort": [
                 {

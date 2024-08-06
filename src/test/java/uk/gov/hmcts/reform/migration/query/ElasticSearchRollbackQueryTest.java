@@ -78,7 +78,7 @@ public class ElasticSearchRollbackQueryTest {
                         ]
                     }
                 },
-                "_source": ["reference", "state"],
+                "_source": ["reference"],
                 "size": 100,
                 "sort": [
                     {
@@ -153,7 +153,7 @@ public class ElasticSearchRollbackQueryTest {
                         ]
                     }
                 },
-                "_source": ["reference", "state"],
+                "_source": ["reference"],
                 "size": 100,
                 "sort": [
                     {

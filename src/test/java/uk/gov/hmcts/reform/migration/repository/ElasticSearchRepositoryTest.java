@@ -76,7 +76,7 @@ public class ElasticSearchRepositoryTest {
                     ]
                 }
             },
-            "_source": ["reference", "state"],
+            "_source": ["reference"],
             "size": 100,
             "sort": [
                 {
@@ -132,7 +132,7 @@ public class ElasticSearchRepositoryTest {
                 ]
             }
         },
-        "_source": ["reference", "state"],
+        "_source": ["reference"],
         "size": 100,
         "sort": [
             {
