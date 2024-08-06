@@ -8,7 +8,7 @@ import java.util.function.Predicate;
 public interface DataMigrationService<T> {
     Predicate<CaseDetails> accepts();
 
-    T migrate(Long id, Map<String, Object> data, String userToken, String authToken);
+    T migrate(Map<String, Object> data);
 
-    T rollback(Long id, Map<String, Object> data, String userToken, String authToken);
+    T rollback(Map<String, Object> data);
 }

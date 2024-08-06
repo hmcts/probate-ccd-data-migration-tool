@@ -7,6 +7,73 @@ public class ElasticSearchRollbackQuery {
 
     private static final String START_QUERY = """
         {
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {
+                            "term": {
+                                "state.keyword": "Deleted"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "term": {
+                                "data.applicationType.keyword": "Solicitor"
+                            }
+                        },
+                        {
+                            "term": {
+                                "data.paperForm": "Yes"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "data.applicantOrganisationPolicy"
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "range": {
+                                "last_modified": {
+                                    "gte": "%s",
+                                    "lte": "%s"
+                                }
+                            }
+                        },
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                                 {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "BOGrantIssued" }},
+                                                {"term": { "state.keyword": "BOCaseClosed"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "CaveatClosed" }}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                    ]
+                }
+            },
             "_source": ["reference"],
             "size": %s,
             "sort": [
@@ -21,6 +88,8 @@ public class ElasticSearchRollbackQuery {
 
     private String searchAfterValue;
     private int size;
+    private String startDateTime;
+    private String endDateTime;
     private boolean initialSearch;
 
     public String getQuery() {
@@ -32,10 +101,11 @@ public class ElasticSearchRollbackQuery {
     }
 
     private String getInitialQuery() {
-        return String.format(START_QUERY, size) + END_QUERY;
+        return String.format(START_QUERY, startDateTime, endDateTime, size) + END_QUERY;
     }
 
     private String getSubsequentQuery() {
-        return String.format(START_QUERY, size) + "," + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
+        return String.format(START_QUERY, startDateTime, endDateTime, size) + ","
+            + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
     }
 }

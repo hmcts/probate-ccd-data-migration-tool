@@ -21,64 +21,63 @@ public class ElasticSearchQueryTest {
         String query = elasticSearchQuery.getQuery();
 
         assertEquals("""
-            {
-                "query": {
-                    "bool": {
-                        "must_not": [
-                            { "match": { "state": "Deleted" }},
-                            { "match": { "state": "Draft" }},
-                            { "match": { "state": "Pending" }},
-                            { "match": { "state": "SolAdmonCreated" }},
-                            { "match": { "state": "SolAppCreatedDeceasedDtls" }},
-                            { "match": { "state": "SolAppUpdated" }},
-                            { "match": { "state": "CaseCreated" }},
-                            { "match": { "state": "CasePaymentFailed" }},
-                            { "match": { "state": "SolProbateCreated" }},
-                            { "match": { "state": "SolIntestacyCreated" }},
-                            { "match": { "state": "applyforGrantPaperApplication" }},
-                            { "match": { "state": "PAAppCreated" }},
-                            { "exists": { "field": "data.applicationSubmittedDate" }}
-                        ]
-                    }
-                },
-                "_source": ["reference"],
-                "size": 100,
-                "sort": [
-                    {
-                        "reference.keyword": "asc"
-                    }
-                ]
-            }
-                }""", query);
-    }
-
-    @Test
-    public void shouldReturnSearchAfterQuery() {
-        ElasticSearchQuery elasticSearchQuery =  ElasticSearchQuery.builder()
-            .initialSearch(false)
-            .size(QUERY_SIZE)
-            .searchAfterValue("1677777777")
-            .build();
-        String query = elasticSearchQuery.getQuery();
-
-        assertEquals("""
         {
             "query": {
                 "bool": {
                     "must_not": [
-                        { "match": { "state": "Deleted" }},
-                        { "match": { "state": "Draft" }},
-                        { "match": { "state": "Pending" }},
-                        { "match": { "state": "SolAdmonCreated" }},
-                        { "match": { "state": "SolAppCreatedDeceasedDtls" }},
-                        { "match": { "state": "SolAppUpdated" }},
-                        { "match": { "state": "CaseCreated" }},
-                        { "match": { "state": "CasePaymentFailed" }},
-                        { "match": { "state": "SolProbateCreated" }},
-                        { "match": { "state": "SolIntestacyCreated" }},
-                        { "match": { "state": "applyforGrantPaperApplication" }},
-                        { "match": { "state": "PAAppCreated" }},
-                        { "exists": { "field": "data.applicationSubmittedDate" }}
+                        {
+                            "term": {
+                                "state.keyword": "Deleted"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "data.applicantOrganisationPolicy"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "term": {
+                                "data.applicationType.keyword": "Solicitor"
+                            }
+                        },
+                        {
+                            "term": {
+                                "data.paperForm": "Yes"
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                                 {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "BOGrantIssued" }},
+                                                {"term": { "state.keyword": "BOCaseClosed"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "CaveatClosed" }}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
                     ]
                 }
             },
@@ -89,7 +88,85 @@ public class ElasticSearchQueryTest {
                     "reference.keyword": "asc"
                 }
             ]
-        },\"search_after\": [1677777777]
+            }""", query);
+    }
+
+    @Test
+    public void shouldReturnSearchAfterQuery() {
+        ElasticSearchQuery elasticSearchQuery =  ElasticSearchQuery.builder()
+            .initialSearch(false)
+            .size(QUERY_SIZE)
+            .searchAfterValue("1677777777")
+            .build();
+        String query = elasticSearchQuery.getQuery();
+        assertEquals("""
+        {
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {
+                            "term": {
+                                "state.keyword": "Deleted"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "data.applicantOrganisationPolicy"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "term": {
+                                "data.applicationType.keyword": "Solicitor"
+                            }
+                        },
+                        {
+                            "term": {
+                                "data.paperForm": "Yes"
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                                 {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "BOGrantIssued" }},
+                                                {"term": { "state.keyword": "BOCaseClosed"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "CaveatClosed" }}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                    ]
+                }
+            },
+            "_source": ["reference"],
+            "size": 100,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ],\"search_after\": [1677777777]
             }""", query);
     }
 }
