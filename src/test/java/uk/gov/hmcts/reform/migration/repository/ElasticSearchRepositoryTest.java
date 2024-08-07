@@ -52,7 +52,6 @@ public class ElasticSearchRepositoryTest {
                         {
                             "bool": {
                                 "should": [
-                                    {"match": { "state": "BOCaseMatchingExamining" }},
                                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
                                     {"match": { "state": "BOCaseQA" }},
                                     {"match": { "state": "BOReadyToIssue" }},
@@ -108,7 +107,6 @@ public class ElasticSearchRepositoryTest {
                     {
                         "bool": {
                             "should": [
-                                {"match": { "state": "BOCaseMatchingExamining" }},
                                 {"match": { "state": "BOCaseMatchingIssueGrant" }},
                                 {"match": { "state": "BOCaseQA" }},
                                 {"match": { "state": "BOReadyToIssue" }},

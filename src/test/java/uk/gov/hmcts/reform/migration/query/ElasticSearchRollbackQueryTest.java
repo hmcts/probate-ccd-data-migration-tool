@@ -54,7 +54,6 @@ public class ElasticSearchRollbackQueryTest {
                             {
                                 "bool": {
                                     "should": [
-                                        {"match": { "state": "BOCaseMatchingExamining" }},
                                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
                                         {"match": { "state": "BOCaseQA" }},
                                         {"match": { "state": "BOReadyToIssue" }},
@@ -129,7 +128,6 @@ public class ElasticSearchRollbackQueryTest {
                             {
                                 "bool": {
                                     "should": [
-                                        {"match": { "state": "BOCaseMatchingExamining" }},
                                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
                                         {"match": { "state": "BOCaseQA" }},
                                         {"match": { "state": "BOReadyToIssue" }},

@@ -43,7 +43,6 @@ public class ElasticSearchQueryTest {
                             {
                                 "bool": {
                                     "should": [
-                                        {"match": { "state": "BOCaseMatchingExamining" }},
                                         {"match": { "state": "BOCaseMatchingIssueGrant" }},
                                         {"match": { "state": "BOCaseQA" }},
                                         {"match": { "state": "BOReadyToIssue" }},
@@ -109,7 +108,6 @@ public class ElasticSearchQueryTest {
                         {
                             "bool": {
                                 "should": [
-                                    {"match": { "state": "BOCaseMatchingExamining" }},
                                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
                                     {"match": { "state": "BOCaseQA" }},
                                     {"match": { "state": "BOReadyToIssue" }},

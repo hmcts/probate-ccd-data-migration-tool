@@ -28,7 +28,6 @@ public class ElasticSearchQuery {
                         {
                             "bool": {
                                 "should": [
-                                    {"match": { "state": "BOCaseMatchingExamining" }},
                                     {"match": { "state": "BOCaseMatchingIssueGrant" }},
                                     {"match": { "state": "BOCaseQA" }},
                                     {"match": { "state": "BOReadyToIssue" }},
