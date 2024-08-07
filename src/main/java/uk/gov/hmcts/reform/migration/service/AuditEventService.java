@@ -23,7 +23,7 @@ public class AuditEventService {
             = caseDataApi.getAuditEvents(userToken, authToken, false, caseId);
 
         return auditEventsResponse.getAuditEvents().stream()
-            .filter(auditEvent -> eventName.contains(auditEvent.getId()))
+            .filter(auditEvent -> !eventName.contains(auditEvent.getId()))
             .max(Comparator.comparing(AuditEvent::getCreatedDate));
     }
 }
