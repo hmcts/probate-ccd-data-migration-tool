@@ -18,15 +18,15 @@ import java.util.function.Predicate;
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
     private final List<String> creationEventList = Arrays.asList(
-        "createCaseFromBulkScan",
-        "createCase",
-        "createCaseWithoutPayment",
         "boImportGrant",
-        "paymentSuccessApp",
-        "paymentSuccessCase",
         "applyforGrantPaperApplication",
+        "applyforGrantPaperApplicationMan",
         "applyForGrant",
         "solicitorReviewAndConfirm",
+        "createCase",
+        "createCaseWithoutPayment",
+        "paymentSuccessApp",
+        "paymentSuccessCase",
         "createApplication");
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
