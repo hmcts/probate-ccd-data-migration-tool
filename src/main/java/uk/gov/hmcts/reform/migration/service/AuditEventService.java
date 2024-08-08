@@ -24,6 +24,6 @@ public class AuditEventService {
 
         return auditEventsResponse.getAuditEvents().stream()
             .filter(auditEvent -> eventName.contains(auditEvent.getId()))
-            .min(Comparator.comparing(AuditEvent::getCreatedDate));
+            .max(Comparator.comparing(AuditEvent::getCreatedDate));
     }
 }

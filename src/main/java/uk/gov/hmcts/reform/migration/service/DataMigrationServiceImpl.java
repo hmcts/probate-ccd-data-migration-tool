@@ -25,7 +25,9 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         "paymentSuccessApp",
         "paymentSuccessCase",
         "applyforGrantPaperApplication",
-        "applyForGrant");
+        "applyForGrant",
+        "solicitorReviewAndConfirm",
+        "createApplication");
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
