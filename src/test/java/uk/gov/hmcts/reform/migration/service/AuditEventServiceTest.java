@@ -49,7 +49,7 @@ public class AuditEventServiceTest {
             .thenReturn(AuditEventsResponse.builder().auditEvents(List.of(expectedAuditEvent)).build());
 
         Optional<AuditEvent> actualAuditEvent
-            = auditEventService.getLatestAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
+            = auditEventService.getCaseCreationAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
 
         assertTrue(actualAuditEvent.isPresent());
 
@@ -65,7 +65,7 @@ public class AuditEventServiceTest {
         when(auditEventsResponse.getAuditEvents()).thenReturn(List.of(expectedAuditEvent));
 
         Optional<AuditEvent> actualAuditEvent
-            = auditEventService.getLatestAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
+            = auditEventService.getCaseCreationAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
 
         assertThat(actualAuditEvent).isEmpty();
     }

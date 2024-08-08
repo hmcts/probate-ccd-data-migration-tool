@@ -42,18 +42,18 @@ public class DataMigrationServiceImplTest {
     @InjectMocks
     private DataMigrationServiceImpl service;
     private OrganisationPolicy policy;
-    private static final String CREATE_CASE_FROM_BULKSCAN_EVENT = "createCaseFromBulkScan";
+    private static final String CREATE_CASE_EVENT = "applyforGrantPaperApplication";
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         service = new DataMigrationServiceImpl(auditEventService);
         AuditEvent mockedEvent = AuditEvent.builder()
-            .id(CREATE_CASE_FROM_BULKSCAN_EVENT)
+            .id(CREATE_CASE_EVENT)
             .userId("123")
             .createdDate(LocalDateTime.now())
             .build();
-        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
+        when(auditEventService.getCaseCreationAuditEventByName(anyString(), anyList(), anyString(), anyString()))
             .thenReturn(Optional.of(mockedEvent));
     }
 
