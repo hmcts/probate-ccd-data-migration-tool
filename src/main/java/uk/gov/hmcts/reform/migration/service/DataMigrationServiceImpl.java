@@ -17,7 +17,17 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
-    private List<String> createCaseFromBulkScan = Arrays.asList("createCaseFromBulkScan");
+    private final List<String> creationEventList = Arrays.asList(
+        "boImportGrant",
+        "applyforGrantPaperApplication",
+        "applyforGrantPaperApplicationMan",
+        "applyForGrant",
+        "solicitorReviewAndConfirm",
+        "createCase",
+        "createCaseWithoutPayment",
+        "paymentSuccessApp",
+        "paymentSuccessCase",
+        "createApplication");
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
@@ -51,9 +61,9 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
     }
 
     private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
-        return auditEventService.getLatestAuditEventByName(caseId.toString(), createCaseFromBulkScan,
+        return auditEventService.getCaseCreationAuditEventByName(caseId.toString(), creationEventList,
             userToken, authToken)
             .orElseThrow(() -> new IllegalStateException(String
-            .format("Could not find any event other than %s event in audit", createCaseFromBulkScan)));
+            .format("Could not find any event other than %s event in audit", creationEventList)));
     }
 }
