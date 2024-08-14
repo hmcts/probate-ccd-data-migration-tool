@@ -72,7 +72,6 @@ public class ElasticSearchRepositoryTest {
                     "reference.keyword": "asc"
                 }
             ]
-        }
             }""";
 
     private static final String SEARCH_AFTER_QUERY = """
@@ -117,8 +116,7 @@ public class ElasticSearchRepositoryTest {
             {
                 "reference.keyword": "asc"
             }
-        ]
-    },"search_after": [1677777777]
+        ],"search_after": [1677777777]
         }""";
 
     private static final int QUERY_SIZE = 100;
