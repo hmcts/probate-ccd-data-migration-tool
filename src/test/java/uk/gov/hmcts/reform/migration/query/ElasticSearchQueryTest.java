@@ -63,7 +63,6 @@ public class ElasticSearchQueryTest {
                         "reference.keyword": "asc"
                     }
                 ]
-            }
                 }""", query);
     }
 
@@ -118,8 +117,7 @@ public class ElasticSearchQueryTest {
                 {
                     "reference.keyword": "asc"
                 }
-            ]
-        },\"search_after\": [1677777777]
+            ],\"search_after\": [1677777777]
             }""", query);
     }
 }
