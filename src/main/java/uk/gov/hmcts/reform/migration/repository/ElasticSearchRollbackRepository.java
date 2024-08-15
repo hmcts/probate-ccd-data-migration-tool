@@ -25,10 +25,6 @@ public class ElasticSearchRollbackRepository {
 
     private final String endDatetime;
 
-    private final String startDatetime;
-
-    private final String endDatetime;
-
     private final int querySize;
 
     private final int caseProcessLimit;
