@@ -10,34 +10,44 @@ public class ElasticSearchQuery {
             "query": {
                 "bool": {
                     "must_not": [
-                        { "exists": { "field": "data.applicationSubmittedDate" }}
+                        { "match": { "state": "Deleted" }},
+                        { "match": { "state": "Pending" }},
+                        { "match": { "state": "SolAdmonCreated" }},
+                        { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                        { "match": { "state": "SolAppCreatedSolicitorDtls" }},
+                        { "match": { "state": "SolAppUpdated" }},
+                        { "match": { "state": "CaseCreated" }},
+                        { "match": { "state": "BOCaseClosed" }},
+                        { "match": { "state": "CasePaymentFailed" }},
+                        { "match": { "state": "SolProbateCreated" }},
+                        { "match": { "state": "SolIntestacyCreated" }},
+                        { "match": { "state": "Stopped" }},
+                        { "match": { "state": "PAAppCreated" }}
                     ],
                     "filter": [
                         {
                             "bool": {
                                 "should": [
-                                    { "match": { "state": "CasePrinted" }},
-                                    { "match": { "state": "BOCaseStoppedAwaitRedec" }},
-                                    { "match": { "state": "CaseCreated" }},
-                                    { "match": { "state": "BOCaseImported" }},
-                                    { "match": { "state": "BOCaseMatchingIssueGrant" }},
-                                    { "match": { "state": "BOCaseMatchingReissue" }},
-                                    { "match": { "state": "BOCaseQA" }},
-                                    { "match": { "state": "BOCaseStopped" }},
-                                    { "match": { "state": "BOCaseStoppedReissue" }},
-                                    { "match": { "state": "BOCaveatPermenant" }},
-                                    { "match": { "state": "Dormant" }},
-                                    { "match": { "state": "BOGrantIssued" }},
-                                    { "match": { "state": "BOSotGenerated" }},
-                                    { "match": { "state": "PAAppCreated" }},
-                                    { "match": { "state": "BOPostGrantIssued" }},
-                                    { "match": { "state": "BOReadyToIssue" }},
-                                    { "match": { "state": "BORedecNotificationSent" }},
-                                    { "match": { "state": "BORegistrarEscalation" }},
-                                    { "match": { "state": "BOCaseWorkerEscalation" }},
+                                    {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                                    {"match": { "state": "BOCaseQA" }},
+                                    {"match": { "state": "BOReadyToIssue" }},
+                                    {"match": { "state": "BORegistrarEscalation" }},
+                                    {"match": { "state": "BOCaseStopped" }},
+                                    {"match": { "state": "CasePrinted" }},
+                                    {"match": { "state": "BOSotGenerated" }},
+                                    {"match": { "state": "BORedecNotificationSent" }},
+                                    {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                    {"match": { "state": "BOCaseStoppedReissue" }},
+                                    {"match": { "state": "BOCaseMatchingReissue" }},
+                                    {"match": { "state": "BOExaminingReissue" }},
+                                    {"match": { "state": "BOCaseImported" }},
+                                    {"match": { "state": "BOCaveatPermenant" }},
+                                    {"match": { "state": "BOCaseWorkerEscalation" }},
+                                    {"match": { "state": "Dormant" }},
+                                    {"match": { "state": "BOPostGrantIssued" }}
                                 ]
-                           }
-                       }
+                            }
+                        }
                     ]
                 }
             },
@@ -47,8 +57,7 @@ public class ElasticSearchQuery {
                 {
                     "reference.keyword": "asc"
                 }
-            ]
-        }""";
+            ]""";
 
     private static final String END_QUERY = "\n    }";
 

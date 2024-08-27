@@ -21,7 +21,6 @@ public class ElasticSearchRollbackRepository {
     private final CoreCaseDataApi coreCaseDataApi;
 
     private final AuthTokenGenerator authTokenGenerator;
-
     private final String startDatetime;
 
     private final String endDatetime;

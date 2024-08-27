@@ -17,17 +17,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
     private final AuditEventService auditEventService;
-    private final List<String> creationEventList = Arrays.asList(
-        "boImportGrant",
-        "applyforGrantPaperApplication",
-        "applyforGrantPaperApplicationMan",
-        "applyForGrant",
-        "solicitorReviewAndConfirm",
-        "createCase",
-        "createCaseWithoutPayment",
-        "paymentSuccessApp",
-        "paymentSuccessCase",
-        "createApplication");
+    private static final List<String> EXCLUDED_EVENT_LIST = Arrays.asList("boHistoryCorrection", "boCorrection");
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     protected static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(DATE_FORMAT);
 
@@ -41,29 +31,26 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         } else {
-            data.put("applicationSubmittedDate", null);
+            return data;
         }
-        return data;
     }
 
     @Override
     public Map<String, Object> migrate(Long caseId, Map<String, Object> data, String userToken, String authToken) {
         if (data == null) {
             return null;
-        } else if (null == data.get("applicationSubmittedDate")) {
+        } else {
             AuditEvent auditEvent = getAuditEvent(caseId, userToken, authToken);
             log.info("Audit events {}", auditEvent);
-
-            String createdDate = dateTimeFormatter.format(auditEvent.getCreatedDate());
-            data.put("applicationSubmittedDate", createdDate);
+            data.put("lastModifiedDateForDormant", auditEvent.getCreatedDate());
         }
         return data;
     }
 
     private AuditEvent getAuditEvent(Long caseId, String userToken, String authToken) {
-        return auditEventService.getCaseCreationAuditEventByName(caseId.toString(), creationEventList,
+        return auditEventService.getLatestAuditEventByName(caseId.toString(), EXCLUDED_EVENT_LIST,
             userToken, authToken)
             .orElseThrow(() -> new IllegalStateException(String
-            .format("Could not find any event other than %s event in audit", creationEventList)));
+            .format("Could not find any event other than %s event in audit", EXCLUDED_EVENT_LIST)));
     }
 }

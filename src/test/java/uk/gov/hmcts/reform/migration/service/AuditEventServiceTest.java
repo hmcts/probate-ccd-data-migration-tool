@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.AuditEventsResponse;
 import uk.gov.hmcts.reform.migration.client.CaseDataApiV2;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +50,8 @@ public class AuditEventServiceTest {
             .thenReturn(AuditEventsResponse.builder().auditEvents(List.of(expectedAuditEvent)).build());
 
         Optional<AuditEvent> actualAuditEvent
-            = auditEventService.getCaseCreationAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
+            = auditEventService.getLatestAuditEventByName(CASE_ID, Arrays.asList("boCorrection"), USER_TOKEN,
+            SERVICE_TOKEN);
 
         assertTrue(actualAuditEvent.isPresent());
 
@@ -60,12 +62,12 @@ public class AuditEventServiceTest {
     @Test
     public void shouldReturnEmptyOptionalIfAuditEventWithNameCannotBeFound() {
         List<String> eventName = List.of(EVENT);
-        AuditEvent expectedAuditEvent = AuditEvent.builder().id("abc").userId("123").build();
+        AuditEvent expectedAuditEvent = AuditEvent.builder().id(EVENT).userId("123").build();
 
         when(auditEventsResponse.getAuditEvents()).thenReturn(List.of(expectedAuditEvent));
 
         Optional<AuditEvent> actualAuditEvent
-            = auditEventService.getCaseCreationAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
+            = auditEventService.getLatestAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
 
         assertThat(actualAuditEvent).isEmpty();
     }

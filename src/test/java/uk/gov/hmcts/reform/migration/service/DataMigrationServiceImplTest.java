@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -42,18 +42,20 @@ public class DataMigrationServiceImplTest {
     @InjectMocks
     private DataMigrationServiceImpl service;
     private OrganisationPolicy policy;
-    private static final String CREATE_CASE_EVENT = "applyforGrantPaperApplication";
+    private static final String RANDOM_EVENT = "createCaseFromBulkScan";
+    private static final LocalDateTime dateTime = LocalDateTime.of(2024, 1, 1, 1,
+        1, 1, 1);
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         service = new DataMigrationServiceImpl(auditEventService);
         AuditEvent mockedEvent = AuditEvent.builder()
-            .id(CREATE_CASE_EVENT)
+            .id(RANDOM_EVENT)
             .userId("123")
-            .createdDate(LocalDateTime.now())
+            .createdDate(dateTime)
             .build();
-        when(auditEventService.getCaseCreationAuditEventByName(anyString(), anyList(), anyString(), anyString()))
+        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
             .thenReturn(Optional.of(mockedEvent));
     }
 
@@ -82,16 +84,15 @@ public class DataMigrationServiceImplTest {
     public void shouldReturnNullWhenDataIsNotPassed() {
         Map<String, Object> result = service.migrate(1L, null, "token", "serviceToken");
         assertNull(result);
-        assertEquals(null, result);
     }
 
     @Test
-    public void shouldMigrateSubDateToCreateDate() {
+    public void shouldMigrateCaseWithEventCreatedDateWhenEventIsNotMatchedWithExcludedEvent() {
         Map<String, Object> data = new HashMap<>();
-        data.put("applicationSubmittedDate", null);
+        data.put("lastModifiedDateForDormant", null);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("applicationSubmittedDate", LocalDate.now().toString());
+        expectedData.put("lastModifiedDateForDormant", dateTime);
 
         Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
 
@@ -99,17 +100,15 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldNotMigrateAsDataDoesNotPassCondition() {
-        String date = LocalDate.now().toString();
-
+    public void shouldNotMigrateCaseWithEventCreatedDateWhenEventIsMatchedWithExcludedEvent() {
         Map<String, Object> data = new HashMap<>();
-        data.put("applicationSubmittedDate", date);
+        data.put("lastModifiedDateForDormant", null);
+        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
+            .thenReturn(Optional.empty());
 
-        Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("applicationSubmittedDate", date);
-
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-
-        assertEquals(expectedData, result);
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> service.migrate(1L, data, "token", "serviceToken"));
+        assertEquals("Could not find any event other than [boHistoryCorrection, boCorrection] "
+            + "event in audit", exception.getMessage());
     }
 }

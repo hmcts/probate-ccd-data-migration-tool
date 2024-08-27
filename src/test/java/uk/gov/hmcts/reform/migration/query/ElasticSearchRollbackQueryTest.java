@@ -25,56 +25,65 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-              "query": {
-                "bool": {
-                  "must": [
-                       { "exists": { "field": "data.applicationSubmittedDate" }}
-                  ],
-                  "filter":
-                       [
-                           {
-                               "range": {
-                                 "last_modified": {
-                                      "gte": "2023-02-24T14:00:00",
-                                      "lte": "2023-02-25T16:00:00"
-                                 }
-                               }
-                           },
-                           {
-                               "bool": {
-                                   "should": [
-                                       { "match": { "state": "CasePrinted" }},
-                                       { "match": { "state": "BOCaseStoppedAwaitRedec" }},
-                                       { "match": { "state": "CaseCreated" }},
-                                       { "match": { "state": "BOCaseImported" }},
-                                       { "match": { "state": "BOCaseMatchingIssueGrant" }},
-                                       { "match": { "state": "BOCaseMatchingReissue" }},
-                                       { "match": { "state": "BOCaseQA" }},
-                                       { "match": { "state": "BOCaseStopped" }},
-                                       { "match": { "state": "BOCaseStoppedReissue" }},
-                                       { "match": { "state": "BOCaveatPermenant" }},
-                                       { "match": { "state": "Dormant" }},
-                                       { "match": { "state": "BOGrantIssued" }},
-                                       { "match": { "state": "BOSotGenerated" }},
-                                       { "match": { "state": "PAAppCreated" }},
-                                       { "match": { "state": "BOPostGrantIssued" }},
-                                       { "match": { "state": "BOReadyToIssue" }},
-                                       { "match": { "state": "BORedecNotificationSent" }},
-                                       { "match": { "state": "BORegistrarEscalation" }},
-                                       { "match": { "state": "BOCaseWorkerEscalation" }},
-                                   ]
-                              }
-                           }
-                       ]
-                }
-              },
-              "_source": ["reference"],
-              "size": 100,
-              "sort": [
-                {
-                  "reference.keyword": "asc"
-                }
-              ]
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            { "match": { "state": "Deleted" }},
+                            { "match": { "state": "Pending" }},
+                            { "match": { "state": "SolAdmonCreated" }},
+                            { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                            { "match": { "state": "SolAppCreatedSolicitorDtls" }},
+                            { "match": { "state": "SolAppUpdated" }},
+                            { "match": { "state": "CaseCreated" }},
+                            { "match": { "state": "BOCaseClosed" }},
+                            { "match": { "state": "CasePaymentFailed" }},
+                            { "match": { "state": "SolProbateCreated" }},
+                            { "match": { "state": "SolIntestacyCreated" }},
+                            { "match": { "state": "Stopped" }},
+                            { "match": { "state": "PAAppCreated" }}
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "last_modified": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "should": [
+                                        {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                                        {"match": { "state": "BOCaseQA" }},
+                                        {"match": { "state": "BOReadyToIssue" }},
+                                        {"match": { "state": "BORegistrarEscalation" }},
+                                        {"match": { "state": "BOCaseStopped" }},
+                                        {"match": { "state": "CasePrinted" }},
+                                        {"match": { "state": "BOSotGenerated" }},
+                                        {"match": { "state": "BORedecNotificationSent" }},
+                                        {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                        {"match": { "state": "BOCaseStoppedReissue" }},
+                                        {"match": { "state": "BOCaseMatchingReissue" }},
+                                        {"match": { "state": "BOExaminingReissue" }},
+                                        {"match": { "state": "BOCaseImported" }},
+                                        {"match": { "state": "BOCaveatPermenant" }},
+                                        {"match": { "state": "BOCaseWorkerEscalation" }},
+                                        {"match": { "state": "Dormant" }},
+                                        {"match": { "state": "BOPostGrantIssued" }}
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "_source": ["reference"],
+                "size": 100,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ]
                 }""", query);
     }
 
@@ -90,56 +99,65 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-              "query": {
-                "bool": {
-                  "must": [
-                       { "exists": { "field": "data.applicationSubmittedDate" }}
-                  ],
-                  "filter":
-                       [
-                           {
-                               "range": {
-                                 "last_modified": {
-                                      "gte": "2023-02-24T14:00:00",
-                                      "lte": "2023-02-25T16:00:00"
-                                 }
-                               }
-                           },
-                           {
-                               "bool": {
-                                   "should": [
-                                       { "match": { "state": "CasePrinted" }},
-                                       { "match": { "state": "BOCaseStoppedAwaitRedec" }},
-                                       { "match": { "state": "CaseCreated" }},
-                                       { "match": { "state": "BOCaseImported" }},
-                                       { "match": { "state": "BOCaseMatchingIssueGrant" }},
-                                       { "match": { "state": "BOCaseMatchingReissue" }},
-                                       { "match": { "state": "BOCaseQA" }},
-                                       { "match": { "state": "BOCaseStopped" }},
-                                       { "match": { "state": "BOCaseStoppedReissue" }},
-                                       { "match": { "state": "BOCaveatPermenant" }},
-                                       { "match": { "state": "Dormant" }},
-                                       { "match": { "state": "BOGrantIssued" }},
-                                       { "match": { "state": "BOSotGenerated" }},
-                                       { "match": { "state": "PAAppCreated" }},
-                                       { "match": { "state": "BOPostGrantIssued" }},
-                                       { "match": { "state": "BOReadyToIssue" }},
-                                       { "match": { "state": "BORedecNotificationSent" }},
-                                       { "match": { "state": "BORegistrarEscalation" }},
-                                       { "match": { "state": "BOCaseWorkerEscalation" }},
-                                   ]
-                              }
-                           }
-                       ]
-                }
-              },
-              "_source": ["reference"],
-              "size": 100,
-              "sort": [
-                {
-                  "reference.keyword": "asc"
-                }
-              ],"search_after": [1677777777]
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            { "match": { "state": "Deleted" }},
+                            { "match": { "state": "Pending" }},
+                            { "match": { "state": "SolAdmonCreated" }},
+                            { "match": { "state": "SolAppCreatedDeceasedDtls" }},
+                            { "match": { "state": "SolAppCreatedSolicitorDtls" }},
+                            { "match": { "state": "SolAppUpdated" }},
+                            { "match": { "state": "CaseCreated" }},
+                            { "match": { "state": "BOCaseClosed" }},
+                            { "match": { "state": "CasePaymentFailed" }},
+                            { "match": { "state": "SolProbateCreated" }},
+                            { "match": { "state": "SolIntestacyCreated" }},
+                            { "match": { "state": "Stopped" }},
+                            { "match": { "state": "PAAppCreated" }}
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "last_modified": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "should": [
+                                        {"match": { "state": "BOCaseMatchingIssueGrant" }},
+                                        {"match": { "state": "BOCaseQA" }},
+                                        {"match": { "state": "BOReadyToIssue" }},
+                                        {"match": { "state": "BORegistrarEscalation" }},
+                                        {"match": { "state": "BOCaseStopped" }},
+                                        {"match": { "state": "CasePrinted" }},
+                                        {"match": { "state": "BOSotGenerated" }},
+                                        {"match": { "state": "BORedecNotificationSent" }},
+                                        {"match": { "state": "BOCaseStoppedAwaitRedec" }},
+                                        {"match": { "state": "BOCaseStoppedReissue" }},
+                                        {"match": { "state": "BOCaseMatchingReissue" }},
+                                        {"match": { "state": "BOExaminingReissue" }},
+                                        {"match": { "state": "BOCaseImported" }},
+                                        {"match": { "state": "BOCaveatPermenant" }},
+                                        {"match": { "state": "BOCaseWorkerEscalation" }},
+                                        {"match": { "state": "Dormant" }},
+                                        {"match": { "state": "BOPostGrantIssued" }}
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "_source": ["reference"],
+                "size": 100,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ],"search_after": [1677777777]
                 }""", query);
     }
 }
