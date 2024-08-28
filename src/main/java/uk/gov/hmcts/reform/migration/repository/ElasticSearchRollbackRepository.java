@@ -25,10 +25,6 @@ public class ElasticSearchRollbackRepository {
 
     private final String endDatetime;
 
-    private final String startDatetime;
-
-    private final String endDatetime;
-
     private final int querySize;
 
     private final int caseProcessLimit;
@@ -83,8 +79,6 @@ public class ElasticSearchRollbackRepository {
             do {
                 ElasticSearchRollbackQuery subsequentElasticSearchQuery = ElasticSearchRollbackQuery.builder()
                     .initialSearch(false)
-                    .startDateTime(startDatetime)
-                    .endDateTime(endDatetime)
                     .size(querySize)
                     .startDateTime(startDatetime)
                     .endDateTime(endDatetime)
@@ -139,8 +133,6 @@ public class ElasticSearchRollbackRepository {
             .startDateTime(startDatetime)
             .endDateTime(endDatetime)
             .size(querySize)
-            .startDateTime(startDatetime)
-            .endDateTime(endDatetime)
             .searchAfterValue(searchAfterValue)
             .build();
 
