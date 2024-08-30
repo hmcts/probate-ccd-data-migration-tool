@@ -130,9 +130,9 @@ public class ElasticSearchRollbackRepository {
 
         ElasticSearchRollbackQuery subsequentElasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(false)
-            .size(querySize)
             .startDateTime(startDatetime)
             .endDateTime(endDatetime)
+            .size(querySize)
             .searchAfterValue(searchAfterValue)
             .build();
 

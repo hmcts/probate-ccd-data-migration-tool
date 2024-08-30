@@ -4,59 +4,42 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.domain.common.AuditEvent;
-import uk.gov.hmcts.reform.domain.common.OrganisationEntityResponse;
+import uk.gov.hmcts.reform.domain.common.Organisation;
 import uk.gov.hmcts.reform.domain.common.OrganisationPolicy;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceImplTest {
-    @Mock
-    private AuditEventService auditEventService;
-    @Mock
-    private OrganisationApi organisationApi;
-    private OrganisationEntityResponse organisationEntityResponse;
-    @Mock
-    private CoreCaseDataApi coreCaseDataApi;
-    @Mock
-    private AuditEvent event;
     @InjectMocks
     private DataMigrationServiceImpl service;
     private OrganisationPolicy policy;
-    private static final String RANDOM_EVENT = "createCaseFromBulkScan";
-    private static final LocalDateTime dateTime = LocalDateTime.of(2024, 1, 1, 1,
-        1, 1, 1);
+    private static final String POLICY_ROLE_APPLICANT_SOLICITOR = "[APPLICANTSOLICITOR]";
+    private static final String APPLICANT_ORG_POLICY = "applicantOrganisationPolicy";
+    private OrganisationPolicy organisationPolicy;
 
     @Before
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new DataMigrationServiceImpl(auditEventService);
-        AuditEvent mockedEvent = AuditEvent.builder()
-            .id(RANDOM_EVENT)
-            .userId("123")
-            .createdDate(dateTime)
+        service = new DataMigrationServiceImpl();
+        organisationPolicy = OrganisationPolicy.builder()
+            .organisation(Organisation.builder()
+                .organisationID(null)
+                .organisationName(null)
+                .build())
+            .orgPolicyReference(null)
+            .orgPolicyCaseAssignedRole(POLICY_ROLE_APPLICANT_SOLICITOR)
             .build();
-        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
-            .thenReturn(Optional.of(mockedEvent));
     }
 
     @Test
@@ -75,40 +58,27 @@ public class DataMigrationServiceImplTest {
     @Test
     public void shouldReturnPassedDataWhenMigrateCalled() {
         Map<String, Object> data = new HashMap<>();
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
+        Map<String, Object> result = service.migrate(data);
         assertNotNull(result);
         assertEquals(data, result);
     }
 
     @Test
     public void shouldReturnNullWhenDataIsNotPassed() {
-        Map<String, Object> result = service.migrate(1L, null, "token", "serviceToken");
+        Map<String, Object> result = service.migrate(null);
         assertNull(result);
+        assertEquals(null, result);
     }
 
     @Test
-    public void shouldMigrateCaseWithEventCreatedDateWhenEventIsNotMatchedWithExcludedEvent() {
+    public void shouldMigrateOrgPolicy() {
         Map<String, Object> data = new HashMap<>();
-        data.put("lastModifiedDateForDormant", null);
+        data.put(APPLICANT_ORG_POLICY, null);
 
         Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put("lastModifiedDateForDormant", dateTime);
+        expectedData.put(APPLICANT_ORG_POLICY, organisationPolicy);
 
-        Map<String, Object> result = service.migrate(1L, data, "token", "serviceToken");
-
+        Map<String, Object> result = service.migrate(data);
         assertEquals(expectedData, result);
-    }
-
-    @Test
-    public void shouldNotMigrateCaseWithEventCreatedDateWhenEventIsMatchedWithExcludedEvent() {
-        Map<String, Object> data = new HashMap<>();
-        data.put("lastModifiedDateForDormant", null);
-        when(auditEventService.getLatestAuditEventByName(anyString(), anyList(), anyString(), anyString()))
-            .thenReturn(Optional.empty());
-
-        IllegalStateException exception = assertThrows(IllegalStateException.class,
-            () -> service.migrate(1L, data, "token", "serviceToken"));
-        assertEquals("Could not find any event other than [boHistoryCorrection, boCorrection] "
-            + "event in audit", exception.getMessage());
     }
 }

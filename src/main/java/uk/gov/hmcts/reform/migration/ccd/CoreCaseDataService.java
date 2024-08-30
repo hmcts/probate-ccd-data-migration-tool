@@ -49,7 +49,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (!updatedCaseDetails.getData().containsKey("lastModifiedDateForDormant")) {
+        if (!updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -58,8 +58,7 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.migrate(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
-                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate())).build();
+                ).data(dataMigrationService.migrate(updatedCaseDetails.getData())).build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
                 authTokenGenerator.generate(),
@@ -93,7 +92,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().containsKey("lastModifiedDateForDormant")) {
+        if (updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -102,8 +101,7 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.rollback(updatedCaseDetails.getId(), updatedCaseDetails.getData(),
-                    AuthUtil.getBearerToken(authorisation), authTokenGenerator.generate()))
+                ).data(dataMigrationService.rollback(updatedCaseDetails.getData()))
                 .build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
