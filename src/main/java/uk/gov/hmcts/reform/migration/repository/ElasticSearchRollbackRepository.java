@@ -21,7 +21,6 @@ public class ElasticSearchRollbackRepository {
     private final CoreCaseDataApi coreCaseDataApi;
 
     private final AuthTokenGenerator authTokenGenerator;
-
     private final String startDatetime;
 
     private final String endDatetime;
@@ -80,9 +79,9 @@ public class ElasticSearchRollbackRepository {
             do {
                 ElasticSearchRollbackQuery subsequentElasticSearchQuery = ElasticSearchRollbackQuery.builder()
                     .initialSearch(false)
+                    .size(querySize)
                     .startDateTime(startDatetime)
                     .endDateTime(endDatetime)
-                    .size(querySize)
                     .searchAfterValue(searchAfterValue)
                     .build();
 
@@ -110,9 +109,9 @@ public class ElasticSearchRollbackRepository {
     public SearchResult fetchFirstPage(String userToken, String caseType, int querySize) {
         ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(true)
+            .size(querySize)
             .startDateTime(startDatetime)
             .endDateTime(endDatetime)
-            .size(querySize)
             .build();
         log.info("Fetching the Rollback case details from elastic search for case type {}.", caseType);
         String authToken = authTokenGenerator.generate();

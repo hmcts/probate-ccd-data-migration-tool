@@ -7,23 +7,72 @@ public class ElasticSearchQuery {
 
     private static final String START_QUERY = """
         {
-          "query": {
-            "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": %s,
-          "sort": [
-            {
-              "reference.keyword": "asc"
-            }
-          ]
-          """;
+            "query": {
+                "bool": {
+                    "must_not": [
+                        {
+                            "term": {
+                                "state.keyword": "Deleted"
+                            }
+                        },
+                        {
+                            "exists": {
+                                "field": "data.applicantOrganisationPolicy"
+                            }
+                        }
+                    ],
+                    "must": [
+                        {
+                            "term": {
+                                "data.applicationType.keyword": "Solicitor"
+                            }
+                        },
+                        {
+                            "term": {
+                                "data.paperForm": "Yes"
+                            }
+                        }
+                    ],
+                    "filter": [
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                                 {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "BOGrantIssued" }},
+                                                {"term": { "state.keyword": "BOCaseClosed"}}
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "bool" : {
+                                            "must": [
+                                                 {"term": { "case_type_id.keyword": "Caveat" }},
+                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                            ],
+                                            "must_not": [
+                                                {"term": { "state.keyword": "CaveatClosed" }}
+                                            ]
+                                        }
+                                    }
+                                ]
+                           }
+                       }
+                    ]
+                }
+            },
+            "_source": ["reference"],
+            "size": %s,
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]""";
 
     private static final String END_QUERY = "\n    }";
 

@@ -30,46 +30,144 @@ public class ElasticSearchRepositoryTest {
     private static final String AUTH_TOKEN = "Test_Auth_Token";
 
     private static final String INITIAL_QUERY = """
-        {
-          "query": {
+    {
+        "query": {
             "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": 100,
-          "sort": [
-            {
-              "reference.keyword": "asc"
+                "must_not": [
+                    {
+                        "term": {
+                            "state.keyword": "Deleted"
+                        }
+                    },
+                    {
+                        "exists": {
+                            "field": "data.applicantOrganisationPolicy"
+                        }
+                    }
+                ],
+                "must": [
+                    {
+                        "term": {
+                            "data.applicationType.keyword": "Solicitor"
+                        }
+                    },
+                    {
+                        "term": {
+                            "data.paperForm": "Yes"
+                        }
+                    }
+                ],
+                "filter": [
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "bool" : {
+                                        "must": [
+                                             {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                             {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                        ],
+                                        "must_not": [
+                                            {"term": { "state.keyword": "BOGrantIssued" }},
+                                            {"term": { "state.keyword": "BOCaseClosed"}}
+                                        ]
+                                    }
+                                },
+                                {
+                                    "bool" : {
+                                        "must": [
+                                             {"term": { "case_type_id.keyword": "Caveat" }},
+                                             {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                        ],
+                                        "must_not": [
+                                            {"term": { "state.keyword": "CaveatClosed" }}
+                                        ]
+                                    }
+                                }
+                            ]
+                       }
+                   }
+                ]
             }
-          ]
-
-            }""";
+        },
+        "_source": ["reference"],
+        "size": 100,
+        "sort": [
+            {
+                "reference.keyword": "asc"
+            }
+        ]
+        }""";
 
     private static final String SEARCH_AFTER_QUERY = """
-        {
-          "query": {
+    {
+        "query": {
             "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "Newcastle" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ]
-                  }
-          },
-          "size": 100,
-          "sort": [
-            {
-              "reference.keyword": "asc"
+                "must_not": [
+                    {
+                        "term": {
+                            "state.keyword": "Deleted"
+                        }
+                    },
+                    {
+                        "exists": {
+                            "field": "data.applicantOrganisationPolicy"
+                        }
+                    }
+                ],
+                "must": [
+                    {
+                        "term": {
+                            "data.applicationType.keyword": "Solicitor"
+                        }
+                    },
+                    {
+                        "term": {
+                            "data.paperForm": "Yes"
+                        }
+                    }
+                ],
+                "filter": [
+                    {
+                        "bool": {
+                            "should": [
+                                {
+                                    "bool" : {
+                                        "must": [
+                                             {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                             {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                        ],
+                                        "must_not": [
+                                            {"term": { "state.keyword": "BOGrantIssued" }},
+                                            {"term": { "state.keyword": "BOCaseClosed"}}
+                                        ]
+                                    }
+                                },
+                                {
+                                    "bool" : {
+                                        "must": [
+                                             {"term": { "case_type_id.keyword": "Caveat" }},
+                                             {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                        ],
+                                        "must_not": [
+                                            {"term": { "state.keyword": "CaveatClosed" }}
+                                        ]
+                                    }
+                                }
+                            ]
+                       }
+                   }
+                ]
             }
-          ]
-        ,\"search_after\": [1677777777]
-            }""";
+        },
+        "_source": ["reference"],
+        "size": 100,
+        "sort": [
+            {
+                "reference.keyword": "asc"
+            }
+        ],"search_after": [1677777777]
+        }""";
 
     private static final int QUERY_SIZE = 100;
     private static final int CASE_PROCESS_LIMIT = 100;

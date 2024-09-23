@@ -28,9 +28,9 @@ import java.util.function.Consumer;
 @Slf4j
 @Component
 public class CaseMigrationRollbackProcessor {
-    private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Rollback RegistryLocation back to ctsc";
-    private static final String EVENT_DESCRIPTION = "Data migration - Rollback RegistryLocation back to ctsc";
+    private static final String EVENT_ID = "boCorrection";
+    private static final String EVENT_SUMMARY = "Data migration - Rollback Org Policy";
+    private static final String EVENT_DESCRIPTION = "Data migration - Rollback Org Policy";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -45,8 +45,7 @@ public class CaseMigrationRollbackProcessor {
     @Autowired
     private IdamRepository idamRepository;
 
-    @Getter
-    private List<Long> migratedCases = new ArrayList<>();
+    private int migratedCases;
 
     @Getter
     private List<Long> failedCases = new ArrayList<>();
@@ -94,7 +93,7 @@ public class CaseMigrationRollbackProcessor {
                                                                         searchAfterValue,
                                                                         defaultQuerySize);
 
-                    log.info("Data migration of cases started for searchAfterValue : {}",searchAfterValue);
+                    log.info("Data migration rollback of cases started for searchAfterValue : {}",searchAfterValue);
 
                     keepSearching = false;
                     if (subsequentSearchResult != null) {
@@ -162,21 +161,22 @@ public class CaseMigrationRollbackProcessor {
                 {}
                 Total number of rollback processed cases:
                 {}
+                {}
                 Total number of rollback migrations performed:
                 {}
                 {}
                 """,
             LOG_STRING,
+            migratedCases + getFailedCases().size(),
             LOG_STRING,
-            getMigratedCases().size() + getFailedCases().size(),
-            getMigratedCases().size(),
+            migratedCases,
             LOG_STRING
         );
 
-        if (getMigratedCases().isEmpty()) {
+        if (migratedCases < 0) {
             log.info("Rollback cases: NONE ");
         } else {
-            log.info("Rollback cases: {} ", getMigratedCases());
+            log.info("Rollback cases: {} ", migratedCases);
         }
 
         if (getFailedCases().isEmpty()) {
@@ -214,7 +214,7 @@ public class CaseMigrationRollbackProcessor {
 
                 if (updateCaseDetails != null) {
                     log.info("Case {} successfully rollback", id);
-                    migratedCases.add(id);
+                    migratedCases++;
                 }
             } catch (Exception e) {
                 log.error("Case {} rollback failed due to : {}", id, e.getMessage());

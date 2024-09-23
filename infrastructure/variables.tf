@@ -5,10 +5,10 @@ variable "product" {
 
 variable "component" {}
 
-variable postgresql_user_v11 {
+variable "postgresql_user_v11" {
   default = "probateman_user"
 }
-variable database_name_v11 {
+variable "database_name_v11" {
   default = "probatemandb"
 }
 
@@ -34,6 +34,6 @@ variable "common_tags" {
 }
 
 variable "appinsights_location" {
-  default     = "West Europe"
+  default     = "UK South"
   description = "Location for Application Insights"
 }

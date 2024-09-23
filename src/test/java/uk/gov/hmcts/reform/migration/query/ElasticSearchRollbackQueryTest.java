@@ -16,7 +16,7 @@ public class ElasticSearchRollbackQueryTest {
 
     @Test
     public void shouldReturnQuery() {
-        ElasticSearchRollbackQuery elasticSearchQuery =  ElasticSearchRollbackQuery.builder()
+        ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(true)
             .startDateTime(START_DATETIME)
             .endDateTime(EBD_DATETIME)
@@ -25,38 +25,86 @@ public class ElasticSearchRollbackQueryTest {
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
             {
-              "query": {
-                "bool": {
-                  "must": [
-                         {"match": { "data.applicationType": "Solicitor" }},
-                         {"match": { "data.registryLocation": "ctsc" }},
-                         {"match": { "data.paperForm": "Yes" }},
-                         {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                     ],
-                      "filter":
-                             {
-                               "range": {
-                                 "last_modified": {
-                                      "gte": "2023-02-24T14:00:00",
-                                      "lte": "2023-02-25T16:00:00"
-                                 }
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            {
+                                "term": {
+                                    "state.keyword": "Deleted"
+                                }
+                            }
+                        ],
+                        "must": [
+                            {
+                                "term": {
+                                    "data.applicationType.keyword": "Solicitor"
+                                }
+                            },
+                            {
+                                "term": {
+                                    "data.paperForm": "Yes"
+                                }
+                            },
+                            {
+                                "exists": {
+                                    "field": "data.applicantOrganisationPolicy"
+                                }
+                            }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "last_modified": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "should": [
+                                        {
+                                            "bool" : {
+                                                "must": [
+                                                     {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                                     {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                                ],
+                                                "must_not": [
+                                                    {"term": { "state.keyword": "BOGrantIssued" }},
+                                                    {"term": { "state.keyword": "BOCaseClosed"}}
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "bool" : {
+                                                "must": [
+                                                     {"term": { "case_type_id.keyword": "Caveat" }},
+                                                     {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                                ],
+                                                "must_not": [
+                                                    {"term": { "state.keyword": "CaveatClosed" }}
+                                                ]
+                                            }
+                                        }
+                                    ]
                                }
-                             }
-                }
-              },
-              "size": 100,
-              "sort": [
-                {
-                  "reference.keyword": "asc"
-                }
-              ]
-
+                           }
+                        ]
+                    }
+                },
+                "_source": ["reference"],
+                "size": 100,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ]
                 }""", query);
     }
 
     @Test
     public void shouldReturnSearchAfterQuery() {
-        ElasticSearchRollbackQuery elasticSearchQuery =  ElasticSearchRollbackQuery.builder()
+        ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(false)
             .startDateTime(START_DATETIME)
             .endDateTime(EBD_DATETIME)
@@ -65,33 +113,81 @@ public class ElasticSearchRollbackQueryTest {
             .build();
         String query = elasticSearchQuery.getQuery();
         assertEquals("""
-        {
-          "query": {
-            "bool": {
-              "must": [
-                     {"match": { "data.applicationType": "Solicitor" }},
-                     {"match": { "data.registryLocation": "ctsc" }},
-                     {"match": { "data.paperForm": "Yes" }},
-                     {"exists" : {"field" : "data.bulkScanEnvelopes"}}
-                 ],
-                  "filter":
-                         {
-                           "range": {
-                             "last_modified": {
-                                  "gte": "2023-02-24T14:00:00",
-                                  "lte": "2023-02-25T16:00:00"
-                             }
-                           }
-                         }
-            }
-          },
-          "size": 100,
-          "sort": [
             {
-              "reference.keyword": "asc"
-            }
-          ]
-        ,\"search_after\": [1677777777]
-            }""", query);
+                "query": {
+                    "bool": {
+                        "must_not": [
+                            {
+                                "term": {
+                                    "state.keyword": "Deleted"
+                                }
+                            }
+                        ],
+                        "must": [
+                            {
+                                "term": {
+                                    "data.applicationType.keyword": "Solicitor"
+                                }
+                            },
+                            {
+                                "term": {
+                                    "data.paperForm": "Yes"
+                                }
+                            },
+                            {
+                                "exists": {
+                                    "field": "data.applicantOrganisationPolicy"
+                                }
+                            }
+                        ],
+                        "filter": [
+                            {
+                                "range": {
+                                    "last_modified": {
+                                        "gte": "2023-02-24T14:00:00",
+                                        "lte": "2023-02-25T16:00:00"
+                                    }
+                                }
+                            },
+                            {
+                                "bool": {
+                                    "should": [
+                                        {
+                                            "bool" : {
+                                                "must": [
+                                                     {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
+                                                     {"term": {"data.channelChoice.keyword": "BulkScan"}}
+                                                ],
+                                                "must_not": [
+                                                    {"term": { "state.keyword": "BOGrantIssued" }},
+                                                    {"term": { "state.keyword": "BOCaseClosed"}}
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "bool" : {
+                                                "must": [
+                                                     {"term": { "case_type_id.keyword": "Caveat" }},
+                                                     {"exists" : {"field" : "data.solsSolicitorFirmName"}}
+                                                ],
+                                                "must_not": [
+                                                    {"term": { "state.keyword": "CaveatClosed" }}
+                                                ]
+                                            }
+                                        }
+                                    ]
+                               }
+                           }
+                        ]
+                    }
+                },
+                "_source": ["reference"],
+                "size": 100,
+                "sort": [
+                    {
+                        "reference.keyword": "asc"
+                    }
+                ],"search_after": [1677777777]
+                }""", query);
     }
 }

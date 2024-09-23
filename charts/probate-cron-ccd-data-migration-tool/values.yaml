@@ -8,8 +8,8 @@ job:
   keyVaults:
     probate:
       secrets:
-        - name: app-insights-connection-string
-          alias: app-insights-connection-string
+        - name: app-insights-connection-string-dmt
+          alias: app-insights-connection-string-dmt
         - name: schedulerCaseWorkerUser
           alias: IDAM_USER
         - name: schedulerCaseWorkerPass
@@ -25,8 +25,9 @@ job:
     IDAM_S2S_URL: http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     IDAM_API_URL: https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net
     CCD_DATA_STORE_API_BASE_URL: http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+    PRD_API_URL : http://rd-professional-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
     MIGRATION_CASETYPE: GrantOfRepresentation
     MIGRATION_QUERY_SIZE: 10000
     IDAM_CLIENT_ID: probate
-    DEFAULT_THREAD_LIMIT: 20
+    DEFAULT_THREAD_LIMIT: 25
     DEFAULT_QUERY_SIZE: 100

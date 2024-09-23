@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Changing RegistryLocation back to Newcastle";
-    private static final String EVENT_DESCRIPTION = "Data migration - Changing RegistryLocation back to Newcastle";
+    private static final String EVENT_SUMMARY = "Data migration - Setting Org Policy";
+    private static final String EVENT_DESCRIPTION = "Data migration - Setting Org Policy";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -45,8 +45,7 @@ public class CaseMigrationProcessor {
     @Autowired
     private IdamRepository idamRepository;
 
-    @Getter
-    private List<Long> migratedCases = new ArrayList<>();
+    private int migratedCases;
 
     @Getter
     private List<Long> failedCases = new ArrayList<>();
@@ -65,8 +64,8 @@ public class CaseMigrationProcessor {
             validateCaseType(caseType);
             log.info("Data migration of cases started for case type: {}", caseType);
             log.info("Data migration of cases started for defaultThreadLimit: {} defaultQuerySize : {}",
-                     defaultThreadLimit, defaultQuerySize);
-            String userToken =  idamRepository.generateUserToken();
+                defaultThreadLimit, defaultQuerySize);
+            String userToken = idamRepository.generateUserToken();
 
             SearchResult searchResult = elasticSearchRepository.fetchFirstPage(userToken, caseType, defaultQuerySize);
             if (searchResult != null && searchResult.getTotal() > 0) {
@@ -78,16 +77,16 @@ public class CaseMigrationProcessor {
                     .forEach(submitMigration(userToken, caseType, executorService));
                 String searchAfterValue = searchResultCases.get(searchResultCases.size() - 1).getId().toString();
 
-                log.info("Data migration of cases started for searchAfterValue : {}",searchAfterValue);
+                log.info("Data migration of cases started for searchAfterValue : {}", searchAfterValue);
 
                 boolean keepSearching;
                 do {
                     SearchResult subsequentSearchResult = elasticSearchRepository.fetchNextPage(userToken,
-                                                                        caseType,
-                                                                        searchAfterValue,
-                                                                        defaultQuerySize);
+                        caseType,
+                        searchAfterValue,
+                        defaultQuerySize);
 
-                    log.info("Data migration of cases started for searchAfterValue : {}",searchAfterValue);
+                    log.info("Data migration of cases started for searchAfterValue : {}", searchAfterValue);
 
                     keepSearching = false;
                     if (subsequentSearchResult != null) {
@@ -123,7 +122,7 @@ public class CaseMigrationProcessor {
     public void migrateCases(String caseType) {
         validateCaseType(caseType);
         log.info("Data migration of cases started for case type: {}", caseType);
-        String userToken =  idamRepository.generateUserToken();
+        String userToken = idamRepository.generateUserToken();
         List<CaseDetails> listOfCaseDetails = elasticSearchRepository.findCaseByCaseType(userToken, caseType);
         listOfCaseDetails.stream()
             .limit(caseProcessLimit)
@@ -132,14 +131,15 @@ public class CaseMigrationProcessor {
     }
 
     public void migrateCaseReferenceList(String caseType, String caseReferences) {
-        String userToken =  idamRepository.generateUserToken();
-        List<String> caseReferenceList =  Arrays.asList(caseReferences.split(",", -1));;
-        for (String caseReference: caseReferenceList) {
+        String userToken = idamRepository.generateUserToken();
+        List<String> caseReferenceList = Arrays.asList(caseReferences.split(",", -1));
+        ;
+        for (String caseReference : caseReferenceList) {
             log.info("Data migration of cases started for case reference: {}", caseReference);
             Optional<CaseDetails> caseDetailsOptional =
                 elasticSearchRepository.findCaseByCaseId(userToken, caseReference);
             if (caseDetailsOptional.isPresent()) {
-                CaseDetails caseDetails =  caseDetailsOptional.get();
+                CaseDetails caseDetails = caseDetailsOptional.get();
                 updateCase(userToken, caseType, caseDetails);
             }
         }
@@ -155,21 +155,22 @@ public class CaseMigrationProcessor {
                 {}
                 Total number of processed cases:
                 {}
+                {}
                 Total number of migrations performed:
                 {}
                 {}
                 """,
             LOG_STRING,
+            migratedCases + getFailedCases().size(),
             LOG_STRING,
-            getMigratedCases().size() + getFailedCases().size(),
-            getMigratedCases().size(),
+            migratedCases,
             LOG_STRING
         );
 
-        if (getMigratedCases().isEmpty()) {
+        if (migratedCases == 0) {
             log.info("Migrated cases: NONE ");
         } else {
-            log.info("Migrated cases: {} ", getMigratedCases());
+            log.info("Migrated cases: {} ", migratedCases);
         }
 
         if (getFailedCases().isEmpty()) {
@@ -192,9 +193,10 @@ public class CaseMigrationProcessor {
 
 
     private void updateCase(String authorisation, String caseType, CaseDetails caseDetails) {
+        int count = 0;
         if (dataMigrationService.accepts().test(caseDetails)) {
             Long id = caseDetails.getId();
-            log.info("Updating case {}", id);
+            log.info("Updating case {} {} {}", id, count++, caseDetails.getState());
             try {
                 CaseDetails updateCaseDetails = coreCaseDataService.update(
                     authorisation,
@@ -204,10 +206,9 @@ public class CaseMigrationProcessor {
                     caseType,
                     caseDetails
                 );
-
                 if (updateCaseDetails != null) {
                     log.info("Case {} successfully updated", id);
-                    migratedCases.add(id);
+                    migratedCases++;
                 }
             } catch (Exception e) {
                 log.error("Case {} update failed due to : {}", id, e.getMessage());
