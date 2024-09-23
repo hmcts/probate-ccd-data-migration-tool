@@ -11,7 +11,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @Slf4j
 @SpringBootApplication(scanBasePackages = "uk.gov.hmcts.reform.migration")
-@EnableFeignClients(basePackages = "uk.gov.hmcts.reform.migration")
+@EnableFeignClients(basePackages = {"uk.gov.hmcts.reform.migration", "uk.gov.hmcts.reform.idam.client"})
 @PropertySource("classpath:application.properties")
 public class CaseMigrationRunner implements CommandLineRunner {
 
