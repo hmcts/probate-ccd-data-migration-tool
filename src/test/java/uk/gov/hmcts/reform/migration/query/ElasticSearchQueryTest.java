@@ -24,7 +24,7 @@ public class ElasticSearchQueryTest {
         {
             "query": {
                 "bool": {
-                    "must": [
+                    "should": [
                         {
                             "match": {
                                 "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
@@ -36,6 +36,7 @@ public class ElasticSearchQueryTest {
                             }
                         }
                     ],
+                    "minimum_should_match": 1,
                     "filter": [
                         {"term": { "state.keyword": "BOCaseStopped"}}
                     ]
@@ -63,7 +64,7 @@ public class ElasticSearchQueryTest {
         {
             "query": {
                 "bool": {
-                    "must": [
+                    "should": [
                         {
                             "match": {
                                 "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
@@ -75,6 +76,7 @@ public class ElasticSearchQueryTest {
                             }
                         }
                     ],
+                    "minimum_should_match": 1,
                     "filter": [
                         {"term": { "state.keyword": "BOCaseStopped"}}
                     ]

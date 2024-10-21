@@ -50,7 +50,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (isCaveatMatchAndPermanentCaveat(updatedCaseDetails.getData().get("boCaseStopReasonList"))) {
+        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get("boCaseStopReasonList"))) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -93,7 +93,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (isCaveatMatchAndPermanentCaveat(updatedCaseDetails.getData().get("boCaseStopReasonList"))) {
+        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get("boCaseStopReasonList"))) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -119,30 +119,19 @@ public class CoreCaseDataService {
     }
 
     @SuppressWarnings("unchecked")
-    private boolean isCaveatMatchAndPermanentCaveat(Object stopReasonListObj) {
+    private boolean isCaveatMatchOrPermanentCaveat(Object stopReasonListObj) {
         if (stopReasonListObj instanceof List) {
             List<Map<String, Object>> boCaseStopReasonList =
                 (List<Map<String, Object>>) stopReasonListObj;
-            boolean hasCaveatMatch = false;
-            boolean hasPermanentCaveat = false;
 
             for (Map<String, Object> reasonEntry : boCaseStopReasonList) {
                 Map<String, Object> value = (Map<String, Object>) reasonEntry.get("value");
                 String caseStopReason = (String) value.get("caseStopReason");
 
-                if ("CaveatMatch".equals(caseStopReason)) {
-                    hasCaveatMatch = true;
-                }
-                if ("Permanent Caveat".equals(caseStopReason)) {
-                    hasPermanentCaveat = true;
-                }
-
-                if (hasCaveatMatch && hasPermanentCaveat) {
+                if ("CaveatMatch".equals(caseStopReason) || "Permanent Caveat".equals(caseStopReason)) {
                     return true;
                 }
             }
-
-            return hasCaveatMatch && hasPermanentCaveat;
         }
 
         return false;

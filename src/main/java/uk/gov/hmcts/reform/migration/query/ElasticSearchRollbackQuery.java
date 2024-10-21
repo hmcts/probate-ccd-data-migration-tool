@@ -9,7 +9,7 @@ public class ElasticSearchRollbackQuery {
         {
             "query": {
                 "bool": {
-                    "must": [
+                    "should": [
                         {
                             "match": {
                                 "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
@@ -21,6 +21,7 @@ public class ElasticSearchRollbackQuery {
                             }
                         }
                     ],
+                    "minimum_should_match": 1,
                     "filter": [
                         {
                             "range": {

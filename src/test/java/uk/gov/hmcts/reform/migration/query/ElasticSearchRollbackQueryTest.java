@@ -27,7 +27,7 @@ public class ElasticSearchRollbackQueryTest {
             {
                 "query": {
                     "bool": {
-                        "must": [
+                        "should": [
                             {
                                 "match": {
                                     "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
@@ -39,6 +39,7 @@ public class ElasticSearchRollbackQueryTest {
                                 }
                             }
                         ],
+                        "minimum_should_match": 1,
                         "filter": [
                             {
                                 "range": {
@@ -76,7 +77,7 @@ public class ElasticSearchRollbackQueryTest {
             {
                 "query": {
                     "bool": {
-                        "must": [
+                        "should": [
                             {
                                 "match": {
                                     "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
@@ -88,6 +89,7 @@ public class ElasticSearchRollbackQueryTest {
                                 }
                             }
                         ],
+                        "minimum_should_match": 1,
                         "filter": [
                             {
                                 "range": {

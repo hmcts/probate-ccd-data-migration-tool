@@ -9,7 +9,7 @@ public class ElasticSearchQuery {
         {
             "query": {
                 "bool": {
-                    "must": [
+                    "should": [
                         {
                             "match": {
                                 "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
@@ -21,6 +21,7 @@ public class ElasticSearchQuery {
                             }
                         }
                     ],
+                    "minimum_should_match": 1,
                     "filter": [
                         {"term": { "state.keyword": "BOCaseStopped"}}
                     ]
