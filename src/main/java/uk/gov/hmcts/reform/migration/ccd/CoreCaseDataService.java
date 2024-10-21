@@ -21,6 +21,11 @@ import java.util.Map;
 @Service
 public class CoreCaseDataService {
 
+    private static final String STOP_REASON_LIST = "boCaseStopReasonList";
+    private static final String CAVEAT_MATCH = "CaveatMatch";
+    private static final String PERMANENT_CAVEAT = "Permanent Caveat";
+    private static final String CASE_STOP_REASON = "caseStopReason";
+
     @Autowired
     private IdamClient idamClient;
     @Autowired
@@ -50,7 +55,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get("boCaseStopReasonList"))) {
+        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get(STOP_REASON_LIST))) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -93,7 +98,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get("boCaseStopReasonList"))) {
+        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get(STOP_REASON_LIST))) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -126,9 +131,9 @@ public class CoreCaseDataService {
 
             for (Map<String, Object> reasonEntry : boCaseStopReasonList) {
                 Map<String, Object> value = (Map<String, Object>) reasonEntry.get("value");
-                String caseStopReason = (String) value.get("caseStopReason");
+                String caseStopReason = (String) value.get(CASE_STOP_REASON);
 
-                if ("CaveatMatch".equals(caseStopReason) || "Permanent Caveat".equals(caseStopReason)) {
+                if (CAVEAT_MATCH.equals(caseStopReason) || PERMANENT_CAVEAT.equals(caseStopReason)) {
                     return true;
                 }
             }
