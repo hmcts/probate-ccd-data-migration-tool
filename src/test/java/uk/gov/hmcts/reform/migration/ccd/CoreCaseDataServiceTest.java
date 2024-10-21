@@ -12,19 +12,18 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.service.AuditEventService;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +64,7 @@ public class CoreCaseDataServiceTest {
     }
 
     @Test
-    public void shouldUpdateThePaperCase() {
+    public void shouldUpdateTheCase() {
         // given
         UserDetails userDetails = UserDetails.builder()
             .id("30")
@@ -80,12 +79,16 @@ public class CoreCaseDataServiceTest {
         //when
         CaseDetails update = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, caseDetails3);
         //then
-        assertThat(update.getData().get("channelChoice"), is("Paper"));
+        assertNotNull(update.getData().get("boCaseStopReasonList"));
     }
 
     private CaseDetails createCaseDetailsPreMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("PaperForm", "Yes");
+        List<Map<String, Object>> stopReasonList = List.of(
+            createStopReason("CaveatMatch"),
+            createStopReason("Permanent Caveat")
+        );
+        data.put("boCaseStopReasonList", stopReasonList);
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
@@ -94,7 +97,11 @@ public class CoreCaseDataServiceTest {
 
     private CaseDetails createCaseDetailsPostMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        data.put("channelChoice", "Paper");
+        List<Map<String, Object>> stopReasonList = List.of(
+            createStopReason("CaveatMatch"),
+            createStopReason("Permanent Caveat")
+        );
+        data.put("boCaseStopReasonList", stopReasonList);
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
@@ -120,11 +127,6 @@ public class CoreCaseDataServiceTest {
         when(dataMigrationService.migrate(any()))
             .thenReturn(createCaseDetailsPostMigration(CASE_ID).getData());
 
-        AuditEvent auditEvent = AuditEvent.builder()
-            .id("smsm")
-            .userFirstName("bob")
-            .build();
-
         when(coreCaseDataApi.startEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, "30",
                                                      null, CASE_TYPE, CASE_ID, EVENT_ID
         ))
@@ -145,5 +147,14 @@ public class CoreCaseDataServiceTest {
         when(coreCaseDataApi.submitEventForCaseWorker(AUTH_TOKEN, AUTH_TOKEN, USER_ID, null,
                                                       CASE_TYPE, CASE_ID, true, caseDataContent))
             .thenReturn(createCaseDetailsPostMigration(CASE_ID));
+    }
+
+    private Map<String, Object> createStopReason(String reason) {
+        Map<String, Object> value = new HashMap<>();
+        value.put("caseStopReason", reason);
+
+        Map<String, Object> entry = new HashMap<>();
+        entry.put("value", value);
+        return entry;
     }
 }
