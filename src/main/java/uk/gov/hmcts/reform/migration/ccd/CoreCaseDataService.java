@@ -14,11 +14,17 @@ import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.auth.AuthUtil;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class CoreCaseDataService {
+
+    private static final String STOP_REASON_LIST = "boCaseStopReasonList";
+    private static final String CAVEAT_MATCH = "CaveatMatch";
+    private static final String PERMANENT_CAVEAT = "Permanent Caveat";
+    private static final String CASE_STOP_REASON = "caseStopReason";
 
     @Autowired
     private IdamClient idamClient;
@@ -49,7 +55,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (!updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
+        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get(STOP_REASON_LIST))) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -92,7 +98,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (updatedCaseDetails.getData().containsKey("applicantOrganisationPolicy")) {
+        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get(STOP_REASON_LIST))) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -115,5 +121,24 @@ public class CoreCaseDataService {
         } else {
             return null;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean isCaveatMatchOrPermanentCaveat(Object stopReasonListObj) {
+        if (stopReasonListObj instanceof List) {
+            List<Map<String, Object>> boCaseStopReasonList =
+                (List<Map<String, Object>>) stopReasonListObj;
+
+            for (Map<String, Object> reasonEntry : boCaseStopReasonList) {
+                Map<String, Object> value = (Map<String, Object>) reasonEntry.get("value");
+                String caseStopReason = (String) value.get(CASE_STOP_REASON);
+
+                if (CAVEAT_MATCH.equals(caseStopReason) || PERMANENT_CAVEAT.equals(caseStopReason)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

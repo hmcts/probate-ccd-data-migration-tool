@@ -9,30 +9,19 @@ public class ElasticSearchRollbackQuery {
         {
             "query": {
                 "bool": {
-                    "must_not": [
+                    "should": [
                         {
-                            "term": {
-                                "state.keyword": "Deleted"
-                            }
-                        }
-                    ],
-                    "must": [
-                        {
-                            "term": {
-                                "data.applicationType.keyword": "Solicitor"
+                            "match": {
+                                "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
                             }
                         },
                         {
-                            "term": {
-                                "data.paperForm": "Yes"
-                            }
-                        },
-                        {
-                            "exists": {
-                                "field": "data.applicantOrganisationPolicy"
+                            "match": {
+                                "data.boCaseStopReasonList.value.caseStopReason": "Permanent Caveat"
                             }
                         }
                     ],
+                    "minimum_should_match": 1,
                     "filter": [
                         {
                             "range": {
@@ -42,35 +31,7 @@ public class ElasticSearchRollbackQuery {
                                 }
                             }
                         },
-                        {
-                            "bool": {
-                                "should": [
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"term": { "case_type_id.keyword": "GrantOfRepresentation" }},
-                                                 {"term": {"data.channelChoice.keyword": "BulkScan"}}
-                                            ],
-                                            "must_not": [
-                                                {"term": { "state.keyword": "BOGrantIssued" }},
-                                                {"term": { "state.keyword": "BOCaseClosed"}}
-                                            ]
-                                        }
-                                    },
-                                    {
-                                        "bool" : {
-                                            "must": [
-                                                 {"term": { "case_type_id.keyword": "Caveat" }},
-                                                 {"exists" : {"field" : "data.solsSolicitorFirmName"}}
-                                            ],
-                                            "must_not": [
-                                                {"term": { "state.keyword": "CaveatClosed" }}
-                                            ]
-                                        }
-                                    }
-                                ]
-                           }
-                       }
+                        {"term": { "state.keyword": "BOCaveatPermenant"}}
                     ]
                 }
             },
