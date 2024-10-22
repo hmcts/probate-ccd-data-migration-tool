@@ -31,8 +31,8 @@ public class CaseMigrationProcessorTest {
 
     private static final String USER_TOKEN = "Bearer eeeejjjttt";
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Migrate to Caveat Permenant";
-    private static final String EVENT_DESCRIPTION = "Data migration - Migrate to Caveat Permenant";
+    private static final String EVENT_SUMMARY = "Data migration - Migrate to Caveat Permanent";
+    private static final String EVENT_DESCRIPTION = "Data migration - Migrate to Caveat Permanent";
     private static final String CASE_TYPE = "GrantOfRepresentation";
 
     @InjectMocks

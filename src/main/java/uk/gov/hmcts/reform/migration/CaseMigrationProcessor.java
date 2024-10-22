@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationProcessor {
     private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Migrate to Caveat Permenant";
-    private static final String EVENT_DESCRIPTION = "Data migration - Migrate to Caveat Permenant";
+    private static final String EVENT_SUMMARY = "Data migration - Migrate to Caveat Permanent";
+    private static final String EVENT_DESCRIPTION = "Data migration - Migrate to Caveat Permanent";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
