@@ -19,7 +19,7 @@ data "azurerm_user_assigned_identity" "rpe-shared-identity" {
 }
 
 module "application_insights" {
-  source = "git@github.com:hmcts/terraform-module-application-insights?ref=main"
+  source = "git@github.com:hmcts/terraform-module-application-insights?ref=4.x"
 
   env      = var.env
   product  = var.product
