@@ -185,7 +185,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation group: 'org.springframework', name: 'spring-context-support'
   implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '3.0.3'
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.2.0'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.0'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.0.3'
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
 
