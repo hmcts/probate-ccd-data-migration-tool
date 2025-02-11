@@ -31,26 +31,72 @@ public class ElasticSearchRepositoryTest {
 
     private static final String INITIAL_QUERY = """
     {
-        "query": {
-            "bool": {
-                "should": [
+            "query": {
+                "bool": {
+                  "should": [
                     {
-                        "match": {
-                            "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
-                        }
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                          { "term": { "state.keyword": "Deleted" } }
+                        ]
+                      }
                     },
                     {
-                        "match": {
-                            "data.boCaseStopReasonList.value.caseStopReason": "Permanent Caveat"
-                        }
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                          {
+                            "terms": {
+                              "state.keyword": [
+                                "Pending",
+                                "SolAdmonCreated",
+                                "SolAppCreatedDeceasedDtls",
+                                "SolAppCreatedSolicitorDtls",
+                                "SolAppUpdated",
+                                "SolProbateCreated",
+                                "SolIntestacyCreated"
+                              ]
+                            }
+                          },
+                          {
+                            "range": {
+                              "last_modified": {
+                                "gte": "2024-12-16",
+                                "lte": "2024-12-16"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "Caveat" } },
+                          {
+                            "terms": {
+                              "state.keyword": [
+                                "PAAppCreated",
+                                "SolAppCreated",
+                                "SolAppUpdated"
+                              ]
+                            }
+                          },
+                          {
+                            "range": {
+                              "last_modified": {
+                                "gte": "2024-12-16",
+                                "lte": "2024-12-16"
+                              }
+                            }
+                          }
+                        ]
+                      }
                     }
-                ],
-                "minimum_should_match": 1,
-                "filter": [
-                    {"term": { "state.keyword": "BOCaseStopped"}}
-                ]
-            }
-        },
+                  ]
+                }
+              },
         "_source": ["reference"],
         "size": 100,
         "sort": [
@@ -62,26 +108,72 @@ public class ElasticSearchRepositoryTest {
 
     private static final String SEARCH_AFTER_QUERY = """
     {
-        "query": {
-            "bool": {
-                "should": [
+            "query": {
+                "bool": {
+                  "should": [
                     {
-                        "match": {
-                            "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
-                        }
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                          { "term": { "state.keyword": "Deleted" } }
+                        ]
+                      }
                     },
                     {
-                        "match": {
-                            "data.boCaseStopReasonList.value.caseStopReason": "Permanent Caveat"
-                        }
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                          {
+                            "terms": {
+                              "state.keyword": [
+                                "Pending",
+                                "SolAdmonCreated",
+                                "SolAppCreatedDeceasedDtls",
+                                "SolAppCreatedSolicitorDtls",
+                                "SolAppUpdated",
+                                "SolProbateCreated",
+                                "SolIntestacyCreated"
+                              ]
+                            }
+                          },
+                          {
+                            "range": {
+                              "last_modified": {
+                                "gte": "2024-12-16",
+                                "lte": "2024-12-16"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "Caveat" } },
+                          {
+                            "terms": {
+                              "state.keyword": [
+                                "PAAppCreated",
+                                "SolAppCreated",
+                                "SolAppUpdated"
+                              ]
+                            }
+                          },
+                          {
+                            "range": {
+                              "last_modified": {
+                                "gte": "2024-12-16",
+                                "lte": "2024-12-16"
+                              }
+                            }
+                          }
+                        ]
+                      }
                     }
-                ],
-                "minimum_should_match": 1,
-                "filter": [
-                    {"term": { "state.keyword": "BOCaseStopped"}}
-                ]
-            }
-        },
+                  ]
+                }
+              },
         "_source": ["reference"],
         "size": 100,
         "sort": [

@@ -27,19 +27,6 @@ public class ElasticSearchRollbackQueryTest {
             {
                 "query": {
                     "bool": {
-                        "should": [
-                            {
-                                "match": {
-                                    "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
-                                }
-                            },
-                            {
-                                "match": {
-                                    "data.boCaseStopReasonList.value.caseStopReason": "Permanent Caveat"
-                                }
-                            }
-                        ],
-                        "minimum_should_match": 1,
                         "filter": [
                             {
                                 "range": {
@@ -49,7 +36,7 @@ public class ElasticSearchRollbackQueryTest {
                                     }
                                 }
                             },
-                            {"term": { "state.keyword": "BOCaveatPermenant"}}
+                            {"term": { "state.keyword": "Disposed"}}
                         ]
                     }
                 },
@@ -77,19 +64,6 @@ public class ElasticSearchRollbackQueryTest {
             {
                 "query": {
                     "bool": {
-                        "should": [
-                            {
-                                "match": {
-                                    "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
-                                }
-                            },
-                            {
-                                "match": {
-                                    "data.boCaseStopReasonList.value.caseStopReason": "Permanent Caveat"
-                                }
-                            }
-                        ],
-                        "minimum_should_match": 1,
                         "filter": [
                             {
                                 "range": {
@@ -99,7 +73,7 @@ public class ElasticSearchRollbackQueryTest {
                                     }
                                 }
                             },
-                            {"term": { "state.keyword": "BOCaveatPermenant"}}
+                            {"term": { "state.keyword": "Disposed"}}
                         ]
                     }
                 },

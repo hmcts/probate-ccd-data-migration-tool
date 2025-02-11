@@ -12,15 +12,17 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.domain.common.TTL;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.service.AuditEventService;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
-import java.util.Arrays;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -38,7 +40,8 @@ public class CoreCaseDataServiceTest {
     private static final String EVENT_TOKEN = "Bearer aaaadsadsasawewewewew";
     private static final String EVENT_SUMMARY = "Migrate Case";
     private static final String EVENT_DESC = "Migrate Case";
-    private static final List<String> createCaseFromBulkScanEventEvent = Arrays.asList("createCaseFromBulkScanEvent");
+    private static final String NO = "No";
+    private static final LocalDateTime LAST_MODIFIED = LocalDateTime.now(ZoneOffset.UTC).minusYears(3);
 
 
     @InjectMocks
@@ -79,32 +82,29 @@ public class CoreCaseDataServiceTest {
         //when
         CaseDetails update = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, caseDetails3);
         //then
-        assertNotNull(update.getData().get("boCaseStopReasonList"));
+        assertNotNull(update.getData().get("TTL"));
     }
 
     private CaseDetails createCaseDetailsPreMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        List<Map<String, Object>> stopReasonList = List.of(
-            createStopReason("CaveatMatch"),
-            createStopReason("Permanent Caveat")
-        );
-        data.put("boCaseStopReasonList", stopReasonList);
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
+            .lastModified(LAST_MODIFIED)
             .build();
     }
 
     private CaseDetails createCaseDetailsPostMigration(String id) {
         LinkedHashMap<String, Object> data = new LinkedHashMap<>();
-        List<Map<String, Object>> stopReasonList = List.of(
-            createStopReason("CaveatMatch"),
-            createStopReason("Permanent Caveat")
-        );
-        data.put("boCaseStopReasonList", stopReasonList);
+        TTL ttl = TTL.builder()
+            .systemTTL(LocalDate.from(LAST_MODIFIED.plusDays(14)))
+            .suspended(NO)
+            .build();
+        data.put("TTL", ttl);
         return CaseDetails.builder()
             .id(Long.valueOf(id))
             .data(data)
+            .lastModified(LAST_MODIFIED)
             .build();
     }
 
@@ -116,6 +116,7 @@ public class CoreCaseDataServiceTest {
         CaseDetails caseDetails = CaseDetails.builder()
             .id(123456789L)
             .data(data)
+            .lastModified(LAST_MODIFIED)
             .build();
 
         StartEventResponse startEventResponse = StartEventResponse.builder()

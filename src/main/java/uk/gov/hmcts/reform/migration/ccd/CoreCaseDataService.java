@@ -14,17 +14,15 @@ import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.auth.AuthUtil;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
-import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Slf4j
 @Service
 public class CoreCaseDataService {
 
-    private static final String STOP_REASON_LIST = "boCaseStopReasonList";
-    private static final String CAVEAT_MATCH = "CaveatMatch";
-    private static final String PERMANENT_CAVEAT = "Permanent Caveat";
-    private static final String CASE_STOP_REASON = "caseStopReason";
+    private static final String DELETED_STATE = "Deleted";
 
     @Autowired
     private IdamClient idamClient;
@@ -55,7 +53,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get(STOP_REASON_LIST))) {
+        if (isInactiveCase(updatedCaseDetails)) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -64,7 +62,7 @@ public class CoreCaseDataService {
                         .summary(eventSummary)
                         .description(eventDescription)
                         .build()
-                ).data(dataMigrationService.migrate(updatedCaseDetails.getData())).build();
+                ).data(dataMigrationService.migrate(updatedCaseDetails)).build();
             return coreCaseDataApi.submitEventForCaseWorker(
                 AuthUtil.getBearerToken(authorisation),
                 authTokenGenerator.generate(),
@@ -98,7 +96,7 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (isCaveatMatchOrPermanentCaveat(updatedCaseDetails.getData().get(STOP_REASON_LIST))) {
+        if (isInactiveCase(updatedCaseDetails)) {
             CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
                 .event(
@@ -123,22 +121,23 @@ public class CoreCaseDataService {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    private boolean isCaveatMatchOrPermanentCaveat(Object stopReasonListObj) {
-        if (stopReasonListObj instanceof List) {
-            List<Map<String, Object>> boCaseStopReasonList =
-                (List<Map<String, Object>>) stopReasonListObj;
-
-            for (Map<String, Object> reasonEntry : boCaseStopReasonList) {
-                Map<String, Object> value = (Map<String, Object>) reasonEntry.get("value");
-                String caseStopReason = (String) value.get(CASE_STOP_REASON);
-
-                if (CAVEAT_MATCH.equals(caseStopReason) || PERMANENT_CAVEAT.equals(caseStopReason)) {
-                    return true;
-                }
-            }
+    private boolean isInactiveCase(CaseDetails updatedCaseDetails) {
+        if (DELETED_STATE.equalsIgnoreCase(updatedCaseDetails.getState())) {
+            log.info("Case ID: {}, State: {}", updatedCaseDetails.getId(), updatedCaseDetails.getState());
+            return true;
+        }
+        LocalDateTime lastModified = updatedCaseDetails.getLastModified();
+        if (lastModified == null) {
+            log.info("Case ID: {}, Last Modified: {}", updatedCaseDetails.getId(), lastModified);
+            return false;
         }
 
-        return false;
+        LocalDate cutOffDate = LocalDate.now().minusDays(180);
+        boolean isInactive = lastModified.isBefore(cutOffDate.atStartOfDay());
+
+        log.info("Case ID: {}, Last Modified: {}, Cut-Off Date: {}, Is Inactive: {}",
+            updatedCaseDetails.getId(), lastModified, cutOffDate, isInactive);
+
+        return isInactive;
     }
 }

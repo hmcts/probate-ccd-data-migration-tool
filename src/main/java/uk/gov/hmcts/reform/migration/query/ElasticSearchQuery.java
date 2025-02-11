@@ -9,24 +9,70 @@ public class ElasticSearchQuery {
         {
             "query": {
                 "bool": {
-                    "should": [
-                        {
-                            "match": {
-                                "data.boCaseStopReasonList.value.caseStopReason": "CaveatMatch"
+                  "should": [
+                    {
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                          { "term": { "state.keyword": "Deleted" } }
+                        ]
+                      }
+                    },
+                    {
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                          {
+                            "terms": {
+                              "state.keyword": [
+                                "Pending",
+                                "SolAdmonCreated",
+                                "SolAppCreatedDeceasedDtls",
+                                "SolAppCreatedSolicitorDtls",
+                                "SolAppUpdated",
+                                "SolProbateCreated",
+                                "SolIntestacyCreated"
+                              ]
                             }
-                        },
-                        {
-                            "match": {
-                                "data.boCaseStopReasonList.value.caseStopReason": "Permanent Caveat"
+                          },
+                          {
+                            "range": {
+                              "last_modified": {
+                                "gte": "2024-12-16",
+                                "lte": "2024-12-16"
+                              }
                             }
-                        }
-                    ],
-                    "minimum_should_match": 1,
-                    "filter": [
-                        {"term": { "state.keyword": "BOCaseStopped"}}
-                    ]
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "bool": {
+                        "filter": [
+                          { "term": { "case_type_id.keyword": "Caveat" } },
+                          {
+                            "terms": {
+                              "state.keyword": [
+                                "PAAppCreated",
+                                "SolAppCreated",
+                                "SolAppUpdated"
+                              ]
+                            }
+                          },
+                          {
+                            "range": {
+                              "last_modified": {
+                                "gte": "2024-12-16",
+                                "lte": "2024-12-16"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
                 }
-            },
+              },
             "_source": ["reference"],
             "size": %s,
             "sort": [
