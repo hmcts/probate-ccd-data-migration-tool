@@ -31,72 +31,72 @@ public class ElasticSearchRepositoryTest {
 
     private static final String INITIAL_QUERY = """
     {
-            "query": {
-                "bool": {
-                  "should": [
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          { "term": { "state.keyword": "Deleted" } }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          {
-                            "terms": {
-                              "state.keyword": [
-                                "Pending",
-                                "SolAdmonCreated",
-                                "SolAppCreatedDeceasedDtls",
-                                "SolAppCreatedSolicitorDtls",
-                                "SolAppUpdated",
-                                "SolProbateCreated",
-                                "SolIntestacyCreated"
-                              ]
-                            }
-                          },
-                          {
-                            "range": {
-                              "last_modified": {
-                                "gte": "2024-12-16",
-                                "lte": "2024-12-16"
-                              }
-                            }
+        "query": {
+            "bool": {
+              "should": [
+                {
+                  "bool": {
+                    "filter": [
+                      { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                      { "term": { "state.keyword": "Deleted" } }
+                    ]
+                  }
+                },
+                {
+                  "bool": {
+                    "filter": [
+                      { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                      {
+                        "terms": {
+                          "state.keyword": [
+                            "Pending",
+                            "SolAdmonCreated",
+                            "SolAppCreatedDeceasedDtls",
+                            "SolAppCreatedSolicitorDtls",
+                            "SolAppUpdated",
+                            "SolProbateCreated",
+                            "SolIntestacyCreated"
+                          ]
+                        }
+                      },
+                      {
+                        "range": {
+                          "last_modified": {
+                            "gte": "2024-12-16",
+                            "lte": "2024-12-16"
                           }
-                        ]
+                        }
                       }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "Caveat" } },
-                          {
-                            "terms": {
-                              "state.keyword": [
-                                "PAAppCreated",
-                                "SolAppCreated",
-                                "SolAppUpdated"
-                              ]
-                            }
-                          },
-                          {
-                            "range": {
-                              "last_modified": {
-                                "gte": "2024-12-16",
-                                "lte": "2024-12-16"
-                              }
-                            }
+                    ]
+                  }
+                },
+                {
+                  "bool": {
+                    "filter": [
+                      { "term": { "case_type_id.keyword": "Caveat" } },
+                      {
+                        "terms": {
+                          "state.keyword": [
+                            "PAAppCreated",
+                            "SolAppCreated",
+                            "SolAppUpdated"
+                          ]
+                        }
+                      },
+                      {
+                        "range": {
+                          "last_modified": {
+                            "gte": "2024-12-16",
+                            "lte": "2024-12-16"
                           }
-                        ]
+                        }
                       }
-                    }
-                  ]
+                    ]
+                  }
                 }
-              },
+              ]
+            }
+          },
         "_source": ["reference"],
         "size": 100,
         "sort": [
@@ -108,72 +108,72 @@ public class ElasticSearchRepositoryTest {
 
     private static final String SEARCH_AFTER_QUERY = """
     {
-            "query": {
-                "bool": {
-                  "should": [
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          { "term": { "state.keyword": "Deleted" } }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          {
-                            "terms": {
-                              "state.keyword": [
-                                "Pending",
-                                "SolAdmonCreated",
-                                "SolAppCreatedDeceasedDtls",
-                                "SolAppCreatedSolicitorDtls",
-                                "SolAppUpdated",
-                                "SolProbateCreated",
-                                "SolIntestacyCreated"
-                              ]
-                            }
-                          },
-                          {
-                            "range": {
-                              "last_modified": {
-                                "gte": "2024-12-16",
-                                "lte": "2024-12-16"
-                              }
-                            }
+        "query": {
+            "bool": {
+              "should": [
+                {
+                  "bool": {
+                    "filter": [
+                      { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                      { "term": { "state.keyword": "Deleted" } }
+                    ]
+                  }
+                },
+                {
+                  "bool": {
+                    "filter": [
+                      { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
+                      {
+                        "terms": {
+                          "state.keyword": [
+                            "Pending",
+                            "SolAdmonCreated",
+                            "SolAppCreatedDeceasedDtls",
+                            "SolAppCreatedSolicitorDtls",
+                            "SolAppUpdated",
+                            "SolProbateCreated",
+                            "SolIntestacyCreated"
+                          ]
+                        }
+                      },
+                      {
+                        "range": {
+                          "last_modified": {
+                            "gte": "2024-12-16",
+                            "lte": "2024-12-16"
                           }
-                        ]
+                        }
                       }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "Caveat" } },
-                          {
-                            "terms": {
-                              "state.keyword": [
-                                "PAAppCreated",
-                                "SolAppCreated",
-                                "SolAppUpdated"
-                              ]
-                            }
-                          },
-                          {
-                            "range": {
-                              "last_modified": {
-                                "gte": "2024-12-16",
-                                "lte": "2024-12-16"
-                              }
-                            }
+                    ]
+                  }
+                },
+                {
+                  "bool": {
+                    "filter": [
+                      { "term": { "case_type_id.keyword": "Caveat" } },
+                      {
+                        "terms": {
+                          "state.keyword": [
+                            "PAAppCreated",
+                            "SolAppCreated",
+                            "SolAppUpdated"
+                          ]
+                        }
+                      },
+                      {
+                        "range": {
+                          "last_modified": {
+                            "gte": "2024-12-16",
+                            "lte": "2024-12-16"
                           }
-                        ]
+                        }
                       }
-                    }
-                  ]
+                    ]
+                  }
                 }
-              },
+              ]
+            }
+          },
         "_source": ["reference"],
         "size": 100,
         "sort": [
