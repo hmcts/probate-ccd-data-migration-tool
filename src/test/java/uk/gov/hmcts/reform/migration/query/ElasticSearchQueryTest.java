@@ -128,6 +128,7 @@ public class ElasticSearchQueryTest {
                             "terms": {
                               "state.keyword": [
                                 "Pending",
+                                "CasePaymentFailed",
                                 "SolAdmonCreated",
                                 "SolAppCreatedDeceasedDtls",
                                 "SolAppCreatedSolicitorDtls",
