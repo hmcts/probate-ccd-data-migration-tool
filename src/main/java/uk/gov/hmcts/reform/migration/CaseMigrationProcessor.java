@@ -156,7 +156,10 @@ public class CaseMigrationProcessor {
                 Total number of processed cases:
                 {}
                 {}
-                Total number of migrations performed:
+                Total successful cases:
+                {}
+                {}
+                Total failed cases:
                 {}
                 {}
                 """,
@@ -164,6 +167,8 @@ public class CaseMigrationProcessor {
             migratedCases + getFailedCases().size(),
             LOG_STRING,
             migratedCases,
+            LOG_STRING,
+            getFailedCases().size(),
             LOG_STRING
         );
 
@@ -209,7 +214,11 @@ public class CaseMigrationProcessor {
                 if (updateCaseDetails != null) {
                     log.info("Case {} successfully updated", id);
                     migratedCases++;
+                } else {
+                    log.error("Case {} update failed", id);
+                    failedCases.add(id);
                 }
+
             } catch (Exception e) {
                 log.error("Case {} update failed due to : {}", id, e.getMessage());
                 failedCases.add(id);

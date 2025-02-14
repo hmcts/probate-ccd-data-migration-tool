@@ -26,6 +26,7 @@ public class ElasticSearchQuery {
                             "terms": {
                               "state.keyword": [
                                 "Pending",
+                                "CasePaymentFailed",
                                 "SolAdmonCreated",
                                 "SolAppCreatedDeceasedDtls",
                                 "SolAppCreatedSolicitorDtls",
@@ -38,8 +39,8 @@ public class ElasticSearchQuery {
                           {
                             "range": {
                               "last_modified": {
-                                "gte": "2024-12-16",
-                                "lte": "2024-12-16"
+                                "gte": "2024-08-17",
+                                "lte": "2024-08-19"
                               }
                             }
                           }
@@ -62,8 +63,8 @@ public class ElasticSearchQuery {
                           {
                             "range": {
                               "last_modified": {
-                                "gte": "2024-12-16",
-                                "lte": "2024-12-16"
+                                "gte": "2024-08-17",
+                                "lte": "2024-08-19"
                               }
                             }
                           }

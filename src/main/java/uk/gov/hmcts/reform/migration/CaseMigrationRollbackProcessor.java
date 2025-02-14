@@ -157,12 +157,15 @@ public class CaseMigrationRollbackProcessor {
         log.info(
             """
                 PROBATE
-                Data migration rollback completed
+                RollBack Data migration completed
                 {}
-                Total number of rollback processed cases:
+                Total number of Rollback cases:
                 {}
                 {}
-                Total number of rollback migrations performed:
+                Total successful Rollback cases:
+                {}
+                {}
+                Total failed Rollback cases:
                 {}
                 {}
                 """,
@@ -170,6 +173,8 @@ public class CaseMigrationRollbackProcessor {
             migratedCases + getFailedCases().size(),
             LOG_STRING,
             migratedCases,
+            LOG_STRING,
+            getFailedCases().size(),
             LOG_STRING
         );
 

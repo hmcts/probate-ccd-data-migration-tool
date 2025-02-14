@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.common.TTL;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -28,7 +29,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         } else {
-            data.put(TTL_FIELD_NAME, null);
+            data.put(TTL_FIELD_NAME, new HashMap<>());
         }
 
         return data;

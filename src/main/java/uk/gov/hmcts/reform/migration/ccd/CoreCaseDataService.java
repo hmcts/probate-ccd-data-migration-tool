@@ -96,29 +96,25 @@ public class CoreCaseDataService {
 
         CaseDetails updatedCaseDetails = startEventResponse.getCaseDetails();
 
-        if (isInactiveCase(updatedCaseDetails)) {
-            CaseDataContent caseDataContent = CaseDataContent.builder()
-                .eventToken(startEventResponse.getToken())
-                .event(
-                    Event.builder()
-                        .id(startEventResponse.getEventId())
-                        .summary(eventSummary)
-                        .description(eventDescription)
-                        .build()
-                ).data(dataMigrationService.rollback(updatedCaseDetails.getData()))
-                .build();
-            return coreCaseDataApi.submitEventForCaseWorker(
-                AuthUtil.getBearerToken(authorisation),
-                authTokenGenerator.generate(),
-                userDetails.getId(),
-                updatedCaseDetails.getJurisdiction(),
-                caseType,
-                caseId,
-                true,
-                caseDataContent);
-        } else {
-            return null;
-        }
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .eventToken(startEventResponse.getToken())
+            .event(
+                Event.builder()
+                    .id(startEventResponse.getEventId())
+                    .summary(eventSummary)
+                    .description(eventDescription)
+                    .build()
+            ).data(dataMigrationService.rollback(updatedCaseDetails.getData()))
+            .build();
+        return coreCaseDataApi.submitEventForCaseWorker(
+            AuthUtil.getBearerToken(authorisation),
+            authTokenGenerator.generate(),
+            userDetails.getId(),
+            updatedCaseDetails.getJurisdiction(),
+            caseType,
+            caseId,
+            true,
+            caseDataContent);
     }
 
     private boolean isInactiveCase(CaseDetails updatedCaseDetails) {
