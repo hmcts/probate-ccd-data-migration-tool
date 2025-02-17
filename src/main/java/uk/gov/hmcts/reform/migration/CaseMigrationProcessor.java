@@ -184,6 +184,9 @@ public class CaseMigrationProcessor {
             log.info("Failed cases: {} ", getFailedCases());
         }
         log.info("Data migration of cases completed");
+        failedCases = new ArrayList<>();
+        migratedCases=0;
+
     }
 
     private void validateCaseType(String caseType) {
