@@ -64,8 +64,8 @@ public class ElasticSearchRepositoryTest {
                       {
                         "range": {
                           "last_modified": {
-                            "gte": "2024-08-17",
-                            "lte": "2024-08-19"
+                            "gte": "1900-01-01",
+                            "lte": "2022-01-01"
                           }
                         }
                       }
@@ -88,8 +88,8 @@ public class ElasticSearchRepositoryTest {
                       {
                         "range": {
                           "last_modified": {
-                            "gte": "2024-08-17",
-                            "lte": "2024-08-19"
+                            "gte": "1900-01-01",
+                            "lte": "2022-01-01"
                           }
                         }
                       }
@@ -143,8 +143,8 @@ public class ElasticSearchRepositoryTest {
                       {
                         "range": {
                           "last_modified": {
-                            "gte": "2024-08-17",
-                            "lte": "2024-08-19"
+                            "gte": "1900-01-01",
+                            "lte": "2022-01-01"
                           }
                         }
                       }
@@ -167,8 +167,8 @@ public class ElasticSearchRepositoryTest {
                       {
                         "range": {
                           "last_modified": {
-                            "gte": "2024-08-17",
-                            "lte": "2024-08-19"
+                            "gte": "1900-01-01",
+                            "lte": "2022-01-01"
                           }
                         }
                       }
