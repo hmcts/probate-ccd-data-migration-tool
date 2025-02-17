@@ -44,14 +44,12 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         if (data == null) {
             return null;
         }
-        if (null == data.get(TTL_FIELD_NAME)) {
-            LocalDate lastModifiedDate = caseDetails.getLastModified().toLocalDate();
-            TTL ttl = TTL.builder()
-                .systemTTL(lastModifiedDate.plusDays(FOURTEEN_DAYS))
-                .suspended(NO)
-                .build();
-            data.put(TTL_FIELD_NAME, ttl);
-        }
+        LocalDate lastModifiedDate = caseDetails.getLastModified().toLocalDate();
+        TTL ttl = TTL.builder()
+            .systemTTL(lastModifiedDate.plusDays(FOURTEEN_DAYS))
+            .suspended(NO)
+            .build();
+        data.put(TTL_FIELD_NAME, ttl);
         return data;
     }
 }
