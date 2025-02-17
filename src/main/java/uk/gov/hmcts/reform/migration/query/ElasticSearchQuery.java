@@ -32,7 +32,8 @@ public class ElasticSearchQuery {
                                 "SolAppCreatedSolicitorDtls",
                                 "SolAppUpdated",
                                 "SolProbateCreated",
-                                "SolIntestacyCreated"
+                                "SolIntestacyCreated",
+                                "Stopped"
                               ]
                             }
                           },

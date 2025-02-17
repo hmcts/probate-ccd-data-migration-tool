@@ -56,7 +56,8 @@ public class ElasticSearchRepositoryTest {
                             "SolAppCreatedSolicitorDtls",
                             "SolAppUpdated",
                             "SolProbateCreated",
-                            "SolIntestacyCreated"
+                            "SolIntestacyCreated",
+                            "Stopped"
                           ]
                         }
                       },
@@ -134,7 +135,8 @@ public class ElasticSearchRepositoryTest {
                             "SolAppCreatedSolicitorDtls",
                             "SolAppUpdated",
                             "SolProbateCreated",
-                            "SolIntestacyCreated"
+                            "SolIntestacyCreated",
+                            "Stopped"
                           ]
                         }
                       },
