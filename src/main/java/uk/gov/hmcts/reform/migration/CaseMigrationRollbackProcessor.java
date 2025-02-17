@@ -191,7 +191,7 @@ public class CaseMigrationRollbackProcessor {
         }
         log.info("Data migration Rollback of cases completed");
         failedCases = new ArrayList<>();
-        migratedCases=0;
+        migratedCases = 0;
     }
 
     private void validateCaseType(String caseType) {

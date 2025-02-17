@@ -185,7 +185,7 @@ public class CaseMigrationProcessor {
         }
         log.info("Data migration of cases completed");
         failedCases = new ArrayList<>();
-        migratedCases=0;
+        migratedCases = 0;
 
     }
 
