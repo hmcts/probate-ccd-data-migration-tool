@@ -48,6 +48,7 @@ public class DataMigrationServiceImpl implements DataMigrationService<Map<String
         TTL ttl = TTL.builder()
             .systemTTL(lastModifiedDate.plusDays(FOURTEEN_DAYS))
             .suspended(NO)
+            .overrideTTL(null)
             .build();
         data.put(TTL_FIELD_NAME, ttl);
         return data;

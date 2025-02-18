@@ -81,7 +81,8 @@ public class ElasticSearchRepositoryTest {
                           "state.keyword": [
                             "PAAppCreated",
                             "SolAppCreated",
-                            "SolAppUpdated"
+                            "SolAppUpdated",
+                            "CasePaymentFailed"
                           ]
                         }
                       },
@@ -160,7 +161,8 @@ public class ElasticSearchRepositoryTest {
                           "state.keyword": [
                             "PAAppCreated",
                             "SolAppCreated",
-                            "SolAppUpdated"
+                            "SolAppUpdated",
+                            "CasePaymentFailed"
                           ]
                         }
                       },
