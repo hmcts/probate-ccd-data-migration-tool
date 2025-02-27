@@ -57,7 +57,6 @@ public class ElasticSearchQuery {
                               "state.keyword": [
                                 "PAAppCreated",
                                 "SolAppCreated",
-                                "SolAppUpdated",
                                 "CasePaymentFailed"
                               ]
                             }

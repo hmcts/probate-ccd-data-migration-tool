@@ -72,7 +72,6 @@ public class ElasticSearchQueryTest {
                               "state.keyword": [
                                 "PAAppCreated",
                                 "SolAppCreated",
-                                "SolAppUpdated",
                                 "CasePaymentFailed"
                               ]
                             }
@@ -161,7 +160,6 @@ public class ElasticSearchQueryTest {
                               "state.keyword": [
                                 "PAAppCreated",
                                 "SolAppCreated",
-                                "SolAppUpdated",
                                 "CasePaymentFailed"
                               ]
                             }
