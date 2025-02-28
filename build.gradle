@@ -119,6 +119,8 @@ checkstyle {
 jacocoTestReport {
   executionData(test, integration)
   reports {
+    xml.required = true
+    csv.required = true
     xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
     html.destination file("${buildDir}/reports/jacoco/jacocoTestReport.html")
   }
