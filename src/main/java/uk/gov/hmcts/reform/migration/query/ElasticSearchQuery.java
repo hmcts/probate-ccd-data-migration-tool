@@ -41,7 +41,7 @@ public class ElasticSearchQuery {
                             "range": {
                               "last_modified": {
                                 "gte": "1900-01-01",
-                                "lte": "2022-01-01"
+                                "lte": "2024-09-04"
                               }
                             }
                           }
@@ -65,7 +65,7 @@ public class ElasticSearchQuery {
                             "range": {
                               "last_modified": {
                                 "gte": "1900-01-01",
-                                "lte": "2022-01-01"
+                                "lte": "2024-09-04"
                               }
                             }
                           }
