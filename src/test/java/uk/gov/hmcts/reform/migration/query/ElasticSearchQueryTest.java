@@ -41,7 +41,6 @@ public class ElasticSearchQueryTest {
                             "terms": {
                               "state.keyword": [
                                 "Pending",
-                                "CasePaymentFailed",
                                 "SolAdmonCreated",
                                 "SolAppCreatedDeceasedDtls",
                                 "SolAppCreatedSolicitorDtls",
@@ -71,8 +70,7 @@ public class ElasticSearchQueryTest {
                             "terms": {
                               "state.keyword": [
                                 "PAAppCreated",
-                                "SolAppCreated",
-                                "CasePaymentFailed"
+                                "SolAppCreated"
                               ]
                             }
                           },
@@ -129,7 +127,6 @@ public class ElasticSearchQueryTest {
                             "terms": {
                               "state.keyword": [
                                 "Pending",
-                                "CasePaymentFailed",
                                 "SolAdmonCreated",
                                 "SolAppCreatedDeceasedDtls",
                                 "SolAppCreatedSolicitorDtls",
@@ -159,8 +156,7 @@ public class ElasticSearchQueryTest {
                             "terms": {
                               "state.keyword": [
                                 "PAAppCreated",
-                                "SolAppCreated",
-                                "CasePaymentFailed"
+                                "SolAppCreated"
                               ]
                             }
                           },

@@ -26,7 +26,6 @@ public class ElasticSearchQuery {
                             "terms": {
                               "state.keyword": [
                                 "Pending",
-                                "CasePaymentFailed",
                                 "SolAdmonCreated",
                                 "SolAppCreatedDeceasedDtls",
                                 "SolAppCreatedSolicitorDtls",
@@ -56,8 +55,7 @@ public class ElasticSearchQuery {
                             "terms": {
                               "state.keyword": [
                                 "PAAppCreated",
-                                "SolAppCreated",
-                                "CasePaymentFailed"
+                                "SolAppCreated"
                               ]
                             }
                           },
