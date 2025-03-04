@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationRollbackProcessor {
     private static final String EVENT_ID = "boCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Rollback migrate to Caveat Permanent";
-    private static final String EVENT_DESCRIPTION = "Data migration - Rollback migrate to Caveat Permanent";
+    private static final String EVENT_SUMMARY = "Data migration - Rollback Retain and Disposal release";
+    private static final String EVENT_DESCRIPTION = "Data migration - Rollback Retain and Disposal release";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -157,12 +157,15 @@ public class CaseMigrationRollbackProcessor {
         log.info(
             """
                 PROBATE
-                Data migration rollback completed
+                RollBack Data migration completed
                 {}
-                Total number of rollback processed cases:
+                Total number of Rollback cases:
                 {}
                 {}
-                Total number of rollback migrations performed:
+                Total successful Rollback cases:
+                {}
+                {}
+                Total failed Rollback cases:
                 {}
                 {}
                 """,
@@ -170,6 +173,8 @@ public class CaseMigrationRollbackProcessor {
             migratedCases + getFailedCases().size(),
             LOG_STRING,
             migratedCases,
+            LOG_STRING,
+            getFailedCases().size(),
             LOG_STRING
         );
 
@@ -185,6 +190,8 @@ public class CaseMigrationRollbackProcessor {
             log.info("Failed Rollback cases: {} ", getFailedCases());
         }
         log.info("Data migration Rollback of cases completed");
+        failedCases = new ArrayList<>();
+        migratedCases = 0;
     }
 
     private void validateCaseType(String caseType) {
