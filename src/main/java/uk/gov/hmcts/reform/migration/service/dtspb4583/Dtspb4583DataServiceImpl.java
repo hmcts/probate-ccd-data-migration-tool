@@ -27,7 +27,6 @@ class Dtspb4583DataServiceImpl implements Dtspb4583DataService {
     Map<Long, Dtspb4583Dates> getAll() {
         final Map<Long, Dtspb4583Dates> cache = cacheMap.get();
         if (cache != null) {
-            log.info("Data already loaded, provide from cache");
             return cache;
         }
         synchronized (mapLock) {
@@ -40,6 +39,7 @@ class Dtspb4583DataServiceImpl implements Dtspb4583DataService {
             log.info("Data not loaded");
             final Map<Long, Dtspb4583Dates> loadedMap = loaderService.load();
             cacheMap.set(loadedMap);
+            log.info("Data loaded");
             return loadedMap;
         }
     }
