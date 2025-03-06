@@ -222,6 +222,9 @@ public class CaseMigrationRollbackProcessor {
                 if (updateCaseDetails != null) {
                     log.info("Case {} successfully rollback", id);
                     migratedCases++;
+                } else {
+                    log.error("Case {} update failed", id);
+                    failedCases.add(id);
                 }
             } catch (Exception e) {
                 log.error("Case {} rollback failed due to : {}", id, e.getMessage());
