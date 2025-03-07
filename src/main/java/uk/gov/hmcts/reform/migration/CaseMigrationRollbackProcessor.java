@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationRollbackProcessor {
     private static final String EVENT_ID = "boCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Rollback Retain and Disposal release";
-    private static final String EVENT_DESCRIPTION = "Data migration - Rollback Retain and Disposal release";
+    private static final String EVENT_SUMMARY = "Data correction - Rollback correction to applicationSubmittedDate";
+    private static final String EVENT_DESCRIPTION = "Data correction - Rollback correction to applicationSubmittedDate";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -222,6 +222,9 @@ public class CaseMigrationRollbackProcessor {
                 if (updateCaseDetails != null) {
                     log.info("Case {} successfully rollback", id);
                     migratedCases++;
+                } else {
+                    log.error("Case {} update failed", id);
+                    failedCases.add(id);
                 }
             } catch (Exception e) {
                 log.error("Case {} rollback failed due to : {}", id, e.getMessage());

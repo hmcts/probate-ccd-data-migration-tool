@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.migration.repository.ElasticSearchRepository;
 import uk.gov.hmcts.reform.migration.repository.IdamRepository;
 import uk.gov.hmcts.reform.migration.service.DataMigrationService;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,9 +29,9 @@ import java.util.function.Consumer;
 @Slf4j
 @Component
 public class CaseMigrationProcessor {
-    private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Retain and Disposal release";
-    private static final String EVENT_DESCRIPTION = "Data migration - Retain and Disposal release";
+    static final String EVENT_ID = "boHistoryCorrection";
+    static final String EVENT_SUMMARY = "Data correction - Correction to applicationSubmittedDate";
+    static final String EVENT_DESCRIPTION = "Data correction - Correction to applicationSubmittedDate";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
@@ -223,7 +224,9 @@ public class CaseMigrationProcessor {
                 }
 
             } catch (Exception e) {
-                log.error("Case {} update failed due to : {}", id, e.getMessage());
+                log.error(
+                    MessageFormat.format("Case {0} update failed due to : {1}", id, e.getMessage()),
+                    e);
                 failedCases.add(id);
             }
         } else {
