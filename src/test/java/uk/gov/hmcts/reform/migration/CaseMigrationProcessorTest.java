@@ -30,9 +30,9 @@ import static org.mockito.Mockito.when;
 public class CaseMigrationProcessorTest {
 
     private static final String USER_TOKEN = "Bearer eeeejjjttt";
-    private static final String EVENT_ID = "boHistoryCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Retain and Disposal release";
-    private static final String EVENT_DESCRIPTION = "Data migration - Retain and Disposal release";
+    private static final String EVENT_ID = CaseMigrationProcessor.EVENT_ID;
+    private static final String EVENT_SUMMARY = CaseMigrationProcessor.EVENT_SUMMARY;
+    private static final String EVENT_DESCRIPTION = CaseMigrationProcessor.EVENT_DESCRIPTION;
     private static final String CASE_TYPE = "GrantOfRepresentation";
 
     @InjectMocks

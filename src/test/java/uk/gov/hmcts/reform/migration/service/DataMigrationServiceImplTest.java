@@ -1,48 +1,43 @@
 package uk.gov.hmcts.reform.migration.service;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.MockitoAnnotations;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.domain.common.TTL;
+import uk.gov.hmcts.reform.migration.model.Dtspb4583Dates;
+import uk.gov.hmcts.reform.migration.service.dtspb4583.Dtspb4583DataService;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class DataMigrationServiceImplTest {
-    private static final String TTL_FIELD_NAME = "TTL";
-    private static final String NO = "No";
+class DataMigrationServiceImplTest {
     private static final LocalDateTime LAST_MODIFIED = LocalDateTime.now(ZoneOffset.UTC).minusYears(3);
-    private TTL ttl;
 
-    @InjectMocks
+    Dtspb4583DataService dtspb4583DataServiceMock;
+
     private DataMigrationServiceImpl service;
 
-    @Before
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        service = new DataMigrationServiceImpl();
-        ttl = TTL.builder()
-            .systemTTL(LocalDate.from(LAST_MODIFIED.plusDays(14)))
-            .suspended(NO)
-            .build();
+    @BeforeEach
+    void setUp() {
+        dtspb4583DataServiceMock = mock(Dtspb4583DataService.class);
+        service = new DataMigrationServiceImpl(dtspb4583DataServiceMock);
     }
 
     @Test
-    public void shouldReturnTrueForCaseDetailsPassed() {
+    void shouldReturnTrueForCaseDetailsPassed() {
+        when(dtspb4583DataServiceMock.get(any()))
+            .thenReturn(Optional.of(new Dtspb4583Dates("", "")));
         CaseDetails caseDetails = CaseDetails.builder()
             .id(1234L)
             .build();
@@ -50,12 +45,12 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnFalseForCaseDetailsNull() {
+    void shouldReturnFalseForCaseDetailsNull() {
         assertFalse(service.accepts().test(null));
     }
 
     @Test
-    public void shouldReturnPassedDataWhenMigrateCalled() {
+    void shouldReturnPassedDataWhenMigrateCalled() {
         Map<String, Object> data = new HashMap<>();
         CaseDetails caseDetails = CaseDetails.builder()
             .id(1234L)
@@ -68,26 +63,9 @@ public class DataMigrationServiceImplTest {
     }
 
     @Test
-    public void shouldReturnNullWhenDataIsNotPassed() {
+    void shouldReturnNullWhenDataIsNotPassed() {
         Map<String, Object> result = service.migrate(null);
         assertNull(result);
         assertEquals(null, result);
-    }
-
-    @Test
-    public void shouldMigrateTtl() {
-        Map<String, Object> data = new HashMap<>();
-        data.put(TTL_FIELD_NAME, null);
-
-        Map<String, Object> expectedData = new HashMap<>();
-        expectedData.put(TTL_FIELD_NAME, ttl);
-
-        CaseDetails caseDetails = CaseDetails.builder()
-            .id(1234L)
-            .data(data)
-            .lastModified(LAST_MODIFIED)
-            .build();
-        Map<String, Object> result = service.migrate(caseDetails);
-        assertEquals(expectedData, result);
     }
 }
