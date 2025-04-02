@@ -240,7 +240,7 @@ dependencyManagement {
       entry 'commons-beanutils'
     }
 
-    dependencySet(group: 'io.rest-assured', version: '5.5.0') {
+    dependencySet(group: 'io.rest-assured', version: '5.5.1') {
       entry 'json-path'
       entry 'xml-path'
     }
