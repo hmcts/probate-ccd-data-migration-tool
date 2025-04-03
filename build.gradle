@@ -192,7 +192,7 @@ dependencies {
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.0'
 
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-  testImplementation group: 'org.wiremock', name: 'wiremock', version: '3.0.1'
+  testImplementation group: 'org.wiremock', name: 'wiremock', version: '3.12.1'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
 
