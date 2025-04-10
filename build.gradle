@@ -234,7 +234,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency 'com.google.guava:guava:33.4.6-jre'
+    dependency 'com.google.guava:guava:33.4.7-jre'
 
     dependencySet(group: 'commons-beanutils', version: '1.10.1') {
       entry 'commons-beanutils'
