@@ -104,7 +104,7 @@ jacocoTestReport {
 tasks.sonarqube.dependsOn(jacocoTestReport)
 tasks.check.dependsOn(integration)
 
-sonarqube {
+sonar {
   properties {
     property "sonar.projectName", "probate-ccd-case-migration-tool"
     property "sonar.projectKey", "probate-ccd-case-migration-tool"
