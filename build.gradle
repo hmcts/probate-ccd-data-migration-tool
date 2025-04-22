@@ -120,9 +120,8 @@ jacocoTestReport {
   executionData(test, integration)
   reports {
     xml.required = true
-    csv.required = true
-    xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
-    html.destination file("${buildDir}/reports/jacoco/jacocoTestReport.html")
+    csv.required = false
+    xml.outputLocation = file("${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
   }
 }
 
@@ -133,9 +132,9 @@ sonarqube {
   properties {
     property "sonar.projectName", "probate-ccd-case-migration-tool"
     property "sonar.projectKey", "probate-ccd-case-migration-tool"
-    property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
     property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/service/*.java,**/ccd/*.java,,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/jacocoTestReport.xml"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.outputLocation}"
+    property "sonar.jacoco.reportPath", "${layout.buildDirectory.get()}/jacoco/test.exec"
   }
 }
 
