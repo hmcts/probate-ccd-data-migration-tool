@@ -1,6 +1,5 @@
 plugins {
   id 'application'
-  id 'checkstyle'
   id 'jacoco'
   id 'java'
   id "io.freefair.lombok" version "8.12.1"
@@ -12,8 +11,10 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.65'
 }
 
-group = 'uk.gov.hmcts.reform'
-version = '0.0.1'
+application {
+  group = 'uk.gov.hmcts.reform'
+  version = '0.0.1'
+}
 
 java {
   toolchain {
@@ -21,34 +22,18 @@ java {
   }
 }
 
-sourceSets {
-  functionalTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/functionalTest/java')
+def configureSourceSet(String name) {
+  sourceSets.create(name) { sourceSet ->
+    sourceSet.java {
+      compileClasspath += sourceSets.main.output + sourceSets.test.output
+      runtimeClasspath += sourceSets.main.output + sourceSets.test.output
+      srcDir "src/${name}/java"
     }
-    resources.srcDir file('src/functionalTest/resources')
-  }
-
-  integrationTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/integrationTest/java')
-    }
-    resources.srcDir file('src/integrationTest/resources')
-  }
-
-  smokeTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/smokeTest/java')
-    }
-    resources.srcDir file('src/smokeTest/resources')
+    sourceSet.resources.srcDir "src/${name}/resources"
   }
 }
+
+['smokeTest', 'integrationTest', 'functionalTest'].each { configureSourceSet(it) }
 
 configurations {
   functionalTestImplementation.extendsFrom testImplementation
@@ -61,7 +46,7 @@ configurations {
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
 
@@ -70,26 +55,23 @@ tasks.withType(JavaExec).configureEach {
   javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
   useJUnitPlatform()
+  failFast = true
 
   testLogging {
     exceptionFormat = 'full'
   }
 }
 
-test {
-  failFast = true
-}
-
-task functional(type: Test) {
+tasks.register('functional', Test) {
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
 }
 
-task integration(type: Test) {
+tasks.register('integration', Test) {
   description = "Runs integration tests"
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -97,36 +79,30 @@ task integration(type: Test) {
   failFast = true
 }
 
-task fortifyScan(type: JavaExec)  {
-  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+tasks.register('fortifyScan', JavaExec) {
+  mainClass = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
   classpath += sourceSets.test.runtimeClasspath
   jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
-  ignoreExitValue = true
 }
 
-task smoke(type: Test) {
+tasks.register('smoke', Test) {
   description = "Runs Smoke Tests"
+  group = "Verification"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
-}
-
-checkstyle {
-  maxWarnings = 0
-  toolVersion = '10.21.2'
-  getConfigDirectory().set(new File(rootDir, 'config/checkstyle'))
 }
 
 jacocoTestReport {
   executionData(test, integration)
   reports {
-    xml.required = true
-    csv.required = false
-    xml.outputLocation = file("${layout.buildDirectory.get()}/reports/jacoco/test/jacocoTestReport.xml")
+    xml.getRequired().set(true)
+    csv.getRequired().set(false)
+    html.getRequired().set(true)
   }
 }
 
-project.tasks['sonarqube'].dependsOn jacocoTestReport
-project.tasks['check'].dependsOn integration
+tasks.sonarqube.dependsOn(jacocoTestReport)
+tasks.check.dependsOn(integration)
 
 sonarqube {
   properties {
@@ -152,16 +128,13 @@ dependencyUpdates {
 
 // https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
 dependencyCheck {
-  // Specifies if the build should be failed if a CVSS score above a specified level is identified.
-  // range of 0-10 fails the build, anything greater and it doesn't fail the build
-  failBuildOnCVSS = 0
   suppressionFile = 'config/owasp/suppressions.xml'
 }
 
 repositories {
   mavenLocal()
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven { url = 'https://jitpack.io' }
 }
 
 ext {
