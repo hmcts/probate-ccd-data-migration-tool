@@ -4,8 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.migration.service.dtspb4583.Dtspb4583DataService;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.function.Predicate;
 
@@ -13,19 +14,32 @@ import java.util.function.Predicate;
 @Service
 @RequiredArgsConstructor
 public class DataMigrationServiceImpl implements DataMigrationService<Map<String, Object>> {
-    private final Dtspb4583DataService dtspb4583DataService;
+    private static final String EXPIRY_DATE = "expiryDate";
 
     @Override
     public Predicate<CaseDetails> accepts() {
-        return cd -> cd != null && dtspb4583DataService.get(cd.getId()).isPresent();
+        return cd -> {
+            if (cd == null || cd.getData() == null) {
+                return false;
+            }
+            Object raw = cd.getData().get(EXPIRY_DATE);
+            if (raw == null) {
+                return false;
+            }
+            try {
+                LocalDate expiry = LocalDate.parse(raw.toString());
+                LocalDate today = LocalDate.now();
+                return expiry.isBefore(today);
+            } catch (DateTimeParseException e) {
+                final String errorMsg = String.format("Unable to parse expiry date for case: %s", cd.getId());
+                log.error(errorMsg, e);
+                return false;
+            }
+        };
     }
 
     @Override
     public Map<String, Object> rollback(Map<String, Object> data) {
-        if (data == null) {
-            return null;
-        }
-
         return data;
     }
 
