@@ -11,16 +11,12 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
-import uk.gov.hmcts.reform.migration.model.Dtspb4583Dates;
-import uk.gov.hmcts.reform.migration.service.dtspb4583.Dtspb4583DataService;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
@@ -37,13 +33,13 @@ class CoreCaseDataServiceTest {
     private static final String EVENT_TOKEN = "Bearer aaaadsadsasawewewewew";
     private static final String EVENT_SUMMARY = "Migrate Case";
     private static final String EVENT_DESC = "Migrate Case";
-    private static final String APPL_SUBMIT_DATE = "applicationSubmittedDate";
+    private static final String AUTO_CLOSED_EXPIRY = "autoClosedExpiry";
+    private static final String YES = "Yes";
 
     // Service Mocks
     private IdamClient idamClientMock;
     private AuthTokenGenerator authTokenGeneratorMock;
     private CoreCaseDataApi coreCaseDataApiMock;
-    private Dtspb4583DataService dtspb4583DataServiceMock;
 
     // Answer implementations
     private StartEventAnswer startEventAnswer;
@@ -56,13 +52,10 @@ class CoreCaseDataServiceTest {
         idamClientMock = mock(IdamClient.class);
         authTokenGeneratorMock = mock(AuthTokenGenerator.class);
         coreCaseDataApiMock = mock(CoreCaseDataApi.class);
-        dtspb4583DataServiceMock = mock(Dtspb4583DataService.class);
-
         underTest = new CoreCaseDataService(
             idamClientMock,
             authTokenGeneratorMock,
-            coreCaseDataApiMock,
-            dtspb4583DataServiceMock);
+            coreCaseDataApiMock);
 
         startEventAnswer = new StartEventAnswer();
         submitEventAnswer = new SubmitEventAnswer();
@@ -91,39 +84,30 @@ class CoreCaseDataServiceTest {
     }
 
     @Test
-    void testWillMigrateMatchingExpectedCase() {
+    void testShouldSetAutoClosedExpiryToYes() {
         final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final String dateAfter = "correct";
         final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateBefore
+            AUTO_CLOSED_EXPIRY, ""
         );
         final CaseDetails before = CaseDetails.builder()
             .id(caseId)
             .jurisdiction(CASE_JURISDICTION)
             .caseTypeId(CASE_TYPE)
             .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
 
         startEventAnswer.setWantedCaseData(caseData);
 
         final CaseDetails actual = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
 
         assertNotNull(actual, "Expected case to be updated");
-        assertEquals(dateAfter, actual.getData().get(APPL_SUBMIT_DATE), "Expected submit date to be updated");
+        assertEquals(YES, actual.getData().get(AUTO_CLOSED_EXPIRY), "Expected submit date to be updated");
     }
 
     @Test
-    void testWillNotMigrateNonMatchingExpectedCase() {
+    void testRollbackShouldNotSetAutoClosedExpiry() {
         final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final String dateActual = "actual";
-        final String dateAfter = "correct";
         final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateActual
+            AUTO_CLOSED_EXPIRY, YES
         );
         final CaseDetails before = CaseDetails.builder()
             .id(caseId)
@@ -131,245 +115,14 @@ class CoreCaseDataServiceTest {
             .caseTypeId(CASE_TYPE)
             .build();
 
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
         startEventAnswer.setWantedCaseData(caseData);
 
-        final CaseDetails actual = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
+        final CaseDetails actual = underTest
+            .rollback(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
 
-        assertNull(actual, "Expected case not to be updated");
-    }
-
-    @Test
-    void testWillNotMigrateExpectedCaseWithUnexpectedType() {
-        final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final Long dateActual = 1L;
-        final String dateAfter = "correct";
-        final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateActual
-        );
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
-
-        assertNull(actual, "Expected case not to be updated");
-    }
-
-    @Test
-    void testWillNotMigrateExpectedCaseWithoutAppSubmDate() {
-        final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final String dateAfter = "correct";
-        final Map<String, Object> caseData = Map.of();
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
-
-        assertNull(actual, "Expected case not to be updated");
-    }
-
-    @Test
-    void testWillNotMigrateUnexpectedCase() {
-        final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateBefore
-        );
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.empty();
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
-
-        assertNull(actual, "Expected case not to be updated");
-    }
-
-    @Test
-    void testWillRollbackMatchingExpectedCase() {
-        final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final String dateAfter = "correct";
-        final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateAfter
-        );
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.rollback(
-                AUTH_TOKEN,
-                EVENT_ID,
-                EVENT_SUMMARY,
-                EVENT_DESC,
-                CASE_TYPE,
-                before);
-
-        assertNotNull(actual, "Expected case to be rolled back");
-        assertEquals(
-                dateBefore,
-                actual.getData().get(APPL_SUBMIT_DATE),
-                "Expected submit date to be rolled back");
-    }
-
-    @Test
-    void testWillNotRollbackNonMatchingExpectedCase() {
-        final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final String dateActual = "actual";
-        final String dateAfter = "correct";
-        final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateActual
-        );
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.rollback(AUTH_TOKEN,
-                EVENT_ID,
-                EVENT_SUMMARY,
-                EVENT_DESC,
-                CASE_TYPE,
-                before);
-
-        assertNull(actual, "Expected case not to be rolled back");
-    }
-
-    @Test
-    void testWillNotRollbackExpectedCaseWithUnexpectedType() {
-        final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final Long dateActual = 1L;
-        final String dateAfter = "correct";
-        final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateActual
-        );
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.rollback(
-                AUTH_TOKEN,
-                EVENT_ID,
-                EVENT_SUMMARY,
-                EVENT_DESC,
-                CASE_TYPE,
-                before);
-
-        assertNull(actual, "Expected case not to be rolled back");
-    }
-
-    @Test
-    void testWillNotRollbackExpectedCaseWithoutAppSubmDate() {
-        final Long caseId = 1L;
-        final String dateBefore = "incorrect";
-        final String dateAfter = "correct";
-        final Map<String, Object> caseData = Map.of();
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.of(new Dtspb4583Dates(dateBefore, dateAfter));
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.rollback(
-                AUTH_TOKEN,
-                EVENT_ID,
-                EVENT_SUMMARY,
-                EVENT_DESC,
-                CASE_TYPE,
-                before);
-
-        assertNull(actual, "Expected case not to be rolled back");
-    }
-
-    @Test
-    void testWillNotRollbackUnexpectedCase() {
-        final Long caseId = 1L;
-        final String dateAfter = "correct";
-        final Map<String, Object> caseData = Map.of(
-            "applicationSubmittedDate", dateAfter
-        );
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        final Optional<Dtspb4583Dates> expectedDates = Optional.empty();
-        when(dtspb4583DataServiceMock.get(caseId))
-            .thenReturn(expectedDates);
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest.rollback(
-                AUTH_TOKEN,
-                EVENT_ID,
-                EVENT_SUMMARY,
-                EVENT_DESC,
-                CASE_TYPE,
-                before);
-
-        assertNull(actual, "Expected case not to be rolled back");
+        assertNotNull(actual, "Expected case to be updated");
+        assertEquals(YES, actual.getData().get(AUTO_CLOSED_EXPIRY),
+            "autoClosedExpiry should be untouched on rollback");
     }
 
     static class StartEventAnswer implements Answer<StartEventResponse> {
