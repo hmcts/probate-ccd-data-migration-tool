@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DataMigrationServiceImplTest {
     private static final LocalDateTime LAST_MODIFIED = LocalDateTime.now(ZoneOffset.UTC).minusYears(3);
+    private static final String EXPIRY_DATE = "expiryDate";
 
     private DataMigrationServiceImpl service;
 
@@ -26,16 +28,45 @@ class DataMigrationServiceImplTest {
     }
 
     @Test
-    void shouldReturnTrueForCaseDetailsPassed() {
+    void shouldReturnFalseForCaseDetailsPassed() {
         CaseDetails caseDetails = CaseDetails.builder()
             .id(1234L)
             .build();
-        assertTrue(service.accepts().test(caseDetails));
+        assertFalse(service.accepts().test(caseDetails));
+    }
+
+    @Test
+    void shouldReturnsFalseForUnparsableExpiryDate() {
+        CaseDetails cd = CaseDetails.builder()
+            .id(2L)
+            .data(Map.of(EXPIRY_DATE, "not-a-date"))
+            .build();
+        assertFalse(service.accepts().test(cd));
     }
 
     @Test
     void shouldReturnFalseForCaseDetailsNull() {
         assertFalse(service.accepts().test(null));
+    }
+
+    @Test
+    void shouldReturnsTrueWhenExpiryDateIsBeforeToday() {
+        String yesterday = LocalDate.now().minusDays(1).toString();
+        CaseDetails cd = CaseDetails.builder()
+            .id(3L)
+            .data(Map.of(EXPIRY_DATE, yesterday))
+            .build();
+        assertTrue(service.accepts().test(cd), "Expiry date of " + yesterday + " should be accepted");
+    }
+
+    @Test
+    void shouldReturnsFalseWhenExpiryDateIsAfterToday() {
+        String tomorrow = LocalDate.now().plusDays(1).toString();
+        CaseDetails cd = CaseDetails.builder()
+            .id(3L)
+            .data(Map.of(EXPIRY_DATE, tomorrow))
+            .build();
+        assertFalse(service.accepts().test(cd), "Expiry date of " + tomorrow + " should not be accepted");
     }
 
     @Test
@@ -55,6 +86,5 @@ class DataMigrationServiceImplTest {
     void shouldReturnNullWhenDataIsNotPassed() {
         Map<String, Object> result = service.migrate(null);
         assertNull(result);
-        assertEquals(null, result);
     }
 }
