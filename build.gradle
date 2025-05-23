@@ -121,9 +121,8 @@ jacocoTestReport {
   executionData(test, integration)
   reports {
     xml.required = true
-    csv.required = true
-    xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
-    html.destination file("${buildDir}/reports/jacoco/jacocoTestReport.html")
+    csv.required = false
+    xml.destination file("${projectDir}/build/reports/jacoco/jacocoTestReport.xml")
   }
 }
 
@@ -134,9 +133,8 @@ sonarqube {
   properties {
     property "sonar.projectName", "probate-ccd-case-migration-tool"
     property "sonar.projectKey", "probate-ccd-case-migration-tool"
-    property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
-    property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/service/*.java,**/ccd/*.java,,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/jacocoTestReport.xml"
+    property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/service/**/*.java,**/ccd/*.java,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${projectDir}/build/reports/jacoco/test/jacocoTestReport.xml"
   }
 }
 
@@ -152,18 +150,16 @@ dependencyUpdates {
   }
 }
 
-// https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
 dependencyCheck {
-  // Specifies if the build should be failed if a CVSS score above a specified level is identified.
-  // range of 0-10 fails the build, anything greater and it doesn't fail the build
-  failBuildOnCVSS = 0
   suppressionFile = 'config/owasp/suppressions.xml'
 }
 
 repositories {
   mavenLocal()
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven {
+    url 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
+  }
 }
 
 ext {
@@ -217,7 +213,7 @@ dependencies {
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-  testImplementation 'com.github.hmcts:fortify-client:1.4.8:all'
+  testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
 
   implementation group: 'commons-io', name: 'commons-io', version: '2.19.0'
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-resource-server', version: springSecurity
@@ -251,10 +247,6 @@ dependencyManagement {
       entry 'groovy-json'
     }
   }
-}
-
-dependencyCheck {
-  suppressionFile = 'dependency-check-suppressions.xml'
 }
 
 bootJar {
