@@ -40,7 +40,7 @@ class LoaderServiceImplTest {
 
         final Map<Long, Dtspb4583Dates> data = real.load();
 
-        assertEquals(4580, data.size());
+        assertEquals(0, data.size());
     }
 
     @Test

@@ -8,7 +8,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.PropertySource;
-import uk.gov.hmcts.reform.migration.service.dtspb4583.Dtspb4583DataService;
 
 import java.text.MessageFormat;
 
@@ -23,9 +22,6 @@ public class CaseMigrationRunner implements CommandLineRunner {
 
     @Autowired
     private CaseMigrationRollbackProcessor caseMigrationRollbackProcessor;
-
-    @Autowired
-    private Dtspb4583DataService dtspb4583DataService;
 
     @Value("${migration.caseType}")
     private String caseType;
@@ -52,10 +48,6 @@ public class CaseMigrationRunner implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try {
-            if (caseReferences != null && caseReferences.equalsIgnoreCase("load_from_csv")) {
-                caseReferences = dtspb4583DataService.getReferences();
-            }
-
             if (null != caseReferences && caseReferences.length() > 0) {
                 log.info("case References to be migrate :  {}",caseReferences);
                 log.info("CaseMigrationRunner rollbackCaseReferences = {} ", rollbackCaseReferences);
