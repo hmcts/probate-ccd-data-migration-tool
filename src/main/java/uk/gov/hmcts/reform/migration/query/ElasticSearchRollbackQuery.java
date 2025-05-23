@@ -12,13 +12,21 @@ public class ElasticSearchRollbackQuery {
                     "filter": [
                         {
                             "range": {
+                                "data.expiryDate": {
+                                    "lte": "2025-05-24"
+                                }
+                            }
+                        },
+                        {
+                            "range": {
                                 "last_modified": {
                                     "gte": "%s",
                                     "lte": "%s"
                                 }
                             }
                         },
-                        {"term": { "state.keyword": "Disposed"}}
+                        {"term": { "state.keyword": "CaveatClosed"}},
+                        {"term": { "data.autoClosedExpiry.keyword": "Yes"}}
                     ]
                 }
             },
