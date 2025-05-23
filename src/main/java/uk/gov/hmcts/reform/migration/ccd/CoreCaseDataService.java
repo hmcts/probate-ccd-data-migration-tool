@@ -11,12 +11,8 @@ import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.auth.AuthUtil;
-import uk.gov.hmcts.reform.migration.model.Dtspb4583Dates;
-import uk.gov.hmcts.reform.migration.service.dtspb4583.Dtspb4583DataService;
 
 import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -25,19 +21,17 @@ public class CoreCaseDataService {
     private final IdamClient idamClient;
     private final AuthTokenGenerator authTokenGenerator;
     private final CoreCaseDataApi coreCaseDataApi;
-    private final Dtspb4583DataService dtspb4583DataService;
 
-    static final String APPL_SUBMIT_DATE = "applicationSubmittedDate";
+    private static final String AUTO_CLOSED_EXPIRY = "autoClosedExpiry";
+    private static final String YES = "Yes";
 
     public CoreCaseDataService(
             final IdamClient idamClient,
             final AuthTokenGenerator authTokenGenerator,
-            final CoreCaseDataApi coreCaseDataApi,
-            final Dtspb4583DataService dtspb4583DataService) {
+            final CoreCaseDataApi coreCaseDataApi) {
         this.idamClient = idamClient;
         this.authTokenGenerator = authTokenGenerator;
         this.coreCaseDataApi = coreCaseDataApi;
-        this.dtspb4583DataService = dtspb4583DataService;
     }
 
     public CaseDetails update(
@@ -56,8 +50,7 @@ public class CoreCaseDataService {
             caseType,
             caseDetails.getId(),
             caseDetails.getJurisdiction(),
-            Dtspb4583Dates::incorrect,
-            Dtspb4583Dates::correct);
+            false);
         log.info("Updated case {} isnull(result): {}", caseDetails.getId(), result == null);
         return result;
     }
@@ -78,8 +71,7 @@ public class CoreCaseDataService {
             caseType,
             caseDetails.getId(),
             caseDetails.getJurisdiction(),
-            Dtspb4583Dates::correct,
-            Dtspb4583Dates::incorrect);
+            true);
         log.info("Rolled back case {} isnull(result): {}", caseDetails.getId(), result == null);
         return result;
     }
@@ -96,8 +88,7 @@ public class CoreCaseDataService {
         final String caseType,
         final Long caseId,
         final String caseJurisdiction,
-        final Function<Dtspb4583Dates, String> expectedCurrent,
-        final Function<Dtspb4583Dates, String> setTo) {
+        final boolean isRollback) {
         UserDetails userDetails = idamClient.getUserDetails(AuthUtil.getBearerToken(authorisation));
 
         StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
@@ -119,44 +110,12 @@ public class CoreCaseDataService {
             return null;
         }
 
-        final Optional<Dtspb4583Dates> caseDatesOpt = dtspb4583DataService.get(caseDetails.getId());
-        if (caseDatesOpt.isEmpty()) {
-            log.warn("Case {}: Attempting to update without entry in DTSPB-4583 data", caseDetails.getId());
-            return null;
-        }
-        final Dtspb4583Dates caseDates = caseDatesOpt.get();
-
         final Map<String, Object> updatedData = caseDetails.getData();
 
-        final Object currentSubmDateObj = updatedData.get(APPL_SUBMIT_DATE);
-        if (currentSubmDateObj == null) {
-            log.warn("Case {}: No application submitted date found in case data", caseDetails.getId());
-            return null;
+        if (!isRollback) {
+            updatedData.put(AUTO_CLOSED_EXPIRY, YES);
         }
-        if (!(currentSubmDateObj instanceof String)) {
-            log.warn("Case {}: application submitted date is not of type String but {} (toString: {})",
-                caseDetails.getId(),
-                currentSubmDateObj.getClass().getName(),
-                currentSubmDateObj);
-            return null;
-        }
-        final String currentSubmDate = (String) currentSubmDateObj;
 
-        final String expSubmDate = expectedCurrent.apply(caseDates);
-        if (!(currentSubmDate.equals(expSubmDate))) {
-            log.warn(
-                "Case {}: current application submitted date does not match expected value: current [{}] expected [{}]",
-                caseDetails.getId(),
-                currentSubmDate,
-                expSubmDate);
-            return null;
-        }
-        final String correctDate = setTo.apply(caseDates);
-        log.info("Case {}: Setting application submitted date to [{}]",
-            caseDetails.getId(),
-            correctDate);
-
-        updatedData.put(APPL_SUBMIT_DATE, correctDate);
 
         final Event event = Event.builder()
             .id(startEventResponse.getEventId())
