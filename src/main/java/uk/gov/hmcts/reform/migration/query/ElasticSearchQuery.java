@@ -23,7 +23,7 @@ public class ElasticSearchQuery {
                         {
                             "range": {
                                 "data.expiryDate": {
-                                    "lte": "2025-05-24"
+                                    "lte": "now-1d/d"
                                 }
                             }
                         }
