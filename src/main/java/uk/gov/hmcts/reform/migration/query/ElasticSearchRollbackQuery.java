@@ -13,7 +13,7 @@ public class ElasticSearchRollbackQuery {
                         {
                             "range": {
                                 "data.expiryDate": {
-                                    "lte": "2025-05-24"
+                                    "lte": "now-1d/d"
                                 }
                             }
                         },
