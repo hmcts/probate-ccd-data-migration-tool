@@ -31,7 +31,7 @@ public class ElasticSearchRollbackQueryTest {
                             {
                                 "range": {
                                     "data.expiryDate": {
-                                        "lte": "2025-05-24"
+                                        "lte": "now-1d/d"
                                     }
                                 }
                             },
@@ -76,7 +76,7 @@ public class ElasticSearchRollbackQueryTest {
                             {
                                 "range": {
                                     "data.expiryDate": {
-                                        "lte": "2025-05-24"
+                                        "lte": "now-1d/d"
                                     }
                                 }
                             },
