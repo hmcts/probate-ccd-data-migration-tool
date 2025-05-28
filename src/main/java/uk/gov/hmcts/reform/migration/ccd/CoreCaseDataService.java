@@ -112,7 +112,8 @@ public class CoreCaseDataService {
 
         final Map<String, Object> updatedData = caseDetails.getData();
 
-        if (!isRollback) {
+        Object autoExpiryField = updatedData.get(AUTO_CLOSED_EXPIRY);
+        if (!isRollback && !YES.equals(autoExpiryField)) {
             updatedData.put(AUTO_CLOSED_EXPIRY, YES);
         }
 
