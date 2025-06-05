@@ -5,7 +5,7 @@ plugins {
   id 'java'
   id "io.freefair.lombok" version "8.13.1"
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.4.5'
+  id 'org.springframework.boot' version '3.5.0'
   id 'com.github.kt3k.coveralls' version '2.12.2'
   id 'com.github.ben-manes.versions' version '0.51.0'
   id 'org.sonarqube' version '6.0.1.5171'
@@ -169,9 +169,8 @@ ext {
   log4JVersion = "2.24.3"
   restAssuredVersion = '5.3.2'
   lombokVersion = "1.18.38"
-  junit_version = "4.12"
-  junitJupiterVersion = '5.11.4'
-  junitVintageVersion = '5.11.4'
+  junitJupiterVersion = '5.12.2'
+  junitVintageVersion = '5.12.2'
   powermockVersion = '2.0.9'
   springSecurity   =  '6.5.0'
   springCloudVersion = '2025.0.0'
@@ -204,14 +203,14 @@ dependencies {
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.5'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 
-  testImplementation('org.junit.jupiter:junit-jupiter:5.11.4')
+  testImplementation('org.junit.jupiter:junit-jupiter:5.12.2')
   testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}"
   testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.18.0'
   testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: powermockVersion
   testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
-  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.11.4"
+  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.12.2"
   implementation group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
