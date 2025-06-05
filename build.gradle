@@ -162,7 +162,7 @@ dependencyCheck {
 repositories {
   mavenLocal()
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven { url 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1' }
 }
 
 ext {
@@ -215,7 +215,7 @@ dependencies {
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-  testImplementation 'com.github.hmcts:fortify-client:1.4.8:all'
+  testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
 
   implementation group: 'commons-io', name: 'commons-io', version: '2.19.0'
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-resource-server', version: springSecurity
