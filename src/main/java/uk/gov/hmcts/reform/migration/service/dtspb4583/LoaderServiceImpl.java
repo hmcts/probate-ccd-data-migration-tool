@@ -31,7 +31,7 @@ class LoaderServiceImpl implements LoaderService {
     public Map<Long, Dtspb4583Dates> load() {
         log.info("Load DTSPB-4583 data");
         final Iterable<CSVRecord> records;
-        try (final Reader reader = readerService.getFileReader("DTSPB-4583.csv")) {
+        try (final Reader reader = readerService.getFileReader("test.csv")) {
             log.info("Parse DTSPB-4583 data");
             records = parserService.parse(reader);
 

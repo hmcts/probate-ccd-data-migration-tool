@@ -30,13 +30,21 @@ public class ElasticSearchRollbackQueryTest {
                         "filter": [
                             {
                                 "range": {
+                                    "data.expiryDate": {
+                                        "lte": "now-1d/d"
+                                    }
+                                }
+                            },
+                            {
+                                "range": {
                                     "last_modified": {
                                         "gte": "2023-02-24T14:00:00",
                                         "lte": "2023-02-25T16:00:00"
                                     }
                                 }
                             },
-                            {"term": { "state.keyword": "Disposed"}}
+                            {"term": { "state.keyword": "CaveatClosed"}},
+                            {"term": { "data.autoClosedExpiry.keyword": "Yes"}}
                         ]
                     }
                 },
@@ -67,13 +75,21 @@ public class ElasticSearchRollbackQueryTest {
                         "filter": [
                             {
                                 "range": {
+                                    "data.expiryDate": {
+                                        "lte": "now-1d/d"
+                                    }
+                                }
+                            },
+                            {
+                                "range": {
                                     "last_modified": {
                                         "gte": "2023-02-24T14:00:00",
                                         "lte": "2023-02-25T16:00:00"
                                     }
                                 }
                             },
-                            {"term": { "state.keyword": "Disposed"}}
+                            {"term": { "state.keyword": "CaveatClosed"}},
+                            {"term": { "data.autoClosedExpiry.keyword": "Yes"}}
                         ]
                     }
                 },
