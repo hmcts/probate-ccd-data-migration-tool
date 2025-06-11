@@ -14,6 +14,7 @@ plugins {
 
 group = 'uk.gov.hmcts.reform'
 version = '0.0.1'
+mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
 
 java {
   toolchain {
@@ -61,7 +62,7 @@ configurations {
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
 }
 
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
 
@@ -70,7 +71,7 @@ tasks.withType(JavaExec).configureEach {
   javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
   useJUnitPlatform()
 
   testLogging {
@@ -82,14 +83,14 @@ test {
   failFast = true
 }
 
-task functional(type: Test) {
+tasks.register('functional', Test) {
   description = "Runs functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
 }
 
-task integration(type: Test) {
+tasks.register('integration', Test) {
   description = "Runs integration tests"
   group = "Verification"
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
@@ -97,14 +98,14 @@ task integration(type: Test) {
   failFast = true
 }
 
-task fortifyScan(type: JavaExec)  {
-  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+tasks.register('fortifyScan', JavaExec) {
+  mainClass.set("uk.gov.hmcts.fortifyclient.FortifyClientMainApp")
   classpath += sourceSets.test.runtimeClasspath
   jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
-  ignoreExitValue = true
+  ignoreExitValue = true as JavaExecSpec
 }
 
-task smoke(type: Test) {
+tasks.register('smoke', Test) {
   description = "Runs Smoke Tests"
   testClassesDirs = sourceSets.smokeTest.output.classesDirs
   classpath = sourceSets.smokeTest.runtimeClasspath
@@ -120,9 +121,8 @@ jacocoTestReport {
   executionData(test, integration)
   reports {
     xml.required = true
-    csv.required = true
-    xml.destination file("${buildDir}/reports/jacoco/jacocoTestReport.xml")
-    html.destination file("${buildDir}/reports/jacoco/jacocoTestReport.html")
+    csv.required = false
+    xml.destination file("${projectDir}/build/reports/jacoco/jacocoTestReport.xml")
   }
 }
 
@@ -133,9 +133,8 @@ sonarqube {
   properties {
     property "sonar.projectName", "probate-ccd-case-migration-tool"
     property "sonar.projectKey", "probate-ccd-case-migration-tool"
-    property "sonar.jacoco.reportPath", "${project.buildDir}/jacoco/test.exec"
-    property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/service/*.java,**/ccd/*.java,,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/jacocoTestReport.xml"
+    property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/service/**/*.java,**/ccd/*.java,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${projectDir}/build/reports/jacoco/test/jacocoTestReport.xml"
   }
 }
 
@@ -162,7 +161,9 @@ dependencyCheck {
 repositories {
   mavenLocal()
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven {
+    url 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
+  }
 }
 
 ext {
@@ -215,7 +216,7 @@ dependencies {
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-  testImplementation 'com.github.hmcts:fortify-client:1.4.8:all'
+  testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
 
   implementation group: 'commons-io', name: 'commons-io', version: '2.19.0'
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-resource-server', version: springSecurity
@@ -251,12 +252,6 @@ dependencyManagement {
   }
 }
 
-mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
-
-dependencyCheck {
-  suppressionFile = 'dependency-check-suppressions.xml'
-}
-
 bootJar {
   archiveFileName = 'ccd-case-migration.jar'
   archiveBaseName = 'ccd-case-migration'
@@ -267,7 +262,7 @@ wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
 
-configurations.all {
+configurations.configureEach {
   exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
   exclude group: 'org.springframework.boot', module: 'spring-boot-starter-security'
   exclude group: 'org.springframework.security', module: 'spring-security-rsa'
@@ -275,7 +270,6 @@ configurations.all {
 
 test {
   timeout = Duration.ofMinutes(30)
-  environment("AZURE_APPLICATIONINSIGHTS_INSTRUMENTATIONKEY", "some-key")
   systemProperty 'java.locale.providers', 'COMPAT'
 
   useJUnitPlatform()
