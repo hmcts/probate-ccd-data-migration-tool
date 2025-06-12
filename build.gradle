@@ -126,7 +126,6 @@ jacocoTestReport {
   }
 }
 
-project.tasks['sonarqube'].dependsOn jacocoTestReport
 project.tasks['check'].dependsOn integration
 
 sonarqube {
@@ -137,6 +136,8 @@ sonarqube {
     property "sonar.coverage.jacoco.xmlReportPaths", "${projectDir}/build/reports/jacoco/test/jacocoTestReport.xml"
   }
 }
+
+test.finalizedBy jacocoTestReport
 
 // before committing a change, make sure task still works
 dependencyUpdates {
