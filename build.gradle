@@ -204,7 +204,7 @@ dependencies {
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.5'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 
-  testImplementation('org.junit.jupiter:junit-jupiter:5.12.2')
+  testImplementation('org.junit.jupiter:junit-jupiter:5.13.2')
   testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}"
