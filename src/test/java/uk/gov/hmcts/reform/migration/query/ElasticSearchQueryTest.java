@@ -24,70 +24,27 @@ public class ElasticSearchQueryTest {
         {
             "query": {
                 "bool": {
-                  "should": [
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          { "term": { "state.keyword": "Deleted" } }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          {
+                    "filter": [
+                        {
                             "terms": {
-                              "state.keyword": [
-                                "Pending",
-                                "SolAdmonCreated",
-                                "SolAppCreatedDeceasedDtls",
-                                "SolAppCreatedSolicitorDtls",
-                                "SolAppUpdated",
-                                "SolProbateCreated",
-                                "SolIntestacyCreated",
-                                "Stopped"
-                              ]
+                                "state.keyword": [
+                                    "CaveatNotMatched",
+                                    "AwaitingCaveatResolution",
+                                    "AwaitingWarningResponse",
+                                    "WarningValidation"
+                                ]
                             }
-                          },
-                          {
+                        },
+                        {
                             "range": {
-                              "last_modified": {
-                                "gte": "1900-01-01",
-                                "lte": "2024-09-04"
-                              }
+                                "data.expiryDate": {
+                                    "lte": "now-1d/d"
+                                }
                             }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "Caveat" } },
-                          {
-                            "terms": {
-                              "state.keyword": [
-                                "PAAppCreated",
-                                "SolAppCreated"
-                              ]
-                            }
-                          },
-                          {
-                            "range": {
-                              "last_modified": {
-                                "gte": "1900-01-01",
-                                "lte": "2024-09-04"
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                        }
+                    ]
                 }
-              },
+            },
             "_source": ["reference"],
             "size": 100,
             "sort": [
@@ -110,70 +67,27 @@ public class ElasticSearchQueryTest {
         {
             "query": {
                 "bool": {
-                  "should": [
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          { "term": { "state.keyword": "Deleted" } }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "GrantOfRepresentation" } },
-                          {
+                    "filter": [
+                        {
                             "terms": {
-                              "state.keyword": [
-                                "Pending",
-                                "SolAdmonCreated",
-                                "SolAppCreatedDeceasedDtls",
-                                "SolAppCreatedSolicitorDtls",
-                                "SolAppUpdated",
-                                "SolProbateCreated",
-                                "SolIntestacyCreated",
-                                "Stopped"
-                              ]
+                                "state.keyword": [
+                                    "CaveatNotMatched",
+                                    "AwaitingCaveatResolution",
+                                    "AwaitingWarningResponse",
+                                    "WarningValidation"
+                                ]
                             }
-                          },
-                          {
+                        },
+                        {
                             "range": {
-                              "last_modified": {
-                                "gte": "1900-01-01",
-                                "lte": "2024-09-04"
-                              }
+                                "data.expiryDate": {
+                                    "lte": "now-1d/d"
+                                }
                             }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "filter": [
-                          { "term": { "case_type_id.keyword": "Caveat" } },
-                          {
-                            "terms": {
-                              "state.keyword": [
-                                "PAAppCreated",
-                                "SolAppCreated"
-                              ]
-                            }
-                          },
-                          {
-                            "range": {
-                              "last_modified": {
-                                "gte": "1900-01-01",
-                                "lte": "2024-09-04"
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                        }
+                    ]
                 }
-              },
+            },
             "_source": ["reference"],
             "size": 100,
             "sort": [
