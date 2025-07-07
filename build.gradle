@@ -170,8 +170,8 @@ ext {
   log4JVersion = "2.25.0"
   restAssuredVersion = '5.3.2'
   lombokVersion = "1.18.38"
-  junitJupiterVersion = '5.12.2'
-  junitVintageVersion = '5.13.2'
+  junitJupiterVersion = '5.13.3'
+  junitVintageVersion = '5.13.3'
   powermockVersion = '2.0.9'
   springSecurity   =  '6.5.1'
   springCloudVersion = '2025.0.0'
@@ -204,14 +204,14 @@ dependencies {
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.5'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
 
-  testImplementation('org.junit.jupiter:junit-jupiter:5.13.2')
+  testImplementation('org.junit.jupiter:junit-jupiter:5.13.3')
   testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
   testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
   testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}"
   testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.18.0'
   testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: powermockVersion
   testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
-  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.13.2"
+  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.13.3"
   implementation group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
