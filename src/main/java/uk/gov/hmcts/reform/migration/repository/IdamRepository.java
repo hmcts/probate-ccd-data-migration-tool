@@ -36,7 +36,7 @@ public class IdamRepository {
             throw new AuthenticationException("idam.password property can't be empty");
         }
         log.info("Authenticating user name {}", this.idamUsername);
-        return idamClient.authenticateUser(idamUsername, idamPassword);
+        return idamClient.getAccessToken(idamUsername, idamPassword);
     }
 
     public User authenticateUser() {

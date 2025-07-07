@@ -168,17 +168,11 @@ repositories {
 
 ext {
   log4JVersion = "2.25.0"
-  restAssuredVersion = '5.3.2'
   lombokVersion = "1.18.38"
-  junitJupiterVersion = '5.13.3'
-  junitVintageVersion = '5.13.3'
   powermockVersion = '2.0.9'
   springSecurity   =  '6.5.1'
   springCloudVersion = '2025.0.0'
 }
-
-ext['jackson.version'] = '2.17.0'
-ext['snakeyaml.version'] = '2.2'
 
 dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
@@ -189,43 +183,33 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '3.0.4'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.1.1'
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.9'
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '8.1'
 
-  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-  testImplementation group: 'org.wiremock', name: 'wiremock', version: '3.13.1'
-
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: '1.8.0'
-
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.9'
-
+  implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.14.0'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: log4JVersion
-
-  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.5'
-  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
-
-  testImplementation('org.junit.jupiter:junit-jupiter:5.13.3')
-  testImplementation "org.junit.jupiter:junit-jupiter-api:${junitJupiterVersion}"
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitJupiterVersion}"
-  testRuntimeOnly "org.junit.vintage:junit-vintage-engine:${junitVintageVersion}"
-  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.18.0'
-  testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: powermockVersion
-  testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
-  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.13.3"
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.9'
   implementation group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-  annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-  testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-
-  testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
-
   implementation group: 'commons-io', name: 'commons-io', version: '2.19.0'
+
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-resource-server', version: springSecurity
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-client', version: springSecurity
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-jose', version: springSecurity
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-core', version: springSecurity
   implementation group: 'org.springframework.security', name: 'spring-security-config', version: springSecurity
 
-  implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.14.0'
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+  testImplementation group: 'org.wiremock', name: 'wiremock', version: '3.13.1'
+  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.5'
+
+  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.18.0'
+  testImplementation group: 'org.powermock', name: 'powermock-api-mockito2', version: powermockVersion
+  testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: powermockVersion
+  annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+  testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+
+  testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
 }
 
 dependencyManagement {
