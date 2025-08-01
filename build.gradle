@@ -240,6 +240,17 @@ dependencyManagement {
   }
 }
 
+configurations.configureEach {
+  resolutionStrategy {
+    eachDependency { details ->
+      // Resolve CVE‑2025‑48976
+      if (details.requested.name == 'commons-fileupload') {
+        details.useVersion '1.6.0'
+      }
+    }
+  }
+}
+
 bootJar {
   archiveFileName = 'ccd-case-migration.jar'
   archiveBaseName = 'ccd-case-migration'
