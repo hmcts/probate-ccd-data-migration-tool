@@ -12,9 +12,11 @@ plugins {
   id 'uk.gov.hmcts.java' version '0.12.67'
 }
 
-group = 'uk.gov.hmcts.reform'
-version = '0.0.1'
-mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
+application {
+  group = 'uk.gov.hmcts.reform'
+  version = '1.0.0'
+  mainClass.set('uk.gov.hmcts.reform.migration.CaseMigrationRunner')
+}
 
 java {
   toolchain {
@@ -120,9 +122,11 @@ checkstyle {
 jacocoTestReport {
   executionData(test, integration)
   reports {
-    xml.required = true
-    csv.required = false
-    xml.destination file("${projectDir}/build/reports/jacoco/jacocoTestReport.xml")
+    xml.required.set(true)
+    csv.required.set(false)
+    xml.outputLocation.set(
+      layout.buildDirectory.file("reports/jacoco/jacocoTestReport.xml")
+    )
   }
 }
 
