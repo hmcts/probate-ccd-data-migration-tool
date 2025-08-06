@@ -209,7 +209,7 @@ dependencies {
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-  testImplementation 'com.github.hmcts:fortify-client:1.4.9:all'
+  testImplementation 'com.github.hmcts:fortify-client:1.4.10:all'
 }
 
 dependencyManagement {
@@ -236,6 +236,25 @@ dependencyManagement {
   }
 }
 
+configurations.configureEach {
+  exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
+  exclude group: 'org.springframework.boot', module: 'spring-boot-starter-security'
+  exclude group: 'org.springframework.security', module: 'spring-security-rsa'
+
+  resolutionStrategy {
+    eachDependency { details ->
+      // Resolve CVE‑2025‑48976
+      if (details.requested.name == 'commons-fileupload') {
+        details.useVersion '1.6.0'
+      }
+      // Resolve CVE-2025-48924
+      if (details.requested.group == 'org.apache.commons' && details.requested.name == 'commons-lang3') {
+        details.useVersion '3.18.0'
+      }
+    }
+  }
+}
+
 bootJar {
   archiveFileName = 'ccd-case-migration.jar'
   archiveBaseName = 'ccd-case-migration'
@@ -244,12 +263,6 @@ bootJar {
 
 wrapper {
     distributionType = Wrapper.DistributionType.ALL
-}
-
-configurations.configureEach {
-  exclude group: 'org.bouncycastle', module: 'bcprov-jdk15on'
-  exclude group: 'org.springframework.boot', module: 'spring-boot-starter-security'
-  exclude group: 'org.springframework.security', module: 'spring-security-rsa'
 }
 
 test {
