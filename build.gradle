@@ -168,7 +168,7 @@ repositories {
 
 ext {
   log4JVersion = "2.25.1"
-  lombokVersion = "1.18.38"
+  lombokVersion = "1.18.40"
   powermockVersion = '2.0.9'
   springSecurity   =  '6.5.3'
   springCloudVersion = '2025.0.0'
