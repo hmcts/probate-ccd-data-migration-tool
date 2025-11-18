@@ -170,7 +170,7 @@ ext {
   log4JVersion = "2.25.2"
   lombokVersion = "1.18.42"
   powermockVersion = '2.0.9'
-  springSecurity   =  '6.5.7'
+  springSecurity   =  '7.0.0'
   springCloudVersion = '2025.0.0'
 }
 
