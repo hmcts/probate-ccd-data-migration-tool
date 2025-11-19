@@ -8,13 +8,15 @@ plugins {
   id 'org.springframework.boot' version '3.5.7'
   id 'com.github.kt3k.coveralls' version '2.12.2'
   id 'com.github.ben-manes.versions' version '0.51.0'
-  id 'org.sonarqube' version '6.0.1.5171'
+  id 'org.sonarqube' version '6.3.0.5676'
   id 'uk.gov.hmcts.java' version '0.12.67'
 }
 
-group = 'uk.gov.hmcts.reform'
-version = '0.0.1'
-mainClassName = 'uk.gov.hmcts.reform.migration.CaseMigrationRunner'
+application {
+  group = 'uk.gov.hmcts.reform'
+  version = '1.0.0'
+  mainClass.set('uk.gov.hmcts.reform.migration.CaseMigrationRunner')
+}
 
 java {
   toolchain {
@@ -120,21 +122,25 @@ checkstyle {
 jacocoTestReport {
   executionData(test, integration)
   reports {
-    xml.required = true
-    csv.required = false
-    xml.destination file("${projectDir}/build/reports/jacoco/jacocoTestReport.xml")
+    xml.required.set(true)
+    csv.required.set(false)
+    xml.outputLocation.set(
+      layout.buildDirectory.file("reports/jacoco/jacocoTestReport.xml")
+    )
   }
 }
 
-project.tasks['sonarqube'].dependsOn jacocoTestReport
 project.tasks['check'].dependsOn integration
 
-sonarqube {
+sonar{
   properties {
     property "sonar.projectName", "probate-ccd-case-migration-tool"
     property "sonar.projectKey", "probate-ccd-case-migration-tool"
     property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/service/**/*.java,**/ccd/*.java,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${projectDir}/build/reports/jacoco/test/jacocoTestReport.xml"
+    property "sonar.jacoco.reportPath", "${layout.buildDirectory.get()}/jacoco/test.exec"
+    property "sonar.host.url", "https://sonar.reform.hmcts.net/"
+    property "sonar.pitest.mode", "reuseReport"
+    property "sonar.pitest.reportsDirectory", "build/reports/pitest"
   }
 }
 
@@ -222,16 +228,6 @@ dependencyManagement {
 
     dependencySet(group: 'commons-beanutils', version: '1.11.0') {
       entry 'commons-beanutils'
-    }
-
-    dependencySet(group: 'io.rest-assured', version: '5.5.6') {
-      entry 'json-path'
-      entry 'xml-path'
-    }
-    dependencySet(group: 'org.codehaus.groovy', version: '4.0.11') {
-      entry 'groovy'
-      entry 'groovy-xml'
-      entry 'groovy-json'
     }
   }
 }
