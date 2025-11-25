@@ -171,7 +171,7 @@ ext {
   lombokVersion = "1.18.42"
   powermockVersion = '2.0.9'
   springSecurity   =  '7.0.0'
-  springCloudVersion = '2025.0.0'
+  springCloudVersion = '2025.1.0'
 }
 
 dependencies {
