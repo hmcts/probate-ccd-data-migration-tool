@@ -12,8 +12,6 @@ import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.auth.AuthUtil;
 
-import java.util.Map;
-
 @Slf4j
 @Service
 public class CoreCaseDataService {
@@ -21,9 +19,6 @@ public class CoreCaseDataService {
     private final IdamClient idamClient;
     private final AuthTokenGenerator authTokenGenerator;
     private final CoreCaseDataApi coreCaseDataApi;
-
-    private static final String AUTO_CLOSED_EXPIRY = "autoClosedExpiry";
-    private static final String YES = "Yes";
 
     public CoreCaseDataService(
             final IdamClient idamClient,
