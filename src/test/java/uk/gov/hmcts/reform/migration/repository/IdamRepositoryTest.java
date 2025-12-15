@@ -15,7 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class IdamRepositoryTest {
+class IdamRepositoryTest {
 
     private static final String IDAM_USER_NAME = "User123";
     private static final String IDAM_PASS = "Pass";
@@ -26,12 +26,12 @@ public class IdamRepositoryTest {
     private IdamClient idamClient;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         idamRepository = new IdamRepository(IDAM_USER_NAME, IDAM_PASS, idamClient);
     }
 
     @Test
-    public void shouldGenerateUserToken() {
+    void shouldGenerateUserToken() {
         when(idamClient.getAccessToken(anyString(), anyString())).thenReturn("Test_Auth");
         String authToken = idamRepository.generateUserToken();
         verify(idamClient, times(1)).getAccessToken(IDAM_USER_NAME, IDAM_PASS);

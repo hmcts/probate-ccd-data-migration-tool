@@ -8,12 +8,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
-public class ElasticSearchRollbackQueryTest {
+class ElasticSearchRollbackQueryTest {
 
     private static final int QUERY_SIZE = 100;
 
     @Test
-    public void shouldReturnQuery() {
+    void shouldReturnQuery() {
         ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(true)
             .size(QUERY_SIZE)
@@ -38,7 +38,7 @@ public class ElasticSearchRollbackQueryTest {
     }
 
     @Test
-    public void shouldReturnSearchAfterQuery() {
+    void shouldReturnSearchAfterQuery() {
         ElasticSearchRollbackQuery elasticSearchQuery = ElasticSearchRollbackQuery.builder()
             .initialSearch(false)
             .size(QUERY_SIZE)

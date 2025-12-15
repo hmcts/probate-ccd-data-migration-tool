@@ -8,12 +8,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
-public class ElasticSearchQueryTest {
+class ElasticSearchQueryTest {
 
     private static final int QUERY_SIZE = 100;
 
     @Test
-    public void shouldReturnQuery() {
+    void shouldReturnQuery() {
         ElasticSearchQuery elasticSearchQuery = ElasticSearchQuery.builder()
             .initialSearch(true)
             .size(QUERY_SIZE)
@@ -51,7 +51,7 @@ public class ElasticSearchQueryTest {
     }
 
     @Test
-    public void shouldReturnSearchAfterQuery() {
+    void shouldReturnSearchAfterQuery() {
         ElasticSearchQuery elasticSearchQuery =  ElasticSearchQuery.builder()
             .initialSearch(false)
             .size(QUERY_SIZE)

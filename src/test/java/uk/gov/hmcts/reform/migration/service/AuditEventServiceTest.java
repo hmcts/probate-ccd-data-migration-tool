@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AuditEventServiceTest {
+class AuditEventServiceTest {
 
     private static final String USER_TOKEN = "USER_TOKEN";
     private static final String SERVICE_TOKEN = "SERVICE_TOKEN";
@@ -37,13 +37,13 @@ public class AuditEventServiceTest {
     private AuditEventService auditEventService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         when(mockCaseDataApi.getAuditEvents(USER_TOKEN, SERVICE_TOKEN, false, CASE_ID))
             .thenReturn(auditEventsResponse);
     }
 
     @Test
-    public void shouldGetAuditEventByName() {
+    void shouldGetAuditEventByName() {
         List<String> eventName = List.of(EVENT);
         AuditEvent expectedAuditEvent = AuditEvent.builder().id(EVENT).userId("123").build();
         when(mockCaseDataApi.getAuditEvents(USER_TOKEN, SERVICE_TOKEN, false, CASE_ID))
@@ -60,7 +60,7 @@ public class AuditEventServiceTest {
     }
 
     @Test
-    public void shouldReturnEmptyOptionalIfAuditEventWithNameCannotBeFound() {
+    void shouldReturnEmptyOptionalIfAuditEventWithNameCannotBeFound() {
         List<String> eventName = List.of(EVENT);
         AuditEvent expectedAuditEvent = AuditEvent.builder().id(EVENT).userId("123").build();
 

@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
-public class CaseMigrationProcessorTest {
+class CaseMigrationProcessorTest {
 
     private static final String USER_TOKEN = "Bearer eeeejjjttt";
     private static final String EVENT_ID = CaseMigrationProcessor.EVENT_ID;
@@ -51,12 +51,12 @@ public class CaseMigrationProcessorTest {
     private IdamRepository idamRepository;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         ReflectionTestUtils.setField(caseMigrationProcessor, "caseProcessLimit", 1);
     }
 
     @Test
-    public void shouldMigrateCasesOfACaseType() {
+    void shouldMigrateCasesOfACaseType() {
         when(dataMigrationService.accepts()).thenReturn(candidate -> true);
         when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
         CaseDetails details = mock(CaseDetails.class);
@@ -80,7 +80,7 @@ public class CaseMigrationProcessorTest {
     }
 
     @Test
-    public void shouldMigrateOnlyLimitedNumberOfCases() {
+    void shouldMigrateOnlyLimitedNumberOfCases() {
         when(dataMigrationService.accepts()).thenReturn(candidate -> true);
         when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
         CaseDetails details = mock(CaseDetails.class);
@@ -106,12 +106,12 @@ public class CaseMigrationProcessorTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenCaseTypeNull() {
+    void shouldThrowExceptionWhenCaseTypeNull() {
         assertThrows(CaseMigrationException.class, () -> caseMigrationProcessor.migrateCases(null));
     }
 
     @Test
-    public void shouldThrowExceptionWhenMultipleCaseTypesPassed() {
+    void shouldThrowExceptionWhenMultipleCaseTypesPassed() {
         assertThrows(CaseMigrationException.class, () ->
             caseMigrationProcessor.migrateCases("Cast_Type1,Cast_Type2"));
     }
