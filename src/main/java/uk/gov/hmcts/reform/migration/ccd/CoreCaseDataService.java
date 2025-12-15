@@ -110,14 +110,6 @@ public class CoreCaseDataService {
             return null;
         }
 
-        final Map<String, Object> updatedData = caseDetails.getData();
-
-        Object autoExpiryField = updatedData.get(AUTO_CLOSED_EXPIRY);
-        if (!isRollback && !YES.equals(autoExpiryField)) {
-            updatedData.put(AUTO_CLOSED_EXPIRY, YES);
-        }
-
-
         final Event event = Event.builder()
             .id(startEventResponse.getEventId())
             .summary(eventSummary)
@@ -127,7 +119,7 @@ public class CoreCaseDataService {
         final CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startEventResponse.getToken())
             .event(event)
-            .data(updatedData)
+            .data(caseDetails.getData())
             .build();
 
         return coreCaseDataApi.submitEventForCaseWorker(

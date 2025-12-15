@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.migration.service;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.AuditEventsResponse;
 import uk.gov.hmcts.reform.migration.client.CaseDataApiV2;
@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AuditEventServiceTest {
 
     private static final String USER_TOKEN = "USER_TOKEN";
@@ -36,7 +36,7 @@ public class AuditEventServiceTest {
     @InjectMocks
     private AuditEventService auditEventService;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         when(mockCaseDataApi.getAuditEvents(USER_TOKEN, SERVICE_TOKEN, false, CASE_ID))
             .thenReturn(auditEventsResponse);

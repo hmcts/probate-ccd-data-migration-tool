@@ -73,9 +73,9 @@ public class CaseMigrationRunner implements CommandLineRunner {
                         && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
                         log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
                             migrationrollbackStartDatetime, migrationrollbackEndDatetime);
-                        caseMigrationRollbackProcessor.processRollback("Caveat");
+                        caseMigrationRollbackProcessor.processRollback("GrantOfRepresentation");
                     } else {
-                        caseMigrationProcessor.process("Caveat");
+                        caseMigrationProcessor.process("GrantOfRepresentation");
                     }
                 }
             }

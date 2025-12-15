@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mock;
@@ -34,7 +33,6 @@ class CoreCaseDataServiceTest {
     private static final String EVENT_SUMMARY = "Migrate Case";
     private static final String EVENT_DESC = "Migrate Case";
     private static final String AUTO_CLOSED_EXPIRY = "autoClosedExpiry";
-    private static final String YES = "Yes";
 
     // Service Mocks
     private IdamClient idamClientMock;
@@ -84,10 +82,10 @@ class CoreCaseDataServiceTest {
     }
 
     @Test
-    void testShouldSetAutoClosedExpiryToYes() {
+    void testShouldNotUpdateCaseData() {
         final Long caseId = 1L;
         final Map<String, Object> caseData = Map.of(
-            AUTO_CLOSED_EXPIRY, ""
+            AUTO_CLOSED_EXPIRY, "Something"
         );
         final CaseDetails before = CaseDetails.builder()
             .id(caseId)
@@ -99,30 +97,7 @@ class CoreCaseDataServiceTest {
 
         final CaseDetails actual = underTest.update(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
 
-        assertNotNull(actual, "Expected case to be updated");
-        assertEquals(YES, actual.getData().get(AUTO_CLOSED_EXPIRY), "Expected submit date to be updated");
-    }
-
-    @Test
-    void testRollbackShouldNotSetAutoClosedExpiry() {
-        final Long caseId = 1L;
-        final Map<String, Object> caseData = Map.of(
-            AUTO_CLOSED_EXPIRY, YES
-        );
-        final CaseDetails before = CaseDetails.builder()
-            .id(caseId)
-            .jurisdiction(CASE_JURISDICTION)
-            .caseTypeId(CASE_TYPE)
-            .build();
-
-        startEventAnswer.setWantedCaseData(caseData);
-
-        final CaseDetails actual = underTest
-            .rollback(AUTH_TOKEN, EVENT_ID, EVENT_SUMMARY, EVENT_DESC, CASE_TYPE, before);
-
-        assertNotNull(actual, "Expected case to be updated");
-        assertEquals(YES, actual.getData().get(AUTO_CLOSED_EXPIRY),
-            "autoClosedExpiry should be untouched on rollback");
+        assertEquals(caseData, actual.getData(), "Expected data not updated");
     }
 
     static class StartEventAnswer implements Answer<StartEventResponse> {

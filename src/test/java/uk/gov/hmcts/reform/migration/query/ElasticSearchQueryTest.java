@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.migration.query;
 
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ElasticSearchQueryTest {
 
     private static final int QUERY_SIZE = 100;
@@ -28,18 +28,13 @@ public class ElasticSearchQueryTest {
                         {
                             "terms": {
                                 "state.keyword": [
-                                    "CaveatNotMatched",
-                                    "AwaitingCaveatResolution",
-                                    "AwaitingWarningResponse",
-                                    "WarningValidation"
+                                    "Dormant"
                                 ]
                             }
                         },
                         {
-                            "range": {
-                                "data.expiryDate": {
-                                    "lte": "now-1d/d"
-                                }
+                            "exists": {
+                                "field": "data.grantIssuedDate"
                             }
                         }
                     ]
@@ -71,18 +66,13 @@ public class ElasticSearchQueryTest {
                         {
                             "terms": {
                                 "state.keyword": [
-                                    "CaveatNotMatched",
-                                    "AwaitingCaveatResolution",
-                                    "AwaitingWarningResponse",
-                                    "WarningValidation"
+                                    "Dormant"
                                 ]
                             }
                         },
                         {
-                            "range": {
-                                "data.expiryDate": {
-                                    "lte": "now-1d/d"
-                                }
+                            "exists": {
+                                "field": "data.grantIssuedDate"
                             }
                         }
                     ]
