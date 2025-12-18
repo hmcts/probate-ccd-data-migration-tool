@@ -1,24 +1,24 @@
 package uk.gov.hmcts.reform.migration.auth;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
-public class AuthUtilTest {
+class AuthUtilTest {
 
     @Test
-    public void shouldGetBearToken() {
+    void shouldGetBearToken() {
         assertThat(AuthUtil.getBearerToken("aaaa"), is("Bearer aaaa"));
     }
 
     @Test
-    public void shouldReturnGetBearToken() {
+    void shouldReturnGetBearToken() {
         assertThat(AuthUtil.getBearerToken("Bearer aaaa"), is("Bearer aaaa"));
     }
 
     @Test
-    public void shouldReturnBlankToken() {
+    void shouldReturnBlankToken() {
         assertThat(AuthUtil.getBearerToken(""), is(""));
     }
 }

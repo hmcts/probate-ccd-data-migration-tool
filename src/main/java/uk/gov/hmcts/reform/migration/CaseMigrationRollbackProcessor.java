@@ -29,8 +29,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationRollbackProcessor {
     private static final String EVENT_ID = "boCorrection";
-    private static final String EVENT_SUMMARY = "Data migration - Rollback Caveat to previous state";
-    private static final String EVENT_DESCRIPTION = "Data migration - Rollback Caveat to previous state";
+    private static final String EVENT_SUMMARY = "Data migration - Rollback to Dormant state";
+    private static final String EVENT_DESCRIPTION = "Data migration - Rollback to Dormant state";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired

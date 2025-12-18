@@ -12,8 +12,6 @@ import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.auth.AuthUtil;
 
-import java.util.Map;
-
 @Slf4j
 @Service
 public class CoreCaseDataService {
@@ -21,9 +19,6 @@ public class CoreCaseDataService {
     private final IdamClient idamClient;
     private final AuthTokenGenerator authTokenGenerator;
     private final CoreCaseDataApi coreCaseDataApi;
-
-    private static final String AUTO_CLOSED_EXPIRY = "autoClosedExpiry";
-    private static final String YES = "Yes";
 
     public CoreCaseDataService(
             final IdamClient idamClient,
@@ -110,14 +105,6 @@ public class CoreCaseDataService {
             return null;
         }
 
-        final Map<String, Object> updatedData = caseDetails.getData();
-
-        Object autoExpiryField = updatedData.get(AUTO_CLOSED_EXPIRY);
-        if (!isRollback && !YES.equals(autoExpiryField)) {
-            updatedData.put(AUTO_CLOSED_EXPIRY, YES);
-        }
-
-
         final Event event = Event.builder()
             .id(startEventResponse.getEventId())
             .summary(eventSummary)
@@ -127,7 +114,7 @@ public class CoreCaseDataService {
         final CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startEventResponse.getToken())
             .event(event)
-            .data(updatedData)
+            .data(caseDetails.getData())
             .build();
 
         return coreCaseDataApi.submitEventForCaseWorker(

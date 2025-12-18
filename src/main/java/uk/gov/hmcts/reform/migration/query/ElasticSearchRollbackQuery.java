@@ -4,29 +4,12 @@ import lombok.Builder;
 
 @Builder
 public class ElasticSearchRollbackQuery {
-
+    //Not using ES query for rollback
     private static final String START_QUERY = """
         {
             "query": {
                 "bool": {
                     "filter": [
-                        {
-                            "range": {
-                                "data.expiryDate": {
-                                    "lte": "now-1d/d"
-                                }
-                            }
-                        },
-                        {
-                            "range": {
-                                "last_modified": {
-                                    "gte": "%s",
-                                    "lte": "%s"
-                                }
-                            }
-                        },
-                        {"term": { "state.keyword": "CaveatClosed"}},
-                        {"term": { "data.autoClosedExpiry.keyword": "Yes"}}
                     ]
                 }
             },
@@ -57,11 +40,11 @@ public class ElasticSearchRollbackQuery {
     }
 
     private String getInitialQuery() {
-        return String.format(START_QUERY, startDateTime, endDateTime, size) + END_QUERY;
+        return String.format(START_QUERY, size) + END_QUERY;
     }
 
     private String getSubsequentQuery() {
-        return String.format(START_QUERY, startDateTime, endDateTime, size) + ","
+        return String.format(START_QUERY, size) + ","
             + String.format(SEARCH_AFTER, searchAfterValue) + END_QUERY;
     }
 }

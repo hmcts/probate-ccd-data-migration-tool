@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.migration.repository;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
@@ -13,15 +13,15 @@ import uk.gov.hmcts.reform.ccd.client.model.SearchResult;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class ElasticSearchRepositoryTest {
+@ExtendWith(MockitoExtension.class)
+class ElasticSearchRepositoryTest {
 
     private static final String USER_TOKEN = "TEST_USER_TOKEN";
 
@@ -37,18 +37,13 @@ public class ElasticSearchRepositoryTest {
                     {
                         "terms": {
                             "state.keyword": [
-                                "CaveatNotMatched",
-                                "AwaitingCaveatResolution",
-                                "AwaitingWarningResponse",
-                                "WarningValidation"
+                                "Dormant"
                             ]
                         }
                     },
                     {
-                        "range": {
-                            "data.expiryDate": {
-                                "lte": "now-1d/d"
-                            }
+                        "exists": {
+                            "field": "data.grantIssuedDate"
                         }
                     }
                 ]
@@ -71,18 +66,13 @@ public class ElasticSearchRepositoryTest {
                     {
                         "terms": {
                             "state.keyword": [
-                                "CaveatNotMatched",
-                                "AwaitingCaveatResolution",
-                                "AwaitingWarningResponse",
-                                "WarningValidation"
+                                "Dormant"
                             ]
                         }
                     },
                     {
-                        "range": {
-                            "data.expiryDate": {
-                                "lte": "now-1d/d"
-                            }
+                        "exists": {
+                            "field": "data.grantIssuedDate"
                         }
                     }
                 ]
@@ -108,8 +98,8 @@ public class ElasticSearchRepositoryTest {
     @Mock
     private AuthTokenGenerator authTokenGenerator;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         elasticSearchRepository = new ElasticSearchRepository(coreCaseDataApi,
                                                               authTokenGenerator,
                                                               QUERY_SIZE,
@@ -118,7 +108,7 @@ public class ElasticSearchRepositoryTest {
     }
 
     @Test
-    public void shouldReturnSearchResultsForCaseTypeElasticSearch() {
+    void shouldReturnSearchResultsForCaseTypeElasticSearch() {
         SearchResult searchResult = mock(SearchResult.class);
         when(coreCaseDataApi.searchCases(
             USER_TOKEN,
@@ -132,7 +122,7 @@ public class ElasticSearchRepositoryTest {
     }
 
     @Test
-    public void shouldNotReturnCaseDetailsForCaseTypeWhenSearchResultIsNull() {
+    void shouldNotReturnCaseDetailsForCaseTypeWhenSearchResultIsNull() {
         when(coreCaseDataApi.searchCases(
             USER_TOKEN,
             AUTH_TOKEN,
@@ -145,7 +135,7 @@ public class ElasticSearchRepositoryTest {
     }
 
     @Test
-    public void shouldReturnSearchResultsAndCaseDetailsForCaseTypeElasticSearch() {
+    void shouldReturnSearchResultsAndCaseDetailsForCaseTypeElasticSearch() {
         SearchResult searchResult = mock(SearchResult.class);
         List<CaseDetails> caseDetails = new ArrayList<>();
         CaseDetails details = mock(CaseDetails.class);
@@ -190,7 +180,7 @@ public class ElasticSearchRepositoryTest {
     }
 
     @Test
-    public void shouldReturnOnlyInitialCaseDetailsWhenSearchAfterReturnsNullSearchResults() {
+    void shouldReturnOnlyInitialCaseDetailsWhenSearchAfterReturnsNullSearchResults() {
         SearchResult searchResult = mock(SearchResult.class);
         List<CaseDetails> caseDetails = new ArrayList<>();
         CaseDetails details = mock(CaseDetails.class);
