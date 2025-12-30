@@ -91,6 +91,7 @@ class CoreCaseDataServiceTest {
             .id(caseId)
             .jurisdiction(CASE_JURISDICTION)
             .caseTypeId(CASE_TYPE)
+            .data(caseData)
             .build();
 
         startEventAnswer.setWantedCaseData(caseData);
