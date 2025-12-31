@@ -13,18 +13,13 @@ public class ElasticSearchQuery {
                         {
                             "terms": {
                                 "state.keyword": [
-                                    "CaveatNotMatched",
-                                    "AwaitingCaveatResolution",
-                                    "AwaitingWarningResponse",
-                                    "WarningValidation"
+                                    "Dormant"
                                 ]
                             }
                         },
                         {
-                            "range": {
-                                "data.expiryDate": {
-                                    "lte": "now-1d/d"
-                                }
+                            "exists": {
+                                "field": "data.grantIssuedDate"
                             }
                         }
                     ]

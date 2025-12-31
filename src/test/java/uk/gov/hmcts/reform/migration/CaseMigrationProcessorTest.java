@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.migration;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.domain.exception.CaseMigrationException;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -26,8 +26,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
-@RunWith(MockitoJUnitRunner.class)
-public class CaseMigrationProcessorTest {
+@ExtendWith(MockitoExtension.class)
+class CaseMigrationProcessorTest {
 
     private static final String USER_TOKEN = "Bearer eeeejjjttt";
     private static final String EVENT_ID = CaseMigrationProcessor.EVENT_ID;
@@ -50,13 +50,13 @@ public class CaseMigrationProcessorTest {
     @Mock
     private IdamRepository idamRepository;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         ReflectionTestUtils.setField(caseMigrationProcessor, "caseProcessLimit", 1);
     }
 
     @Test
-    public void shouldMigrateCasesOfACaseType() {
+    void shouldMigrateCasesOfACaseType() {
         when(dataMigrationService.accepts()).thenReturn(candidate -> true);
         when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
         CaseDetails details = mock(CaseDetails.class);
@@ -80,7 +80,7 @@ public class CaseMigrationProcessorTest {
     }
 
     @Test
-    public void shouldMigrateOnlyLimitedNumberOfCases() {
+    void shouldMigrateOnlyLimitedNumberOfCases() {
         when(dataMigrationService.accepts()).thenReturn(candidate -> true);
         when(idamRepository.generateUserToken()).thenReturn(USER_TOKEN);
         CaseDetails details = mock(CaseDetails.class);
@@ -106,12 +106,12 @@ public class CaseMigrationProcessorTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenCaseTypeNull() {
+    void shouldThrowExceptionWhenCaseTypeNull() {
         assertThrows(CaseMigrationException.class, () -> caseMigrationProcessor.migrateCases(null));
     }
 
     @Test
-    public void shouldThrowExceptionWhenMultipleCaseTypesPassed() {
+    void shouldThrowExceptionWhenMultipleCaseTypesPassed() {
         assertThrows(CaseMigrationException.class, () ->
             caseMigrationProcessor.migrateCases("Cast_Type1,Cast_Type2"));
     }
