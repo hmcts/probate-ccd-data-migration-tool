@@ -134,7 +134,7 @@ sonarqube {
     property "sonar.projectName", "probate-ccd-case-migration-tool"
     property "sonar.projectKey", "probate-ccd-case-migration-tool"
     property "sonar.exclusions", "**/exception/*.java,**/domain/*.java,**/common/*.java,**/repository/*.java,**/service/**/*.java,**/ccd/*.java,**/migration/auth/AuthTokenGeneratorConfiguration.java,**/migration/*.java,**/ccd/HttpMessageConverterConfiguration.java,**/migration/query/ElasticSearchRollbackQuery.java"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${projectDir}/build/reports/jacoco/test/jacocoTestReport.xml"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${projectDir}/build/reports/jacoco/jacocoTestReport.xml"
   }
 }
 
@@ -184,6 +184,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.2.0'
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '7.0.0'
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '9.0'
+  implementation group: 'org.json', name: 'json', version: '20251224'
 
   implementation group: 'org.apache.commons', name: 'commons-csv', version: '1.14.1'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4JVersion
