@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.reform.domain.exception.AuthenticationException;
 import uk.gov.hmcts.reform.idam.client.IdamClient;
+import uk.gov.hmcts.reform.idam.client.models.TokenResponse;
 import uk.gov.hmcts.reform.idam.client.models.User;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 
 @Repository
 @Slf4j
@@ -37,6 +39,19 @@ public class IdamRepository {
         }
         log.info("Authenticating user name {}", this.idamUsername);
         return idamClient.getAccessToken(idamUsername, idamPassword);
+    }
+
+    public UserToken generateUserTokenObject() {
+        if (this.idamUsername == null || this.idamUsername.isBlank()) {
+            throw new AuthenticationException("idam.username property can't be empty");
+        }
+        if (this.idamPassword == null || this.idamPassword.isBlank()) {
+            throw new AuthenticationException("idam.password property can't be empty");
+        }
+        log.info("Authenticating user name {}", this.idamUsername);
+        final TokenResponse tokenResponse = idamClient.getAccessTokenResponse(idamUsername, idamPassword);
+
+        return new UserToken(tokenResponse);
     }
 
     public User authenticateUser() {
