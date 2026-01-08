@@ -3,14 +3,10 @@ package uk.gov.hmcts.reform.migration.reimpl.dtspb5005;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONString;
 import org.springframework.stereotype.Component;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
@@ -188,8 +184,8 @@ public class Dtspb5005ElasticQueries {
     private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
     public JSONObject getGorMigrationQuery(
-        final Integer size,
-        final Optional<Long> fromReference) {
+            final Integer size,
+            final Optional<Long> fromReference) {
         Objects.requireNonNull(size);
         Objects.requireNonNull(fromReference);
 
@@ -210,8 +206,8 @@ public class Dtspb5005ElasticQueries {
     }
 
     public JSONObject getCaveatMigrationQuery(
-        final Integer size,
-        final Optional<Long> fromReference) {
+            final Integer size,
+            final Optional<Long> fromReference) {
         Objects.requireNonNull(size);
         Objects.requireNonNull(fromReference);
 

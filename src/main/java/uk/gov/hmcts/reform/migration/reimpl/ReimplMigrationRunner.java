@@ -2,13 +2,10 @@ package uk.gov.hmcts.reform.migration.reimpl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.migration.repository.IdamRepository;
+import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
-import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
-import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
+import uk.gov.hmcts.reform.migration.reimpl.service.AuthenticationProvider;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.util.ArrayDeque;
@@ -27,22 +24,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class ReimplMigrationRunner {
 
-    private final IdamRepository idamRepository;
-    private final AuthTokenGenerator authTokenGenerator;
-
     private final ReimplConfig reimplConfig;
+
+    private final AuthenticationProvider authenticationProvider;
 
     private final Map<String, MigrationHandler> migrationHandlers;
 
     public ReimplMigrationRunner(
-            final IdamRepository idamRepository,
-            final AuthTokenGenerator authTokenGenerator,
             final ReimplConfig reimplConfig,
+            final AuthenticationProvider authenticationProvider,
             final Map<String, MigrationHandler> migrationHandlers) {
-        this.idamRepository = Objects.requireNonNull(idamRepository);
-        this.authTokenGenerator = Objects.requireNonNull(authTokenGenerator);
-
         this.reimplConfig = Objects.requireNonNull(reimplConfig);
+        this.authenticationProvider = Objects.requireNonNull(authenticationProvider);
         this.migrationHandlers = Objects.requireNonNull(migrationHandlers);
     }
 
@@ -53,7 +46,6 @@ public class ReimplMigrationRunner {
 
         final ExecutorService executorService = Executors.newFixedThreadPool(reimplConfig.getDefaultThreadlimit());
 
-        // TODO get this properly
         final String migrationId = reimplConfig.getMigrationId();
         final MigrationHandler migrationHandler = migrationHandlers.get(migrationId);
         if (migrationHandler == null) {
@@ -62,19 +54,16 @@ public class ReimplMigrationRunner {
         }
         log.info("{}: Starting migration", migrationId);
 
-        final UserToken userToken = idamRepository.generateUserTokenObject();
-        final S2sToken s2sToken = new S2sToken(authTokenGenerator.generate());
-
-        final Set<CaseSummary> candidateCaseReferences = migrationHandler.getCandidateCases(userToken, s2sToken);
+        final Set<CaseSummary> candidateCaseReferences = migrationHandler.getCandidateCases(
+                authenticationProvider.getUserToken(),
+                authenticationProvider.getS2sToken());
         log.info("{}: Identified {} candidate cases for migration", migrationId, candidateCaseReferences.size());
 
         Queue<MigrationTask> taskQueue = new ArrayDeque<>(candidateCaseReferences.size());
         for (final CaseSummary caseSummary : candidateCaseReferences) {
             final Future<MigrationState> task = executorService.submit(() -> runMigration(
                     migrationHandler,
-                    caseSummary,
-                    userToken,
-                    s2sToken));
+                    caseSummary));
             taskQueue.add(new MigrationTask(caseSummary, task, new AtomicInteger(0)));
         }
         log.info("{}: Finished queuing migration tasks", migrationId);
@@ -126,30 +115,22 @@ public class ReimplMigrationRunner {
 
     private MigrationState runMigration(
             final MigrationHandler migrationHandler,
-            final CaseSummary caseSummary,
-            final UserToken userToken,
-            final S2sToken s2sToken) {
-        final StartEventResponse startEventResponse = migrationHandler.startEventForCase(
+            final CaseSummary caseSummary) {
+        final MigrationEvent migrationEvent = migrationHandler.startEventForCase(
                 caseSummary,
-                userToken,
-                s2sToken);
-        if (startEventResponse == null) {
+                authenticationProvider.getUserToken(),
+                authenticationProvider.getS2sToken());
+        if (migrationEvent.startEventResponse() == null) {
             log.error("{}: event not started for {} case {}",
                     reimplConfig.getMigrationId(),
                     caseSummary.type(),
                     caseSummary.reference());
             return MigrationState.FAILED;
         }
-        final boolean shouldMigrate = migrationHandler.shouldMigrateCase(
-                caseSummary,
-                startEventResponse);
+        final boolean shouldMigrate = migrationHandler.shouldMigrateCase(migrationEvent);
 
         if (shouldMigrate) {
-            final boolean migrationSuccess = migrationHandler.migrate(
-                    caseSummary,
-                    startEventResponse,
-                    userToken,
-                    s2sToken);
+            final boolean migrationSuccess = migrationHandler.migrate(migrationEvent);
             if (migrationSuccess) {
                 return MigrationState.SUCCESS;
             } else {
