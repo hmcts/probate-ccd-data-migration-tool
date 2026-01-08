@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.TokenResponse;
 import uk.gov.hmcts.reform.idam.client.models.User;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.idam.client.models.UserInfo;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 
 @Repository
@@ -51,7 +52,11 @@ public class IdamRepository {
         log.info("Authenticating user name {}", this.idamUsername);
         final TokenResponse tokenResponse = idamClient.getAccessTokenResponse(idamUsername, idamPassword);
 
-        return new UserToken(tokenResponse);
+        final UserDetails userDetails = idamClient.getUserDetails(tokenResponse.accessToken);
+
+        idamClient.getAccessToken()
+
+        return new UserToken(tokenResponse, userDetails);
     }
 
     public User authenticateUser() {

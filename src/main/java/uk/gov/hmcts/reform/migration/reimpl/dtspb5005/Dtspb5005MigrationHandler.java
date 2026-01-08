@@ -9,12 +9,13 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.SearchResult;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
-import uk.gov.hmcts.reform.idam.client.IdamClient;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
+import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
+import uk.gov.hmcts.reform.migration.reimpl.service.AuthenticationProvider;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.util.HashMap;
@@ -29,7 +30,6 @@ import java.util.Set;
 @Slf4j
 public class Dtspb5005MigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
-    private final IdamClient idamClient;
 
     private final Dtspb5005Config config;
     private final Dtspb5005ElasticQueries elasticQueries;
@@ -44,11 +44,9 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
 
     public Dtspb5005MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
-            final IdamClient idamClient,
             final Dtspb5005Config config,
             final Dtspb5005ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
-        this.idamClient = Objects.requireNonNull(idamClient);
 
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
@@ -69,22 +67,21 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
 
     private record EventDetails(String caseType, String eventId) {};
     @Override
-    public StartEventResponse startEventForCase(
+    public MigrationEvent startEventForCase(
             final CaseSummary caseSummary,
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-         final EventDetails eventDetails = switch (caseSummary.type()) {
+        final EventDetails eventDetails = switch (caseSummary.type()) {
             case GRANT_OF_REPRESENTATION -> new EventDetails(
-                    "GrantOfRepresentation",
+                    GRANT_OF_REPRESENTATION,
                     "boHistoryCorrection");
             case CAVEAT -> new EventDetails(
-                    "Caveat",
+                    CAVEAT,
                     "boHistoryCorrection");
         };
 
-
-        final UserDetails userDetails = idamClient.getUserDetails(userToken.getBearerToken());
+        final UserDetails userDetails = userToken.userDetails();
 
         log.info("DTSPB-5005 start event for GoR case {}", caseSummary.reference());
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
@@ -96,14 +93,18 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 caseSummary.reference().toString(),
                 eventDetails.eventId());
 
-        return startEventResponse;
+        return new MigrationEvent(
+                caseSummary,
+                startEventResponse,
+                userToken,
+                s2sToken);
     }
 
     @Override
     public boolean shouldMigrateCase(
-            final CaseSummary caseSummary,
-            final StartEventResponse startEventResponse) {
-        final CaseDetails caseDetails = startEventResponse.getCaseDetails();
+            final MigrationEvent migrationEvent) {
+        final CaseSummary caseSummary = migrationEvent.caseSummary();
+        final CaseDetails caseDetails = migrationEvent.startEventResponse().getCaseDetails();
         if (caseDetails == null) {
             log.error("DTSPB-5005: No case details present in startEventResponse for {} case {}",
                     caseSummary.type(),
@@ -130,12 +131,10 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
 
     @Override
     public boolean migrate(
-            final CaseSummary caseSummary,
-            final StartEventResponse startEventResponse,
-            final UserToken userToken,
-            final S2sToken s2sToken) {
+            final MigrationEvent migrationEvent) {
+        final CaseSummary caseSummary = migrationEvent.caseSummary();
+        final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
 
-        final UserDetails userDetails = idamClient.getUserDetails(userToken.getBearerToken());
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
 
         final Map<String, Object> migratedData = caseDetails.getData();
@@ -179,10 +178,13 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                     caseSummary.reference());
             return true;
         }
+        // We use the authentication provided in the MigrationEvent to ensure
+        // that we don't start events with one set of authentication tokens
+        // and then submit them with another.
         final CaseDetails result = coreCaseDataApi.submitEventForCaseWorker(
-                userToken.getBearerToken(),
-                s2sToken.s2sToken(),
-                userDetails.getId(),
+                migrationEvent.userToken().getBearerToken(),
+                migrationEvent.s2sToken().s2sToken(),
+                migrationEvent.userToken().userDetails().getId(),
                 caseDetails.getJurisdiction(),
                 caseDetails.getCaseTypeId(),
                 caseDetails.getId().toString(),
