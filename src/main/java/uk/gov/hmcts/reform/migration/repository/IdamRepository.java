@@ -54,8 +54,6 @@ public class IdamRepository {
 
         final UserDetails userDetails = idamClient.getUserDetails(tokenResponse.accessToken);
 
-        idamClient.getAccessToken()
-
         return new UserToken(tokenResponse, userDetails);
     }
 
