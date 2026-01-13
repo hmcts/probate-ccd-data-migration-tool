@@ -1,22 +1,31 @@
-package uk.gov.hmcts.reform.migration.reimpl.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
 
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.util.Date;
 
 @Configuration
 @PropertySource("classpath:application.properties")
 public class Dtspb5005Config {
     private final int querySize;
     private final boolean dryRun;
+    private final LocalDate rollbackDate;
 
     public Dtspb5005Config(
             @Value("${dtspb5005.query_size}")
             final int querySize,
             @Value("${dtspb5005.dry_run}")
-            final boolean dryRun) {
+            final boolean dryRun,
+            @Value("${dtspb5005.rollback_date}")
+            final String rollbackDate) {
         this.querySize = querySize;
         this.dryRun = dryRun;
+        this.rollbackDate = LocalDate.parse(rollbackDate);
     }
 
     public int getQuerySize() {
@@ -25,5 +34,9 @@ public class Dtspb5005Config {
 
     public boolean isDryRun() {
         return dryRun;
+    }
+
+    public LocalDate getRollbackDate() {
+        return rollbackDate;
     }
 }

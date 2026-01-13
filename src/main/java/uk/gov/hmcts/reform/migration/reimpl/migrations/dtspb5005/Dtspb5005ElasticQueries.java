@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.migration.reimpl.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -78,6 +78,13 @@ public class Dtspb5005ElasticQueries {
                                 "data.paperForm": [
                                     "Yes"
                                 ]
+                            }
+                        },
+                        {
+                            "range": {
+                                "created_date": {
+                                    "gte": "2025-01-01T00:00:00Z"
+                                }
                             }
                         }
                     ],
@@ -164,6 +171,13 @@ public class Dtspb5005ElasticQueries {
                             }
                         },
                         {
+                            "range": {
+                                "created_date": {
+                                    "gte": "2025-01-01T00:00:00Z"
+                                }
+                            }
+                        },
+                        {
                             "exists": {
                                 "field": "data.applicantOrganisationPolicy"
                             }
@@ -181,8 +195,6 @@ public class Dtspb5005ElasticQueries {
         }
         """;
 
-    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-
     public JSONObject getGorMigrationQuery(
             final Integer size,
             final Optional<Long> fromReference) {
@@ -199,7 +211,9 @@ public class Dtspb5005ElasticQueries {
         migrationQuery.put("size", size);
 
         if (fromReference.isPresent()) {
-            migrationQuery.put("search_after", fromReference.get());
+            JSONArray fromReferenceArray = new JSONArray();
+            fromReferenceArray.put(fromReference.get());
+            migrationQuery.put("search_after", fromReferenceArray);
         }
 
         return migrationQuery;
@@ -221,7 +235,9 @@ public class Dtspb5005ElasticQueries {
         migrationQuery.put("size", size);
 
         if (fromReference.isPresent()) {
-            migrationQuery.put("search_after", fromReference.get());
+            JSONArray fromReferenceArray = new JSONArray();
+            fromReferenceArray.put(fromReference.get());
+            migrationQuery.put("search_after", fromReferenceArray);
         }
 
         return migrationQuery;
@@ -229,7 +245,7 @@ public class Dtspb5005ElasticQueries {
 
     public JSONObject getGorRollbackQuery(
             final Integer size,
-            final Date migrationDate,
+            final LocalDate migrationDate,
             final Optional<Long> fromReference) {
         Objects.requireNonNull(size);
         Objects.requireNonNull(migrationDate);
@@ -245,7 +261,9 @@ public class Dtspb5005ElasticQueries {
         rollbackQuery.put("size", size);
 
         if (fromReference.isPresent()) {
-            rollbackQuery.put("search_after", fromReference.get());
+            JSONArray fromReferenceArray = new JSONArray();
+            fromReferenceArray.put(fromReference.get());
+            rollbackQuery.put("search_after", fromReferenceArray);
         }
 
         final JSONObject lastModifiedFilter = lastModifiedFilter(migrationDate);
@@ -260,7 +278,7 @@ public class Dtspb5005ElasticQueries {
 
     public JSONObject getCaveatRollbackQuery(
             final Integer size,
-            final Date migrationDate,
+            final LocalDate migrationDate,
             final Optional<Long> fromReference) {
         Objects.nonNull(size);
         Objects.requireNonNull(migrationDate);
@@ -276,7 +294,9 @@ public class Dtspb5005ElasticQueries {
         rollbackQuery.put("size", size);
 
         if (fromReference.isPresent()) {
-            rollbackQuery.put("search_after", fromReference.get());
+            JSONArray fromReferenceArray = new JSONArray();
+            fromReferenceArray.put(fromReference.get());
+            rollbackQuery.put("search_after", fromReferenceArray);
         }
 
         final JSONObject lastModifiedFilter = lastModifiedFilter(migrationDate);
@@ -289,11 +309,11 @@ public class Dtspb5005ElasticQueries {
         return rollbackQuery;
     }
 
-    JSONObject lastModifiedFilter(final Date migrationDate) {
+    JSONObject lastModifiedFilter(final LocalDate migrationDate) {
         final JSONObject lastModifiedFilter = new JSONObject();
         final JSONObject range = new JSONObject();
         final JSONObject lastModified = new JSONObject();
-        final String migrationDateStr = dateFormat.format(migrationDate);
+        final String migrationDateStr = migrationDate.toString();
 
         lastModifiedFilter.put("range", range);
         range.put("last_modified", lastModified);

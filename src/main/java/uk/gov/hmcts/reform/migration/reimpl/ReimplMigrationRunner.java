@@ -18,6 +18,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -44,62 +45,64 @@ public class ReimplMigrationRunner {
         final Set<CaseSummary> failedMigrations = new HashSet<>();
         final Set<CaseSummary> skippedMigrations = new HashSet<>();
 
-        final ExecutorService executorService = Executors.newFixedThreadPool(reimplConfig.getDefaultThreadlimit());
+        try (final ExecutorService executorService = Executors.newFixedThreadPool(
+                reimplConfig.getDefaultThreadlimit())) {
 
-        final String migrationId = reimplConfig.getMigrationId();
-        final MigrationHandler migrationHandler = migrationHandlers.get(migrationId);
-        if (migrationHandler == null) {
-            log.error("{}: No migration handler found", migrationId);
-            throw new IllegalStateException("No migration handler found for " + migrationId);
-        }
-        log.info("{}: Starting migration", migrationId);
-
-        final Set<CaseSummary> candidateCaseReferences = migrationHandler.getCandidateCases(
-                authenticationProvider.getUserToken(),
-                authenticationProvider.getS2sToken());
-        log.info("{}: Identified {} candidate cases for migration", migrationId, candidateCaseReferences.size());
-
-        Queue<MigrationTask> taskQueue = new ArrayDeque<>(candidateCaseReferences.size());
-        for (final CaseSummary caseSummary : candidateCaseReferences) {
-            final Future<MigrationState> task = executorService.submit(() -> runMigration(
-                    migrationHandler,
-                    caseSummary));
-            taskQueue.add(new MigrationTask(caseSummary, task, new AtomicInteger(0)));
-        }
-        log.info("{}: Finished queuing migration tasks", migrationId);
-
-        while (!taskQueue.isEmpty()) {
-            final MigrationTask migrationTask = taskQueue.poll();
-            final CaseSummary caseSummary = migrationTask.caseSummary;
-            final Future<MigrationState> future = migrationTask.task;
-            if (future.isDone()) {
-                try {
-                    final MigrationState result = future.get();
-                    switch (result) {
-                        case SUCCESS -> log.info("{}: Successfully migrated case: {}", migrationId, caseSummary);
-                        case FAILED -> {
-                            log.warn("{}: Migration failed for case: {}", migrationId, caseSummary);
-                            failedMigrations.add(caseSummary);
-                        }
-                        case SKIPPED -> {
-                            log.info("{}: Migration skipped for case: {}", migrationId, caseSummary);
-                            skippedMigrations.add(caseSummary);
-                        }
-                    }
-                } catch (ExecutionException e) {
-                    log.error("{}: Exception executing task for case: {}", migrationId, caseSummary, e.getCause());
-                    exceptionMigrations.add(caseSummary);
-                } catch (InterruptedException e) {
-                    log.error("{}: Task interrupted for case: {}", migrationId, caseSummary, e);
-                    exceptionMigrations.add(caseSummary);
-                }
-            } else {
-                final Integer waitCount = migrationTask.counter.incrementAndGet();
-                log.info("{}: case migration for {} incomplete, checked {} times", migrationId, caseSummary, waitCount);
-                taskQueue.add(migrationTask);
+            final String migrationId = reimplConfig.getMigrationId();
+            final MigrationHandler migrationHandler = migrationHandlers.get(migrationId);
+            if (migrationHandler == null) {
+                log.error("{}: No migration handler found", migrationId);
+                throw new IllegalStateException("No migration handler found for " + migrationId);
             }
+            log.info("{}: Starting migration", migrationId);
+
+            final Set<CaseSummary> candidateCaseReferences = migrationHandler.getCandidateCases(
+                    authenticationProvider.getUserToken(),
+                    authenticationProvider.getS2sToken());
+            log.info("{}: Identified {} candidate cases for migration", migrationId, candidateCaseReferences.size());
+
+            Queue<MigrationTask> taskQueue = new ArrayDeque<>(candidateCaseReferences.size());
+            for (final CaseSummary caseSummary : candidateCaseReferences) {
+                final Future<MigrationState> task = executorService.submit(() -> runMigration(
+                        migrationHandler,
+                        caseSummary));
+                taskQueue.add(new MigrationTask(caseSummary, task, new AtomicInteger(0)));
+            }
+            log.info("{}: Finished queuing migration tasks", migrationId);
+
+            while (!taskQueue.isEmpty()) {
+                final MigrationTask migrationTask = taskQueue.poll();
+                final CaseSummary caseSummary = migrationTask.caseSummary;
+                final Future<MigrationState> future = migrationTask.task;
+                if (future.isDone()) {
+                    try {
+                        final MigrationState result = future.get();
+                        switch (result) {
+                            case SUCCESS -> log.info("{}: Successfully migrated case: {}", migrationId, caseSummary);
+                            case FAILED -> {
+                                log.warn("{}: Migration failed for case: {}", migrationId, caseSummary);
+                                failedMigrations.add(caseSummary);
+                            }
+                            case SKIPPED -> {
+                                log.info("{}: Migration skipped for case: {}", migrationId, caseSummary);
+                                skippedMigrations.add(caseSummary);
+                            }
+                        }
+                    } catch (ExecutionException e) {
+                        log.error("{}: Exception executing task for case: {}", migrationId, caseSummary, e.getCause());
+                        exceptionMigrations.add(caseSummary);
+                    } catch (InterruptedException e) {
+                        log.error("{}: Task interrupted for case: {}", migrationId, caseSummary, e);
+                        exceptionMigrations.add(caseSummary);
+                    }
+                } else {
+                    final Integer waitCount = migrationTask.counter.incrementAndGet();
+//.                   log.info("{}: case migration for {} incomplete, checked {} times", migrationId, caseSummary, waitCount);
+                    taskQueue.add(migrationTask);
+                }
+            }
+            log.info("{}: Finished waiting for migration tasks", migrationId);
         }
-        log.info("{}: Finished waiting for migration tasks", migrationId);
 
         // TODO reporting?
     }

@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.migration.reimpl.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
-import uk.gov.hmcts.reform.migration.reimpl.service.AuthenticationProvider;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.util.HashMap;
@@ -39,8 +38,8 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
     private final static String JURISDICTION = "PROBATE";
     private static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
 
-    private static final String EVENT_SUMMARY = "DTSPB-5005 - Add metadata for Notice of Change";
-    private static final String EVENT_DESCRIPTION = "Add metadata for Notice of Change";
+    static final String EVENT_SUMMARY = "DTSPB-5005 - Add metadata for Notice of Change";
+    static final String EVENT_DESCRIPTION = "Add metadata for Notice of Change";
 
     public Dtspb5005MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
@@ -50,7 +49,6 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
 
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
-
     }
 
     @Override
@@ -83,7 +81,9 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
 
         final UserDetails userDetails = userToken.userDetails();
 
-        log.info("DTSPB-5005 start event for GoR case {}", caseSummary.reference());
+        log.info("DTSPB-5005 start event for {} case {}",
+                eventDetails.caseType(),
+                caseSummary.reference());
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
                 userToken.getBearerToken(),
                 s2sToken.s2sToken(),
@@ -240,16 +240,18 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                         GRANT_OF_REPRESENTATION,
                         trailingGorQuery.toString());
 
-                if (trailingGorSearchResult != null && trailingGorSearchResult.getTotal() > 0) {
+                if (trailingGorSearchResult != null) {
                     final List<CaseDetails> trailingGorCases = trailingGorSearchResult.getCases();
                     log.info("DTSPB-5005 trailing GoR case search found {} cases", trailingGorCases.size());
 
                     // should this be .size() < config.querySize ?
-                    keepSearching = trailingGorCases.isEmpty();
-                    for (final CaseDetails c : trailingGorCases) {
-                        candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
+                    keepSearching = !trailingGorCases.isEmpty();
+                    if (keepSearching) {
+                        for (final CaseDetails c : trailingGorCases) {
+                            candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
+                        }
+                        highestCaseRef = trailingGorCases.getLast().getId();
                     }
-                    highestCaseRef = trailingGorCases.getLast().getId();
                 } else {
                     keepSearching = false;
                     log.info("DTSPB-5005 trailing GoR case search found no cases");
@@ -299,16 +301,18 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                         CAVEAT,
                         trailingCaveatQuery.toString());
 
-                if (trailingCaveatSearchResult != null && trailingCaveatSearchResult.getTotal() > 0) {
+                if (trailingCaveatSearchResult != null) {
                     final List<CaseDetails> trailingCaveatCases = trailingCaveatSearchResult.getCases();
                     log.info("DTSPB-5005 trailing Caveat case search found {} cases", trailingCaveatCases.size());
 
                     // should this be .size() < config.querySize ?
-                    keepSearching = trailingCaveatCases.isEmpty();
-                    for (final CaseDetails c : trailingCaveatCases) {
-                        candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
+                    keepSearching = !trailingCaveatCases.isEmpty();
+                    if (keepSearching) {
+                        for (final CaseDetails c : trailingCaveatCases) {
+                            candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
+                        }
+                        highestCaseRef = trailingCaveatCases.getLast().getId();
                     }
-                    highestCaseRef = trailingCaveatCases.getLast().getId();
                 } else {
                     keepSearching = false;
                     log.info("DTSPB-5005 trailing Caveat case search found no cases");
