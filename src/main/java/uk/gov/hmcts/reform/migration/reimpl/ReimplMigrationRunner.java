@@ -40,12 +40,14 @@ public class ReimplMigrationRunner {
     }
 
     public void runMigrations() {
+        final Set<CaseSummary> successfulMigrations = new HashSet<>();
         final Set<CaseSummary> exceptionMigrations = new HashSet<>();
         final Set<CaseSummary> failedMigrations = new HashSet<>();
         final Set<CaseSummary> skippedMigrations = new HashSet<>();
 
+        final String migrationId = reimplConfig.getMigrationId();
+
         try (final ExecutorService executorService = reimplConfig.getNewExecutor()) {
-            final String migrationId = reimplConfig.getMigrationId();
             final MigrationHandler migrationHandler = migrationHandlers.get(migrationId);
             if (migrationHandler == null) {
                 log.error("{}: No migration handler found", migrationId);
@@ -90,10 +92,11 @@ public class ReimplMigrationRunner {
                             final MigrationState result = future.get();
                             // this value is never used - it's only present to enforce that this is a switch expression
                             // and thus prevent the style warning from a switch statement not having a default handler.
+                            @SuppressWarnings("java:S1481")
                             final boolean r = switch (result) {
                                 case SUCCESS -> {
                                     log.info("{}: Successfully migrated case: {}", migrationId, caseSummary);
-                                    yield true;
+                                    yield successfulMigrations.add(caseSummary);
                                 }
                                 case FAILED -> {
                                     log.warn("{}: Migration failed for case: {}", migrationId, caseSummary);
@@ -123,7 +126,16 @@ public class ReimplMigrationRunner {
             log.info("{}: Finished waiting for migration tasks", migrationId);
         }
 
-        // TODO reporting?
+        log.info("{}: Successfully migrated {} cases", migrationId, successfulMigrations.size());
+        log.info("{}: Skipped migrating {} cases", migrationId, skippedMigrations.size());
+        log.info("{}: Failed to migrate {} cases", migrationId, failedMigrations.size());
+        for (final CaseSummary caseSummary : failedMigrations) {
+            log.info("{}: Failed migrating case: {}", migrationId, caseSummary);
+        }
+        log.info("{}: Exception when migrating {} cases", migrationId, exceptionMigrations.size());
+        for (final CaseSummary caseSummary : exceptionMigrations) {
+            log.info("{}: Exception migrating case: {}", migrationId, caseSummary);
+        }
     }
 
     private record MigrationTask(CaseSummary caseSummary, Future<MigrationState> task, AtomicInteger counter) {}
