@@ -1,13 +1,10 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
 
-import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import java.text.ParseException;
 import java.time.LocalDate;
-import java.util.Date;
 
 @Configuration
 @PropertySource("classpath:application.properties")

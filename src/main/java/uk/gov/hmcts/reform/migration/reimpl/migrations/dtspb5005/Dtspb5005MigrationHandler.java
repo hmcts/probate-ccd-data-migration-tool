@@ -33,9 +33,9 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
     private final Dtspb5005Config config;
     private final Dtspb5005ElasticQueries elasticQueries;
 
-    private final static String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
-    private final static String CAVEAT = "Caveat";
-    private final static String JURISDICTION = "PROBATE";
+    private static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
+    private static final String CAVEAT = "Caveat";
+    private static final String JURISDICTION = "PROBATE";
     private static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
 
     static final String EVENT_SUMMARY = "DTSPB-5005 - Add metadata for Notice of Change";
@@ -63,7 +63,6 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
         return candidateCases;
     }
 
-    private record EventDetails(String caseType, String eventId) {};
     @Override
     public MigrationEvent startEventForCase(
             final CaseSummary caseSummary,
@@ -323,4 +322,6 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
         }
         return candidateCaveatCases;
     }
+
+    private record EventDetails(String caseType, String eventId) {}
 }

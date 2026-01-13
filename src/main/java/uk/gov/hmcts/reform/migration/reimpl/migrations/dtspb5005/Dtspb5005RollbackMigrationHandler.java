@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.NotImplementedException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CaseEventsApi;
@@ -36,9 +35,9 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     private final Dtspb5005Config config;
     private final Dtspb5005ElasticQueries elasticQueries;
 
-    private final static String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
-    private final static String CAVEAT = "Caveat";
-    private final static String JURISDICTION = "PROBATE";
+    private static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
+    private static final String CAVEAT = "Caveat";
+    private static final String JURISDICTION = "PROBATE";
     private static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
 
     private static final String EVENT_SUMMARY = "DTSPB-5005 - Rollback adding metadata for Notice of Change";
@@ -68,7 +67,6 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         return candidateCases;
     }
 
-    private record EventDetails(String caseType, String eventId) {};
     @Override
     public MigrationEvent startEventForCase(
         final CaseSummary caseSummary,
@@ -321,7 +319,8 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
                 if (trailingCaveatSearchResult != null) {
                     final List<CaseDetails> trailingCaveatCases = trailingCaveatSearchResult.getCases();
-                    log.info("DTSPB-5005_rollback trailing Caveat case search found {} cases", trailingCaveatCases.size());
+                    log.info("DTSPB-5005_rollback trailing Caveat case search found {} cases",
+                            trailingCaveatCases.size());
 
                     // should this be .size() < config.querySize ?
                     keepSearching = !trailingCaveatCases.isEmpty();
@@ -342,4 +341,5 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         return candidateCaveatCases;
     }
 
+    private record EventDetails(String caseType, String eventId) {}
 }

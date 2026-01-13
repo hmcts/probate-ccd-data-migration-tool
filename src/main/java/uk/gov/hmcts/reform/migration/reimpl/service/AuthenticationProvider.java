@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.migration.reimpl.service;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
@@ -8,11 +7,9 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.repository.IdamRepository;
 
-import java.lang.ref.Reference;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 public class AuthenticationProvider {

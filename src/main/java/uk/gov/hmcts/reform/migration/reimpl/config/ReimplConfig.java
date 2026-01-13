@@ -12,6 +12,8 @@ import java.time.Clock;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @PropertySource("classpath:application.properties")
 @Configuration
@@ -36,10 +38,6 @@ public class ReimplConfig {
         this.s2sTokenRefreshMargin = Duration.ofMinutes(s2sTokenRefreshMarginMins);
     }
 
-    public int getDefaultThreadlimit() {
-        return defaultThreadlimit;
-    }
-
     public String getMigrationId() {
         return migrationId;
     }
@@ -50,6 +48,15 @@ public class ReimplConfig {
 
     public Duration getS2sTokenRefreshMargin() {
         return s2sTokenRefreshMargin;
+    }
+
+    /**
+     * Creates and returns a NEW ExecutorService on each call. The caller MUST close it (e.g. by using a
+     * try-with-resources when requesting it).
+     * @return A new ExecutorService instance which will accept tasks.
+     */
+    public ExecutorService getNewExecutor() {
+        return Executors.newFixedThreadPool(defaultThreadlimit);
     }
 
     @Bean
