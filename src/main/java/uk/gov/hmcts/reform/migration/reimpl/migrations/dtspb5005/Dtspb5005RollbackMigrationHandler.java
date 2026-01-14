@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -141,8 +142,15 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 caseDetails.getCaseTypeId(),
                 caseDetails.getId().toString());
 
-        final boolean hasDtspb5005Migration = caseEvents.stream().anyMatch(this::findDtspb5005MigrationEvent);
-        return hasDtspb5005Migration;
+        final List<CaseEventDetail> migrationEvents = caseEvents.stream()
+                .filter(this::findDtspb5005MigrationEvent)
+                .collect(Collectors.toUnmodifiableList());
+
+        log.info("DTSPB-5005_rollback: found {} migration events for {} case {}",
+                migrationEvents.size(),
+                caseSummary.type(),
+                caseSummary.reference());
+        return !migrationEvents.isEmpty();
     }
 
     private boolean findDtspb5005MigrationEvent(final CaseEventDetail caseEventDetail) {
