@@ -18,15 +18,4 @@ public enum CaseType {
     public String getCcdValue() {
         return this.ccdValue;
     }
-
-    public static CaseType fromCcdValue(String ccdValue) {
-        for (CaseType caseType : CaseType.values()) {
-            if (caseType.ccdValue.equals(ccdValue)) {
-                return caseType;
-            }
-        }
-        final var ex = new IllegalArgumentException("Invalid case type value: " + ccdValue);
-        log.error("Case type not found", ex);
-        throw ex;
-    }
 }
