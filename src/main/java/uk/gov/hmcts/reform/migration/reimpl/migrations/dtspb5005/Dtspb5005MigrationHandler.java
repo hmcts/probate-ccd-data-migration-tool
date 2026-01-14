@@ -108,7 +108,8 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
             log.error("DTSPB-5005: No case details present in startEventResponse for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
-            throw new RuntimeException("No case details present in startEventResponse for " + caseSummary.reference());
+            throw new Dtspb5005MigrationException(
+                    "No case details present in startEventResponse for " + caseSummary.reference());
         }
 
         final Map<String, Object> caseData = caseDetails.getData();
@@ -116,7 +117,8 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
             log.error("DTSPB-5005: No case data present in startEventResponse for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
-            throw new RuntimeException("No case data present in startEventResponse for " + caseSummary.reference());
+            throw new Dtspb5005MigrationException(
+                    "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
         final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
@@ -205,7 +207,6 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
     Set<CaseSummary> getGorCases(
             final UserToken userToken,
             final S2sToken s2sToken) {
-        Set<CaseSummary> candidateGorCases = new HashSet<>();
         final JSONObject initialGorQuery = elasticQueries.getGorMigrationQuery(
             config.getQuerySize(),
             Optional.empty());
@@ -216,57 +217,60 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 s2sToken.s2sToken(),
                 GRANT_OF_REPRESENTATION,
                 initialGorQuery.toString());
-        if (initialGorSearchResult != null && initialGorSearchResult.getTotal() > 0) {
-            final List<CaseDetails> initialGorCases = initialGorSearchResult.getCases();
-            log.info("DTSPB-5005 initial query found {} GoR cases", initialGorCases.size());
 
-            for (final CaseDetails c : initialGorCases) {
-                candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
-            }
-            Long highestCaseRef = initialGorCases.getLast().getId();
-
-            // this feels wasteful if we have fewer than config.querySize results
-            boolean keepSearching = true;
-            while (keepSearching) {
-                final JSONObject trailingGorQuery = elasticQueries.getGorMigrationQuery(
-                        config.getQuerySize(),
-                        Optional.of(highestCaseRef));
-
-                log.info("DTSPB-5005 searching for trailing GoR cases");
-                final SearchResult trailingGorSearchResult = coreCaseDataApi.searchCases(
-                        userToken.getBearerToken(),
-                        s2sToken.s2sToken(),
-                        GRANT_OF_REPRESENTATION,
-                        trailingGorQuery.toString());
-
-                if (trailingGorSearchResult != null) {
-                    final List<CaseDetails> trailingGorCases = trailingGorSearchResult.getCases();
-                    log.info("DTSPB-5005 trailing GoR case search found {} cases", trailingGorCases.size());
-
-                    // should this be .size() < config.querySize ?
-                    keepSearching = !trailingGorCases.isEmpty();
-                    if (keepSearching) {
-                        for (final CaseDetails c : trailingGorCases) {
-                            candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
-                        }
-                        highestCaseRef = trailingGorCases.getLast().getId();
-                    }
-                } else {
-                    keepSearching = false;
-                    log.info("DTSPB-5005 trailing GoR case search found no cases");
-                }
-            }
-        } else {
+        if (initialGorSearchResult == null
+                || initialGorSearchResult.getTotal() == 0) {
             log.info("DTSPB-5005 initial query found no GoR cases");
+            return Set.of();
         }
-        // return immutable copy of results
+
+        final List<CaseDetails> initialGorCases = initialGorSearchResult.getCases();
+        log.info("DTSPB-5005 initial query found {} GoR cases", initialGorCases.size());
+
+        final Set<CaseSummary> candidateGorCases = new HashSet<>();
+        for (final CaseDetails c : initialGorCases) {
+            candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
+        }
+        Long highestCaseRef = initialGorCases.getLast().getId();
+
+        // this feels wasteful if we have fewer than config.querySize results
+        boolean keepSearching = true;
+        while (keepSearching) {
+            final JSONObject trailingGorQuery = elasticQueries.getGorMigrationQuery(
+                    config.getQuerySize(),
+                    Optional.of(highestCaseRef));
+
+            log.info("DTSPB-5005 searching for trailing GoR cases");
+            final SearchResult trailingGorSearchResult = coreCaseDataApi.searchCases(
+                    userToken.getBearerToken(),
+                    s2sToken.s2sToken(),
+                    GRANT_OF_REPRESENTATION,
+                    trailingGorQuery.toString());
+
+            if (trailingGorSearchResult != null) {
+                final List<CaseDetails> trailingGorCases = trailingGorSearchResult.getCases();
+                log.info("DTSPB-5005 trailing GoR case search found {} cases", trailingGorCases.size());
+
+                // should this be .size() < config.querySize ?
+                keepSearching = !trailingGorCases.isEmpty();
+                if (keepSearching) {
+                    for (final CaseDetails c : trailingGorCases) {
+                        candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
+                    }
+                    highestCaseRef = trailingGorCases.getLast().getId();
+                }
+            } else {
+                keepSearching = false;
+                log.info("DTSPB-5005 trailing GoR case search found no cases");
+            }
+        }
+
         return Set.copyOf(candidateGorCases);
     }
 
     Set<CaseSummary> getCaveatCases(
             final UserToken userToken,
             final S2sToken s2sToken) {
-        Set<CaseSummary> candidateCaveatCases = new HashSet<>();
         final JSONObject initialCaveatQuery = elasticQueries.getCaveatMigrationQuery(
                 config.getQuerySize(),
                 Optional.empty());
@@ -277,51 +281,61 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 s2sToken.s2sToken(),
                 CAVEAT,
                 initialCaveatQuery.toString());
-        if (initialCaveatSearchResult != null && initialCaveatSearchResult.getTotal() > 0) {
-            final List<CaseDetails> initialCaveatCases = initialCaveatSearchResult.getCases();
-            log.info("DTSPB-5005 initial query found {} Caveat cases", initialCaveatCases.size());
-
-            for (final CaseDetails c : initialCaveatCases) {
-                candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
-            }
-            Long highestCaseRef = initialCaveatCases.getLast().getId();
-
-            // this feels wasteful if we have fewer than config.querySize results
-            boolean keepSearching = true;
-            while (keepSearching) {
-                final JSONObject trailingCaveatQuery = elasticQueries.getCaveatMigrationQuery(
-                        config.getQuerySize(),
-                        Optional.of(highestCaseRef));
-
-                log.info("DTSPB-5005 searching for trailing Caveat cases");
-                final SearchResult trailingCaveatSearchResult = coreCaseDataApi.searchCases(
-                        userToken.getBearerToken(),
-                        s2sToken.s2sToken(),
-                        CAVEAT,
-                        trailingCaveatQuery.toString());
-
-                if (trailingCaveatSearchResult != null) {
-                    final List<CaseDetails> trailingCaveatCases = trailingCaveatSearchResult.getCases();
-                    log.info("DTSPB-5005 trailing Caveat case search found {} cases", trailingCaveatCases.size());
-
-                    // should this be .size() < config.querySize ?
-                    keepSearching = !trailingCaveatCases.isEmpty();
-                    if (keepSearching) {
-                        for (final CaseDetails c : trailingCaveatCases) {
-                            candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
-                        }
-                        highestCaseRef = trailingCaveatCases.getLast().getId();
-                    }
-                } else {
-                    keepSearching = false;
-                    log.info("DTSPB-5005 trailing Caveat case search found no cases");
-                }
-            }
-        } else {
+        if (initialCaveatSearchResult == null
+                || initialCaveatSearchResult.getTotal() == 0) {
             log.info("DTSPB-5005 initial query found no Caveat cases");
+            return Set.of();
         }
-        return candidateCaveatCases;
+
+        final List<CaseDetails> initialCaveatCases = initialCaveatSearchResult.getCases();
+        log.info("DTSPB-5005 initial query found {} Caveat cases", initialCaveatCases.size());
+
+        final Set<CaseSummary> candidateCaveatCases = new HashSet<>();
+        for (final CaseDetails c : initialCaveatCases) {
+            candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
+        }
+        Long highestCaseRef = initialCaveatCases.getLast().getId();
+
+        // this feels wasteful if we have fewer than config.querySize results
+        boolean keepSearching = true;
+        while (keepSearching) {
+            final JSONObject trailingCaveatQuery = elasticQueries.getCaveatMigrationQuery(
+                    config.getQuerySize(),
+                    Optional.of(highestCaseRef));
+
+            log.info("DTSPB-5005 searching for trailing Caveat cases");
+            final SearchResult trailingCaveatSearchResult = coreCaseDataApi.searchCases(
+                    userToken.getBearerToken(),
+                    s2sToken.s2sToken(),
+                    CAVEAT,
+                    trailingCaveatQuery.toString());
+
+            if (trailingCaveatSearchResult != null) {
+                final List<CaseDetails> trailingCaveatCases = trailingCaveatSearchResult.getCases();
+                log.info("DTSPB-5005 trailing Caveat case search found {} cases", trailingCaveatCases.size());
+
+                // should this be .size() < config.querySize ?
+                keepSearching = !trailingCaveatCases.isEmpty();
+                if (keepSearching) {
+                    for (final CaseDetails c : trailingCaveatCases) {
+                        candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
+                    }
+                    highestCaseRef = trailingCaveatCases.getLast().getId();
+                }
+            } else {
+                keepSearching = false;
+                log.info("DTSPB-5005 trailing Caveat case search found no cases");
+            }
+        }
+
+        return Set.copyOf(candidateCaveatCases);
     }
 
     private record EventDetails(String caseType, String eventId) {}
+
+    private class Dtspb5005MigrationException extends RuntimeException {
+        public Dtspb5005MigrationException(final String message) {
+            super(message);
+        }
+    }
 }
