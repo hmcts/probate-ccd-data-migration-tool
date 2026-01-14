@@ -169,7 +169,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
         final List<CaseEventDetail> migrationEvents = caseEvents.stream()
                 .filter(this::findDtspb5005MigrationEvent)
-                .collect(Collectors.toUnmodifiableList());
+                .toList();
 
         log.info("DTSPB-5005_rollback: found {} migration events for {} case {}",
                 migrationEvents.size(),
