@@ -44,6 +44,8 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     private static final String EVENT_SUMMARY = "DTSPB-5005 - Rollback adding metadata for Notice of Change";
     private static final String EVENT_DESCRIPTION = "Rollback adding metadata for Notice of Change";
 
+    private static final String MIGRATION_ID = "DTSPB-5005_rollback";
+
     public Dtspb5005RollbackMigrationHandler(
         final CoreCaseDataApi coreCaseDataApi,
         final CaseEventsApi caseEventsApi,
@@ -65,22 +67,22 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         final Set<CaseSummary> candidateCases = new HashSet<>();
 
         final Set<CaseSummary> gorCandidates = elasticSearchHandler.searchCases(
-            "DTSPB-5005_rollback",
+            MIGRATION_ID,
             userToken,
             s2sToken,
             CaseType.GRANT_OF_REPRESENTATION,
-            (fR) -> elasticQueries.getGorRollbackQuery(
+            fR -> elasticQueries.getGorRollbackQuery(
                     config.getQuerySize(),
                     config.getRollbackDate(),
                     fR));
         candidateCases.addAll(gorCandidates);
 
         final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
-            "DTSPB-5005_rollback",
+            MIGRATION_ID,
             userToken,
             s2sToken,
             CaseType.CAVEAT,
-            (fR) -> elasticQueries.getCaveatRollbackQuery(
+            fR -> elasticQueries.getCaveatRollbackQuery(
                     config.getQuerySize(),
                     config.getRollbackDate(),
                     fR));
@@ -136,7 +138,8 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             log.error("DTSPB-5005_rollback: No case details present in startEventResponse for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
-            throw new RuntimeException("No case details present in startEventResponse for " + caseSummary.reference());
+            throw new Dtspb5005RollbackException(
+                    "No case details present in startEventResponse for " + caseSummary.reference());
         }
 
         final Map<String, Object> caseData = caseDetails.getData();
@@ -144,7 +147,8 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             log.error("DTSPB-5005_rollback: No case data present in startEventResponse for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
-            throw new RuntimeException("No case data present in startEventResponse for " + caseSummary.reference());
+            throw new Dtspb5005RollbackException(
+                    "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
         final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
@@ -196,7 +200,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         // We cannot directly remove the data as part of the event - ccd will pick the value back up from the
         // existing data record
         final JSONObject migrationCallbackMetadataJson = new JSONObject();
-        migrationCallbackMetadataJson.put("migrationId", "DTSPB-5005_rollback");
+        migrationCallbackMetadataJson.put("migrationId", MIGRATION_ID);
         migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
 
         final Event event = Event.builder()
@@ -245,4 +249,10 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     }
 
     private record EventDetails(String caseType, String eventId) {}
+
+    private class Dtspb5005RollbackException extends RuntimeException {
+        public Dtspb5005RollbackException(final String message) {
+            super(message);
+        }
+    }
 }

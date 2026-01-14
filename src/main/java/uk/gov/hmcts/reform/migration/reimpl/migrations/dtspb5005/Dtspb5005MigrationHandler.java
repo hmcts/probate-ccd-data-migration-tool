@@ -62,7 +62,7 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 userToken,
                 s2sToken,
                 CaseType.GRANT_OF_REPRESENTATION,
-                (fR) -> elasticQueries.getGorMigrationQuery(config.getQuerySize(), fR));
+                fR -> elasticQueries.getGorMigrationQuery(config.getQuerySize(), fR));
         candidateCases.addAll(gorCandidates);
 
         final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
@@ -70,7 +70,7 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 userToken,
                 s2sToken,
                 CaseType.CAVEAT,
-                (fR) -> elasticQueries.getCaveatMigrationQuery(config.getQuerySize(), fR));
+                fR -> elasticQueries.getCaveatMigrationQuery(config.getQuerySize(), fR));
         candidateCases.addAll(caveatCandidates);
 
         return Set.copyOf(candidateCases);
