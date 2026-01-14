@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -97,11 +96,11 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-        final EventDetails eventDetails = switch (caseSummary.type()) {
-            case GRANT_OF_REPRESENTATION -> new EventDetails(
+        final RollbackEventDetails eventDetails = switch (caseSummary.type()) {
+            case GRANT_OF_REPRESENTATION -> new RollbackEventDetails(
                 GRANT_OF_REPRESENTATION,
                 "boCorrection");
-            case CAVEAT -> new EventDetails(
+            case CAVEAT -> new RollbackEventDetails(
                 CAVEAT,
                 "boCorrection");
         };
@@ -248,7 +247,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         return true;
     }
 
-    private record EventDetails(String caseType, String eventId) {}
+    private record RollbackEventDetails(String caseType, String eventId) {}
 
     private class Dtspb5005RollbackException extends RuntimeException {
         public Dtspb5005RollbackException(final String message) {

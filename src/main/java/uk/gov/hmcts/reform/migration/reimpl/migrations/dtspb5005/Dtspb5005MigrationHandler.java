@@ -82,11 +82,11 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-        final EventDetails eventDetails = switch (caseSummary.type()) {
-            case GRANT_OF_REPRESENTATION -> new EventDetails(
+        final MigrationEventDetails eventDetails = switch (caseSummary.type()) {
+            case GRANT_OF_REPRESENTATION -> new MigrationEventDetails(
                     GRANT_OF_REPRESENTATION,
                     "boHistoryCorrection");
-            case CAVEAT -> new EventDetails(
+            case CAVEAT -> new MigrationEventDetails(
                     CAVEAT,
                     "boHistoryCorrection");
         };
@@ -217,7 +217,7 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
         return true;
     }
 
-    private record EventDetails(String caseType, String eventId) {}
+    private record MigrationEventDetails(String caseType, String eventId) {}
 
     private class Dtspb5005MigrationException extends RuntimeException {
         public Dtspb5005MigrationException(final String message) {
