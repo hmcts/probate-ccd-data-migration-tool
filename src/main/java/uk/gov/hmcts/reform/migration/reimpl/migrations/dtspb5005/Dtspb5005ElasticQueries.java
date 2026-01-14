@@ -13,7 +13,7 @@ import java.util.Optional;
 @Slf4j
 public class Dtspb5005ElasticQueries {
 
-    private static final String baseGorMigrationQuery = """
+    private static final String BASE_GOR_MIGRATION_QUERY = """
         {
             "query": {
                 "bool": {
@@ -59,7 +59,7 @@ public class Dtspb5005ElasticQueries {
         }
         """;
 
-    private static final String baseCaveatMigrationQuery = """
+    private static final String BASE_CAVEAT_MIGRATION_QUERY = """
         {
             "query": {
                 "bool": {
@@ -105,7 +105,7 @@ public class Dtspb5005ElasticQueries {
         }
         """;
 
-    private static final String baseGorRollbackQuery = """
+    private static final String BASE_GOR_ROLLBACK_QUERY = """
         {
             "query": {
                 "bool": {
@@ -149,7 +149,7 @@ public class Dtspb5005ElasticQueries {
         }
         """;
 
-    private static final String baseCaveatRollbackQuery = """
+    private static final String BASE_CAVEAT_ROLLBACK_QUERY = """
         {
             "query": {
                 "bool": {
@@ -196,118 +196,89 @@ public class Dtspb5005ElasticQueries {
     public JSONObject getGorMigrationQuery(
             final Integer size,
             final Optional<Long> fromReference) {
-        Objects.requireNonNull(size);
-        Objects.requireNonNull(fromReference);
+        JSONObject migrationQuery = new JSONObject(BASE_GOR_MIGRATION_QUERY);
 
-        if (size <= 0) {
-            log.error("Requested query size must be greater than zero, found {}", size);
-            throw new IllegalArgumentException("Requested query size must be greater than zero");
-        }
+        final JSONObject sizedQuery = addSize(migrationQuery, size);
+        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
 
-        JSONObject migrationQuery = new JSONObject(baseGorMigrationQuery);
-
-        migrationQuery.put("size", size);
-
-        if (fromReference.isPresent()) {
-            JSONArray fromReferenceArray = new JSONArray();
-            fromReferenceArray.put(fromReference.get());
-            migrationQuery.put("search_after", fromReferenceArray);
-        }
-
-        return migrationQuery;
+        log.debug("GoR migration query: {}", searchAfterQuery);
+        return searchAfterQuery;
     }
 
     public JSONObject getCaveatMigrationQuery(
             final Integer size,
             final Optional<Long> fromReference) {
-        Objects.requireNonNull(size);
-        Objects.requireNonNull(fromReference);
+        JSONObject migrationQuery = new JSONObject(BASE_CAVEAT_MIGRATION_QUERY);
 
-        if (size <= 0) {
-            log.error("Requested query size must be greater than zero, found {}", size);
-            throw new IllegalArgumentException("Requested query size must be greater than zero");
-        }
+        final JSONObject sizedQuery = addSize(migrationQuery, size);
+        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
 
-        JSONObject migrationQuery = new JSONObject(baseCaveatMigrationQuery);
-
-        migrationQuery.put("size", size);
-
-        if (fromReference.isPresent()) {
-            JSONArray fromReferenceArray = new JSONArray();
-            fromReferenceArray.put(fromReference.get());
-            migrationQuery.put("search_after", fromReferenceArray);
-        }
-
-        return migrationQuery;
+        log.debug("Caveat migration query: {}", searchAfterQuery);
+        return searchAfterQuery;
     }
 
     public JSONObject getGorRollbackQuery(
             final Integer size,
             final LocalDate migrationDate,
             final Optional<Long> fromReference) {
-        Objects.requireNonNull(size);
-        Objects.requireNonNull(migrationDate);
-        Objects.requireNonNull(fromReference);
+        JSONObject rollbackQuery = new JSONObject(BASE_GOR_ROLLBACK_QUERY);
 
-        if (size <= 0) {
-            log.error("Requested query size must be greater than zero, found {}", size);
-            throw new IllegalArgumentException("Requested query size must be greater than zero");
-        }
+        final JSONObject sizedQuery = addSize(rollbackQuery, size);
+        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
+        final JSONObject lastModifiedQuery = addLastModifiedFilter(searchAfterQuery, migrationDate);
 
-        JSONObject rollbackQuery = new JSONObject(baseGorRollbackQuery);
-
-        rollbackQuery.put("size", size);
-
-        if (fromReference.isPresent()) {
-            JSONArray fromReferenceArray = new JSONArray();
-            fromReferenceArray.put(fromReference.get());
-            rollbackQuery.put("search_after", fromReferenceArray);
-        }
-
-        final JSONObject lastModifiedFilter = lastModifiedFilter(migrationDate);
-
-        final JSONObject query = rollbackQuery.getJSONObject("query");
-        final JSONObject bool = query.getJSONObject("bool");
-        final JSONArray filters = bool.getJSONArray("filter");
-        filters.put(lastModifiedFilter);
-
-        return rollbackQuery;
+        log.debug("GoR rollback query: {}", lastModifiedQuery);
+        return lastModifiedQuery;
     }
 
     public JSONObject getCaveatRollbackQuery(
             final Integer size,
             final LocalDate migrationDate,
             final Optional<Long> fromReference) {
-        Objects.nonNull(size);
-        Objects.requireNonNull(migrationDate);
-        Objects.nonNull(fromReference);
+        JSONObject rollbackQuery = new JSONObject(BASE_CAVEAT_ROLLBACK_QUERY);
+
+        final JSONObject sizedQuery = addSize(rollbackQuery, size);
+        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
+        final JSONObject lastModifiedQuery = addLastModifiedFilter(searchAfterQuery, migrationDate);
+
+        log.debug("Caveat rollback query: {}", lastModifiedQuery);
+        return lastModifiedQuery;
+    }
+
+    JSONObject addSize(
+            final JSONObject query,
+            final Integer size) {
+        Objects.requireNonNull(size);
 
         if (size <= 0) {
             log.error("Requested query size must be greater than zero, found {}", size);
             throw new IllegalArgumentException("Requested query size must be greater than zero");
         }
+        query.put("size", size);
 
-        JSONObject rollbackQuery = new JSONObject(baseCaveatRollbackQuery);
-
-        rollbackQuery.put("size", size);
-
-        if (fromReference.isPresent()) {
-            JSONArray fromReferenceArray = new JSONArray();
-            fromReferenceArray.put(fromReference.get());
-            rollbackQuery.put("search_after", fromReferenceArray);
-        }
-
-        final JSONObject lastModifiedFilter = lastModifiedFilter(migrationDate);
-
-        final JSONObject query = rollbackQuery.getJSONObject("query");
-        final JSONObject bool = query.getJSONObject("bool");
-        final JSONArray filters = bool.getJSONArray("filter");
-        filters.put(lastModifiedFilter);
-
-        return rollbackQuery;
+        return query;
     }
 
-    JSONObject lastModifiedFilter(final LocalDate migrationDate) {
+    JSONObject addSearchAfter(
+            final JSONObject query,
+            final Optional<Long> fromReference) {
+        Objects.requireNonNull(fromReference);
+
+        if (fromReference.isPresent()) {
+            final Long reference = fromReference.get();
+            final JSONArray fromRef = new JSONArray();
+            fromRef.put(reference);
+            query.put("search_after", fromRef);
+        }
+
+        return query;
+    }
+
+    JSONObject addLastModifiedFilter(
+            final JSONObject rollbackQuery,
+            final LocalDate migrationDate) {
+        Objects.requireNonNull(migrationDate);
+
         final JSONObject lastModifiedFilter = new JSONObject();
         final JSONObject range = new JSONObject();
         final JSONObject lastModified = new JSONObject();
@@ -317,6 +288,11 @@ public class Dtspb5005ElasticQueries {
         range.put("last_modified", lastModified);
         lastModified.put("gte", migrationDateStr);
 
-        return lastModifiedFilter;
+        final JSONObject query = rollbackQuery.getJSONObject("query");
+        final JSONObject bool = query.getJSONObject("bool");
+        final JSONArray filters = bool.getJSONArray("filter");
+        filters.put(lastModifiedFilter);
+
+        return rollbackQuery;
     }
 }
