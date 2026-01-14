@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
-import uk.gov.hmcts.reform.ccd.client.model.SearchResult;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
@@ -17,13 +16,13 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
+import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,6 +31,7 @@ import java.util.stream.Collectors;
 public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final CaseEventsApi caseEventsApi;
+    private final ElasticSearchHandler elasticSearchHandler;
 
     private final Dtspb5005Config config;
     private final Dtspb5005ElasticQueries elasticQueries;
@@ -47,10 +47,12 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     public Dtspb5005RollbackMigrationHandler(
         final CoreCaseDataApi coreCaseDataApi,
         final CaseEventsApi caseEventsApi,
+        final ElasticSearchHandler elasticSearchHandler,
         final Dtspb5005Config config,
         final Dtspb5005ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.caseEventsApi = Objects.requireNonNull(caseEventsApi);
+        this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
 
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
@@ -58,21 +60,40 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
     @Override
     public Set<CaseSummary> getCandidateCases(
-        final UserToken userToken,
-        final S2sToken s2sToken) {
+            final UserToken userToken,
+            final S2sToken s2sToken) {
         final Set<CaseSummary> candidateCases = new HashSet<>();
 
-        candidateCases.addAll(getGorCases(userToken, s2sToken));
-        candidateCases.addAll(getCaveatCases(userToken, s2sToken));
+        final Set<CaseSummary> gorCandidates = elasticSearchHandler.searchCases(
+            "DTSPB-5005_rollback",
+            userToken,
+            s2sToken,
+            CaseType.GRANT_OF_REPRESENTATION,
+            (fR) -> elasticQueries.getGorRollbackQuery(
+                    config.getQuerySize(),
+                    config.getRollbackDate(),
+                    fR));
+        candidateCases.addAll(gorCandidates);
 
-        return candidateCases;
+        final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
+            "DTSPB-5005_rollback",
+            userToken,
+            s2sToken,
+            CaseType.CAVEAT,
+            (fR) -> elasticQueries.getCaveatRollbackQuery(
+                    config.getQuerySize(),
+                    config.getRollbackDate(),
+                    fR));
+        candidateCases.addAll(caveatCandidates);
+
+        return Set.copyOf(candidateCases);
     }
 
     @Override
     public MigrationEvent startEventForCase(
-        final CaseSummary caseSummary,
-        final UserToken userToken,
-        final S2sToken s2sToken) {
+            final CaseSummary caseSummary,
+            final UserToken userToken,
+            final S2sToken s2sToken) {
 
         final EventDetails eventDetails = switch (caseSummary.type()) {
             case GRANT_OF_REPRESENTATION -> new EventDetails(
@@ -106,7 +127,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
     @Override
     public boolean shouldMigrateCase(
-        final MigrationEvent migrationEvent) {
+            final MigrationEvent migrationEvent) {
         final CaseSummary caseSummary = migrationEvent.caseSummary();
         final CaseDetails caseDetails = migrationEvent.startEventResponse().getCaseDetails();
         final UserToken userToken = migrationEvent.userToken();
@@ -164,7 +185,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
     @Override
     public boolean migrate(
-        final MigrationEvent migrationEvent) {
+            final MigrationEvent migrationEvent) {
         final CaseSummary caseSummary = migrationEvent.caseSummary();
         final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
 
@@ -221,132 +242,6 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             caseSummary.reference());
 
         return true;
-    }
-
-    Set<CaseSummary> getGorCases(
-        final UserToken userToken,
-        final S2sToken s2sToken) {
-        Set<CaseSummary> candidateGorCases = new HashSet<>();
-        final JSONObject initialGorQuery = elasticQueries.getGorRollbackQuery(
-            config.getQuerySize(),
-            config.getRollbackDate(),
-            Optional.empty());
-
-        log.info("DTSPB-5005_rollback initial query for GoR cases");
-        final SearchResult initialGorSearchResult = coreCaseDataApi.searchCases(
-            userToken.getBearerToken(),
-            s2sToken.s2sToken(),
-            GRANT_OF_REPRESENTATION,
-            initialGorQuery.toString());
-        if (initialGorSearchResult != null && initialGorSearchResult.getTotal() > 0) {
-            final List<CaseDetails> initialGorCases = initialGorSearchResult.getCases();
-            log.info("DTSPB-5005_rollback initial query found {} GoR cases", initialGorCases.size());
-
-            for (final CaseDetails c : initialGorCases) {
-                candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
-            }
-            Long highestCaseRef = initialGorCases.getLast().getId();
-
-            // this feels wasteful if we have fewer than config.querySize results
-            boolean keepSearching = true;
-            while (keepSearching) {
-                final JSONObject trailingGorQuery = elasticQueries.getGorRollbackQuery(
-                    config.getQuerySize(),
-                    config.getRollbackDate(),
-                    Optional.of(highestCaseRef));
-
-                log.info("DTSPB-5005_rollback searching for trailing GoR cases");
-                final SearchResult trailingGorSearchResult = coreCaseDataApi.searchCases(
-                    userToken.getBearerToken(),
-                    s2sToken.s2sToken(),
-                    GRANT_OF_REPRESENTATION,
-                    trailingGorQuery.toString());
-
-                if (trailingGorSearchResult != null) {
-                    final List<CaseDetails> trailingGorCases = trailingGorSearchResult.getCases();
-                    log.info("DTSPB-5005_rollback trailing GoR case search found {} cases", trailingGorCases.size());
-
-                    // should this be .size() < config.querySize ?
-                    keepSearching = !trailingGorCases.isEmpty();
-                    if (keepSearching) {
-                        for (final CaseDetails c : trailingGorCases) {
-                            candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
-                        }
-                        highestCaseRef = trailingGorCases.getLast().getId();
-                    }
-                } else {
-                    keepSearching = false;
-                    log.info("DTSPB-5005_rollback trailing GoR case search found no cases");
-                }
-            }
-        } else {
-            log.info("DTSPB-5005_rollback initial query found no GoR cases");
-        }
-        // return immutable copy of results
-        return Set.copyOf(candidateGorCases);
-    }
-
-    Set<CaseSummary> getCaveatCases(
-        final UserToken userToken,
-        final S2sToken s2sToken) {
-        Set<CaseSummary> candidateCaveatCases = new HashSet<>();
-        final JSONObject initialCaveatQuery = elasticQueries.getCaveatRollbackQuery(
-            config.getQuerySize(),
-            config.getRollbackDate(),
-            Optional.empty());
-
-        log.info("DTSPB-5005_rollback initial query for Caveat cases");
-        final SearchResult initialCaveatSearchResult = coreCaseDataApi.searchCases(
-            userToken.getBearerToken(),
-            s2sToken.s2sToken(),
-            CAVEAT,
-            initialCaveatQuery.toString());
-        if (initialCaveatSearchResult != null && initialCaveatSearchResult.getTotal() > 0) {
-            final List<CaseDetails> initialCaveatCases = initialCaveatSearchResult.getCases();
-            log.info("DTSPB-5005_rollback initial query found {} Caveat cases", initialCaveatCases.size());
-
-            for (final CaseDetails c : initialCaveatCases) {
-                candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
-            }
-            Long highestCaseRef = initialCaveatCases.getLast().getId();
-
-            // this feels wasteful if we have fewer than config.querySize results
-            boolean keepSearching = true;
-            while (keepSearching) {
-                final JSONObject trailingCaveatQuery = elasticQueries.getCaveatRollbackQuery(
-                    config.getQuerySize(),
-                    config.getRollbackDate(),
-                    Optional.of(highestCaseRef));
-
-                log.info("DTSPB-5005_rollback searching for trailing Caveat cases");
-                final SearchResult trailingCaveatSearchResult = coreCaseDataApi.searchCases(
-                    userToken.getBearerToken(),
-                    s2sToken.s2sToken(),
-                    CAVEAT,
-                    trailingCaveatQuery.toString());
-
-                if (trailingCaveatSearchResult != null) {
-                    final List<CaseDetails> trailingCaveatCases = trailingCaveatSearchResult.getCases();
-                    log.info("DTSPB-5005_rollback trailing Caveat case search found {} cases",
-                            trailingCaveatCases.size());
-
-                    // should this be .size() < config.querySize ?
-                    keepSearching = !trailingCaveatCases.isEmpty();
-                    if (keepSearching) {
-                        for (final CaseDetails c : trailingCaveatCases) {
-                            candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
-                        }
-                        highestCaseRef = trailingCaveatCases.getLast().getId();
-                    }
-                } else {
-                    keepSearching = false;
-                    log.info("DTSPB-5005_rollback trailing Caveat case search found no cases");
-                }
-            }
-        } else {
-            log.info("DTSPB-5005_rollback initial query found no Caveat cases");
-        }
-        return candidateCaveatCases;
     }
 
     private record EventDetails(String caseType, String eventId) {}
