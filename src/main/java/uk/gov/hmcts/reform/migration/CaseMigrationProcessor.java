@@ -30,8 +30,8 @@ import java.util.function.Consumer;
 @Component
 public class CaseMigrationProcessor {
     static final String EVENT_ID = "boHistoryCorrection";
-    static final String EVENT_SUMMARY = "Data migration - Move Dormant case to previous state";
-    static final String EVENT_DESCRIPTION = "Data migration - Move Dormant case to previous state";
+    static final String EVENT_SUMMARY = "Data migration - Move Caveat Not Matched case to Caveat Resolution state";
+    static final String EVENT_DESCRIPTION = "Data migration - Move Caveat Not Matched case to Caveat Resolution state";
     public static final String LOG_STRING = "-----------------------------------------";
 
     @Autowired
