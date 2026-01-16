@@ -35,7 +35,7 @@ public class ElasticSearchHandler {
             final Function<Optional<Long>, JSONObject> querySource) {
         final JSONObject initialQuery = querySource.apply(Optional.empty());
 
-        log.info("{} initial query for {} cases",
+        log.info("{}: initial query for {} cases",
                 migrationId,
                 caseType);
         final SearchResult initialResult = coreCaseDataApi.searchCases(

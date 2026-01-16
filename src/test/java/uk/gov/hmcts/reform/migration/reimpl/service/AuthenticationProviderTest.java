@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.service;
 
 import com.nimbusds.jose.shaded.gson.JsonObject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -15,7 +16,6 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
-
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -46,6 +46,15 @@ class AuthenticationProviderTest {
                 authTokenGeneratorMock,
                 reimplConfigMock,
                 clockMock);
+    }
+
+    @AfterEach
+    void tearDown() {
+        try {
+            closeableMocks.close();
+        } catch (Exception e) {
+            // nothing to do
+        }
     }
 
     @Test
