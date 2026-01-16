@@ -49,11 +49,11 @@ public class AuthenticationProvider {
                 userToken = idamRepository.generateUserTokenObject();
             } else {
                 final Instant now = Instant.now(clock);
-                final Instant checkAfter = now.minus(reimplConfig.getUserTokenRefreshMargin());
+                final Instant checkBefore = now.plus(reimplConfig.getUserTokenRefreshMargin());
 
                 final Instant userExpiryTime = userToken.getExpiryTime();
 
-                if (userExpiryTime.isAfter(checkAfter)) {
+                if (userExpiryTime.isBefore(checkBefore)) {
                     userToken = idamRepository.generateUserTokenObject();
                 }
             }
@@ -67,11 +67,11 @@ public class AuthenticationProvider {
                 s2sToken = new S2sToken(authTokenGenerator.generate());
             } else {
                 final Instant now = Instant.now(clock);
-                final Instant checkAfter = now.minus(reimplConfig.getS2sTokenRefreshMargin());
+                final Instant checkBefore = now.plus(reimplConfig.getS2sTokenRefreshMargin());
 
                 final Instant userExpiryTime = s2sToken.getExpiryTime();
 
-                if (userExpiryTime.isAfter(checkAfter)) {
+                if (userExpiryTime.isBefore(checkBefore)) {
                     s2sToken = new S2sToken(authTokenGenerator.generate());
                 }
             }

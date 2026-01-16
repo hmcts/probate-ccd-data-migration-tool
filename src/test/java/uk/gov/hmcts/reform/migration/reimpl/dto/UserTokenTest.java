@@ -12,11 +12,15 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
-public class UserTokenTest {
+class UserTokenTest {
     @Test
     void incorrectComponentsForJwtThrows() {
         final UserToken empty = dummyUserToken("");
@@ -25,12 +29,12 @@ public class UserTokenTest {
         final UserToken expZero = base64Enc(Optional.of(0L));
         final UserToken fourPart = dummyUserToken("aaa.aaa.aaa.aaa");
 
-        Assertions.assertAll(
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> empty.getExpiryTime()),
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> onePart.getExpiryTime()),
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> twoPart.getExpiryTime()),
-            () -> Assertions.assertDoesNotThrow(() -> expZero.getExpiryTime()),
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> fourPart.getExpiryTime()));
+        assertAll(
+            () -> Assertions.assertThrows(IllegalStateException.class, empty::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, onePart::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, twoPart::getExpiryTime),
+            () -> Assertions.assertDoesNotThrow(expZero::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, fourPart::getExpiryTime));
     }
 
     @Test
@@ -38,7 +42,7 @@ public class UserTokenTest {
         // '@' is not a valid base64 character
         final UserToken nonBase64Payload = dummyUserToken("a.@.a");
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> nonBase64Payload.getExpiryTime());
+        Assertions.assertThrows(IllegalArgumentException.class, nonBase64Payload::getExpiryTime);
     }
 
     @Test
@@ -46,14 +50,14 @@ public class UserTokenTest {
         // 'aGVsbG8=' the string "hello" (i.e. not valid json)
         final UserToken nonBase64Payload = dummyUserToken("a.aGVsbG8=.a");
 
-        Assertions.assertThrows(JSONException.class, () -> nonBase64Payload.getExpiryTime());
+        Assertions.assertThrows(JSONException.class, nonBase64Payload::getExpiryTime);
     }
 
     @Test
     void jsonPayloadWithoutExpThrows() {
         final UserToken noExp = base64Enc(Optional.empty());
 
-        Assertions.assertThrows(JSONException.class, () -> noExp.getExpiryTime());
+        Assertions.assertThrows(JSONException.class, noExp::getExpiryTime);
     }
 
     @Test
@@ -79,6 +83,18 @@ public class UserTokenTest {
         assertThat(actual, equalTo(whenWrittenInstant));
     }
 
+    @Test
+    void testGetBearerToken() {
+        final String accessToken = UUID.randomUUID().toString();
+        final UserToken userToken = dummyUserToken(accessToken);
+
+        final String bearerToken = userToken.getBearerToken();
+
+        assertAll(
+                () -> assertThat(bearerToken, startsWith("Bearer ")),
+                () -> assertThat(bearerToken, endsWith(accessToken)));
+    }
+
     private static UserToken dummyUserToken(final String accessToken) {
         return new UserToken(
                 new TokenResponse(
@@ -91,7 +107,9 @@ public class UserTokenTest {
                 null);
     }
 
-    ///  convenience method to generate valid enough User token objects for testing
+    /**
+     *  convenience method to generate valid enough User token objects for testing.
+     */
     private static UserToken base64Enc(Optional<Long> expiry) {
         final JsonObject payload = new JsonObject();
         if (expiry.isPresent()) {

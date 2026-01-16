@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.migration.reimpl.dto;
 
 import org.json.JSONObject;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;

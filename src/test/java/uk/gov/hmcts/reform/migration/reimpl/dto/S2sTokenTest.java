@@ -12,11 +12,10 @@ import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Optional;
 
-
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
-public class S2sTokenTest {
+class S2sTokenTest {
     @Test
     void incorrectComponentsForJwtThrows() {
         final S2sToken empty = new S2sToken("");
@@ -26,11 +25,11 @@ public class S2sTokenTest {
         final S2sToken fourPart = new S2sToken("aaa.aaa.aaa.aaa");
 
         Assertions.assertAll(
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> empty.getExpiryTime()),
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> onePart.getExpiryTime()),
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> twoPart.getExpiryTime()),
-            () -> Assertions.assertDoesNotThrow(() -> expZero.getExpiryTime()),
-            () -> Assertions.assertThrows(IllegalStateException.class, () -> fourPart.getExpiryTime()));
+            () -> Assertions.assertThrows(IllegalStateException.class, empty::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, onePart::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, twoPart::getExpiryTime),
+            () -> Assertions.assertDoesNotThrow(expZero::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, fourPart::getExpiryTime));
     }
 
     @Test
@@ -38,7 +37,7 @@ public class S2sTokenTest {
         // '@' is not a valid base64 character
         final S2sToken nonBase64Payload = new S2sToken("a.@.a");
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> nonBase64Payload.getExpiryTime());
+        Assertions.assertThrows(IllegalArgumentException.class, nonBase64Payload::getExpiryTime);
     }
 
     @Test
@@ -46,14 +45,14 @@ public class S2sTokenTest {
         // 'aGVsbG8=' the string "hello" (i.e. not valid json)
         final S2sToken nonBase64Payload = new S2sToken("a.aGVsbG8=.a");
 
-        Assertions.assertThrows(JSONException.class, () -> nonBase64Payload.getExpiryTime());
+        Assertions.assertThrows(JSONException.class, nonBase64Payload::getExpiryTime);
     }
 
     @Test
     void jsonPayloadWithoutExpThrows() {
         final S2sToken noExp = base64Enc(Optional.empty());
 
-        Assertions.assertThrows(JSONException.class, () -> noExp.getExpiryTime());
+        Assertions.assertThrows(JSONException.class, noExp::getExpiryTime);
     }
 
     @Test
@@ -79,7 +78,9 @@ public class S2sTokenTest {
         assertThat(actual, equalTo(whenWrittenInstant));
     }
 
-    ///  convenience method to generate valid enough s2s token objects for testing
+    /**
+     *  convenience method to generate valid enough s2s token objects for testing.
+     */
     private static S2sToken base64Enc(Optional<Long> expiry) {
         final JsonObject payload = new JsonObject();
         if (expiry.isPresent()) {
