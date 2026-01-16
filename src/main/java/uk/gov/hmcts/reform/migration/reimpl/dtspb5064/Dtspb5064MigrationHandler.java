@@ -1,0 +1,306 @@
+package uk.gov.hmcts.reform.migration.reimpl.dtspb5064;
+
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
+import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
+import uk.gov.hmcts.reform.ccd.client.model.*;
+import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.dto.*;
+import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
+
+import java.util.*;
+
+@Component
+@Slf4j
+public class Dtspb5064MigrationHandler implements MigrationHandler {
+    private final CoreCaseDataApi coreCaseDataApi;
+
+    private final Dtspb5064Config config;
+    private final Dtspb5064ElasticQueries elasticQueries;
+
+    private final static String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
+    private final static String CAVEAT = "Caveat";
+    private final static String JURISDICTION = "PROBATE";
+    private static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
+
+    private static final String EVENT_SUMMARY = "DTSPB-5064 - Add metadata for Notice of Change";
+    private static final String EVENT_DESCRIPTION = "Add metadata for Notice of Change";
+
+    public Dtspb5064MigrationHandler(
+            final CoreCaseDataApi coreCaseDataApi,
+            final Dtspb5064Config config,
+            final Dtspb5064ElasticQueries elasticQueries) {
+        this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
+
+        this.config = Objects.requireNonNull(config);
+        this.elasticQueries = Objects.requireNonNull(elasticQueries);
+
+    }
+
+    @Override
+    public Set<CaseSummary> getCandidateCases(
+            final UserToken userToken,
+            final S2sToken s2sToken) {
+        final Set<CaseSummary> candidateCases = new HashSet<>();
+
+        candidateCases.addAll(getCases(userToken, s2sToken));
+
+        return candidateCases;
+    }
+
+    private record EventDetails(String caseType, String eventId) {};
+    @Override
+    public MigrationEvent startEventForCase(
+            final CaseSummary caseSummary,
+            final UserToken userToken,
+            final S2sToken s2sToken) {
+
+        final EventDetails eventDetails = switch (caseSummary.type()) {
+            case GRANT_OF_REPRESENTATION -> new EventDetails(
+                    GRANT_OF_REPRESENTATION,
+                    "boHistoryCorrection");
+            case CAVEAT -> new EventDetails(
+                    CAVEAT,
+                    "boHistoryCorrection");
+        };
+
+        final UserDetails userDetails = userToken.userDetails();
+
+        log.info("DTSPB-5064 start event for GoR case {}", caseSummary.reference());
+        final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
+                userToken.getBearerToken(),
+                s2sToken.s2sToken(),
+                userDetails.getId(),
+                JURISDICTION,
+                eventDetails.caseType(),
+                caseSummary.reference().toString(),
+                eventDetails.eventId());
+
+        return new MigrationEvent(
+                caseSummary,
+                startEventResponse,
+                userToken,
+                s2sToken);
+    }
+
+    @Override
+    public boolean shouldMigrateCase(
+            final MigrationEvent migrationEvent) {
+        final CaseSummary caseSummary = migrationEvent.caseSummary();
+        final CaseDetails caseDetails = migrationEvent.startEventResponse().getCaseDetails();
+        if (caseDetails == null) {
+            log.error("DTSPB-5064: No case details present in startEventResponse for {} case {}",
+                    caseSummary.type(),
+                    caseSummary.reference());
+            throw new RuntimeException("No case details present in startEventResponse for " + caseSummary.reference());
+        }
+
+        final Map<String, Object> caseData = caseDetails.getData();
+        if (caseData == null) {
+            log.error("DTSPB-5064: No case data present in startEventResponse for {} case {}",
+                    caseSummary.type(),
+                    caseSummary.reference());
+            throw new RuntimeException("No case data present in startEventResponse for " + caseSummary.reference());
+        }
+
+        final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
+        if (hasApplOrgPolicy) {
+            log.info("DTSPB-5064: {} case {} already has applicantOrganisationPolicy so no migration needed",
+                    caseSummary.type(),
+                    caseSummary.reference());
+        }
+        return !hasApplOrgPolicy;
+    }
+
+    @Override
+    public boolean migrate(
+            final MigrationEvent migrationEvent) {
+        final CaseSummary caseSummary = migrationEvent.caseSummary();
+        final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
+
+        final CaseDetails caseDetails = startEventResponse.getCaseDetails();
+
+        final Map<String, Object> migratedData = caseDetails.getData();
+        // We need to add an 'empty' policy:
+        // {
+        //   "Organisation": {
+        //     "OrganisationID": null,
+        //     "OrganisationName": null
+        //   },
+        //   "OrgPolicyReference": null,
+        //   "OrgPolicyCaseAssignedRole": "[APPLICANTSOLICITOR]"
+        // }
+        final Map<String, Object> organisation = new HashMap<>();
+        organisation.put("OrganisationId", null);
+        organisation.put("OrganisationName", null);
+
+        final Map<String, Object> policy = new HashMap<>();
+        policy.put("Organisation", organisation);
+        policy.put("OrgPolicyReference", null);
+        policy.put("OrgPolicyCaseAssignedRole", "[APPLICANTSOLICITOR]");
+
+        migratedData.put(
+                APPLICANT_ORGANISATION_POLICY,
+                policy);
+
+        final Event event = Event.builder()
+                .id(startEventResponse.getEventId())
+                .summary(EVENT_SUMMARY)
+                .description(EVENT_DESCRIPTION)
+                .build();
+
+        final CaseDataContent caseDataContent = CaseDataContent.builder()
+                .eventToken(startEventResponse.getToken())
+                .event(event)
+                .data(migratedData)
+                .build();
+
+        if (config.isDryRun()) {
+            log.info("DTSPB-5064: DRY RUN - returning without submission for {} case {}",
+                    caseSummary.type(),
+                    caseSummary.reference());
+            return true;
+        }
+        // We use the authentication provided in the MigrationEvent to ensure
+        // that we don't start events with one set of authentication tokens
+        // and then submit them with another.
+        final CaseDetails result = coreCaseDataApi.submitEventForCaseWorker(
+                migrationEvent.userToken().getBearerToken(),
+                migrationEvent.s2sToken().s2sToken(),
+                migrationEvent.userToken().userDetails().getId(),
+                caseDetails.getJurisdiction(),
+                caseDetails.getCaseTypeId(),
+                caseDetails.getId().toString(),
+                true,
+                caseDataContent);
+
+        if (result == null) {
+            log.error("DTSPB-5064: event submission returned null for {} case {}",
+                    caseSummary.type(),
+                    caseSummary.reference());
+            return false;
+        }
+        log.info("DTSPB-5064: event submission complete for {} case {}",
+                caseSummary.type(),
+                caseSummary.reference());
+        return true;
+    }
+
+    Set<CaseSummary> getCases(
+            final UserToken userToken,
+            final S2sToken s2sToken) {
+        Set<CaseSummary> candidateGorCases = new HashSet<>();
+        final JSONObject initialQuery = elasticQueries.getMigrationQuery(
+            config.getQuerySize(),
+            Optional.empty());
+
+        log.info("DTSPB-5064 initial query for GoR cases");
+        final SearchResult initialGorSearchResult = coreCaseDataApi.searchCases(
+                userToken.getBearerToken(),
+                s2sToken.s2sToken(),
+                GRANT_OF_REPRESENTATION,
+                initialQuery.toString());
+        if (initialGorSearchResult != null && initialGorSearchResult.getTotal() > 0) {
+            final List<CaseDetails> initialGorCases = initialGorSearchResult.getCases();
+            log.info("DTSPB-5064 initial query found {} GoR cases", initialGorCases.size());
+
+            for (final CaseDetails c : initialGorCases) {
+                candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
+            }
+            Long highestCaseRef = initialGorCases.getLast().getId();
+
+            // this feels wasteful if we have fewer than config.querySize results
+            boolean keepSearching = true;
+            while (keepSearching) {
+                final JSONObject trailingGorQuery = elasticQueries.getGorMigrationQuery(
+                        config.getQuerySize(),
+                        Optional.of(highestCaseRef));
+
+                log.info("DTSPB-5064 searching for trailing GoR cases");
+                final SearchResult trailingGorSearchResult = coreCaseDataApi.searchCases(
+                        userToken.getBearerToken(),
+                        s2sToken.s2sToken(),
+                        GRANT_OF_REPRESENTATION,
+                        trailingGorQuery.toString());
+
+                if (trailingGorSearchResult != null && trailingGorSearchResult.getTotal() > 0) {
+                    final List<CaseDetails> trailingGorCases = trailingGorSearchResult.getCases();
+                    log.info("DTSPB-5064 trailing GoR case search found {} cases", trailingGorCases.size());
+
+                    // should this be .size() < config.querySize ?
+                    keepSearching = trailingGorCases.isEmpty();
+                    for (final CaseDetails c : trailingGorCases) {
+                        candidateGorCases.add(new CaseSummary(c.getId(), CaseType.GRANT_OF_REPRESENTATION));
+                    }
+                    highestCaseRef = trailingGorCases.getLast().getId();
+                } else {
+                    keepSearching = false;
+                    log.info("DTSPB-5064 trailing GoR case search found no cases");
+                }
+            }
+        } else {
+            log.info("DTSPB-5064 initial query found no GoR cases");
+        }
+        // return immutable copy of results
+        return Set.copyOf(candidateGorCases);
+    }
+
+    Set<CaseSummary> getCaveatCases(
+            final UserToken userToken,
+            final S2sToken s2sToken) {
+        Set<CaseSummary> candidateCaveatCases = new HashSet<>();
+        final JSONObject initialCaveatQuery = elasticQueries.getCaveatMigrationQuery(
+                config.getQuerySize(),
+                Optional.empty());
+
+        log.info("DTSPB-5064 initial query for Caveat cases");
+        final SearchResult initialCaveatSearchResult = coreCaseDataApi.searchCases(
+                userToken.getBearerToken(),
+                s2sToken.s2sToken(),
+                CAVEAT,
+                initialCaveatQuery.toString());
+        if (initialCaveatSearchResult != null && initialCaveatSearchResult.getTotal() > 0) {
+            final List<CaseDetails> initialCaveatCases = initialCaveatSearchResult.getCases();
+            log.info("DTSPB-5064 initial query found {} Caveat cases", initialCaveatCases.size());
+
+            for (final CaseDetails c : initialCaveatCases) {
+                candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
+            }
+            Long highestCaseRef = initialCaveatCases.getLast().getId();
+
+            // this feels wasteful if we have fewer than config.querySize results
+            boolean keepSearching = true;
+            while (keepSearching) {
+                final JSONObject trailingCaveatQuery = elasticQueries.getCaveatMigrationQuery(
+                        config.getQuerySize(),
+                        Optional.of(highestCaseRef));
+
+                log.info("DTSPB-5064 searching for trailing Caveat cases");
+                final SearchResult trailingCaveatSearchResult = coreCaseDataApi.searchCases(
+                        userToken.getBearerToken(),
+                        s2sToken.s2sToken(),
+                        CAVEAT,
+                        trailingCaveatQuery.toString());
+
+                if (trailingCaveatSearchResult != null && trailingCaveatSearchResult.getTotal() > 0) {
+                    final List<CaseDetails> trailingCaveatCases = trailingCaveatSearchResult.getCases();
+                    log.info("DTSPB-5064 trailing Caveat case search found {} cases", trailingCaveatCases.size());
+
+                    // should this be .size() < config.querySize ?
+                    keepSearching = trailingCaveatCases.isEmpty();
+                    for (final CaseDetails c : trailingCaveatCases) {
+                        candidateCaveatCases.add(new CaseSummary(c.getId(), CaseType.CAVEAT));
+                    }
+                    highestCaseRef = trailingCaveatCases.getLast().getId();
+                } else {
+                    keepSearching = false;
+                    log.info("DTSPB-5064 trailing Caveat case search found no cases");
+                }
+            }
+        } else {
+            log.info("DTSPB-5064 initial query found no Caveat cases");
+        }
+        return candidateCaveatCases;
+    }
+}
