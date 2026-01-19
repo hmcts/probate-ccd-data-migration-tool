@@ -82,6 +82,40 @@ class ElasticSearchHandlerTest {
     }
 
     @Test
+    void testEmptyCaseSearch() {
+        final String migrationId = "EMPTY_CASE_SEARCH";
+        final String query = "EMPTY_CASE_SEARCH_QUERY";
+
+        final JSONObject queryJson = mock();
+        when(queryJson.toString())
+                .thenReturn(query);
+
+        final Function<Optional<Long>, JSONObject> querySource = mock();
+        when(querySource.apply(any()))
+                .thenReturn(queryJson);
+
+        final UserToken userToken = mock();
+        final S2sToken s2sToken = mock();
+        final CaseType caseType = CaseType.CAVEAT;
+
+        final SearchResult initialSearchResult = mock();
+        when(initialSearchResult.getTotal())
+                .thenReturn(0);
+
+        when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
+                .thenReturn(initialSearchResult);
+
+        final Set<CaseSummary> actual = elasticSearchHandler.searchCases(
+                migrationId,
+                userToken,
+                s2sToken,
+                caseType,
+                querySource);
+
+        assertThat(actual, Matchers.empty());
+    }
+
+    @Test
     void testNoLoopNullCaseSearch() {
         final String migrationId = "NO_LOOP_NULL_CASE_SEARCH";
         final String query = "NO_LOOP_NULL_CASE_SEARCH_QUERY";

@@ -172,7 +172,6 @@ class AuthenticationProviderTest {
         final byte[] payloadBytes = payload.toString().getBytes(StandardCharsets.UTF_8);
         final String payloadB64 = Base64.getEncoder().encodeToString(payloadBytes);
 
-        final String jwt = "a." + payloadB64 + ".a";
-        return jwt;
+        return "a." + payloadB64 + ".a";
     }
 }

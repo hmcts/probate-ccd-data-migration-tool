@@ -90,8 +90,8 @@ public class ReimplMigrationRunner {
     }
 
     MigrationState runMigration(
-        final MigrationHandler migrationHandler,
-        final CaseSummary caseSummary) {
+            final MigrationHandler migrationHandler,
+            final CaseSummary caseSummary) {
         final MigrationEvent migrationEvent = migrationHandler.startEventForCase(
             caseSummary,
             authenticationProvider.getUserToken(),
@@ -103,7 +103,7 @@ public class ReimplMigrationRunner {
                 caseSummary.reference());
             return MigrationState.FAILED;
         }
-        final boolean shouldMigrate = migrationHandler.shouldMigrateCase(migrationEvent);
+        final Boolean shouldMigrate = migrationHandler.shouldMigrateCase(migrationEvent);
 
         if (shouldMigrate) {
             final boolean migrationSuccess = migrationHandler.migrate(migrationEvent);
