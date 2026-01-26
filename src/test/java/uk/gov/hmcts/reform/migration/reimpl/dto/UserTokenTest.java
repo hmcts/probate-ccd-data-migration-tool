@@ -1,0 +1,124 @@
+package uk.gov.hmcts.reform.migration.reimpl.dto;
+
+import com.nimbusds.jose.shaded.gson.JsonObject;
+import org.json.JSONException;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.idam.client.models.TokenResponse;
+
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.Base64;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.jupiter.api.Assertions.assertAll;
+
+class UserTokenTest {
+    @Test
+    void incorrectComponentsForJwtThrows() {
+        final UserToken empty = dummyUserToken("");
+        final UserToken onePart = dummyUserToken("aaa");
+        final UserToken twoPart = dummyUserToken("aaa.aaa");
+        final UserToken expZero = base64Enc(Optional.of(0L));
+        final UserToken fourPart = dummyUserToken("aaa.aaa.aaa.aaa");
+
+        assertAll(
+            () -> Assertions.assertThrows(IllegalStateException.class, empty::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, onePart::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, twoPart::getExpiryTime),
+            () -> Assertions.assertDoesNotThrow(expZero::getExpiryTime),
+            () -> Assertions.assertThrows(IllegalStateException.class, fourPart::getExpiryTime));
+    }
+
+    @Test
+    void invalidBase64PayloadThrows() {
+        // '@' is not a valid base64 character
+        final UserToken nonBase64Payload = dummyUserToken("a.@.a");
+
+        Assertions.assertThrows(IllegalArgumentException.class, nonBase64Payload::getExpiryTime);
+    }
+
+    @Test
+    void nonJsonPayloadThrows() {
+        // 'aGVsbG8=' the string "hello" (i.e. not valid json)
+        final UserToken nonBase64Payload = dummyUserToken("a.aGVsbG8=.a");
+
+        Assertions.assertThrows(JSONException.class, nonBase64Payload::getExpiryTime);
+    }
+
+    @Test
+    void jsonPayloadWithoutExpThrows() {
+        final UserToken noExp = base64Enc(Optional.empty());
+
+        Assertions.assertThrows(JSONException.class, noExp::getExpiryTime);
+    }
+
+    @Test
+    void jsonPayloadWithZeroExpIsEpoch() {
+        final UserToken negExp = base64Enc(Optional.of(0L));
+
+        final Instant actual = negExp.getExpiryTime();
+
+        assertThat(actual, equalTo(Instant.EPOCH));
+    }
+
+    @Test
+    void jsonPayloadWithExpDecodesCorrectly() {
+        final ZonedDateTime whenWritten = ZonedDateTime.of(2025, 1, 14, 16, 0, 0, 0, ZoneOffset.UTC);
+        final Instant whenWrittenInstant = whenWritten.toInstant();
+
+        final Long whenWrittenFromEpoch = 1736870400L;
+
+        final UserToken negExp = base64Enc(Optional.of(whenWrittenFromEpoch));
+
+        final Instant actual = negExp.getExpiryTime();
+
+        assertThat(actual, equalTo(whenWrittenInstant));
+    }
+
+    @Test
+    void testGetBearerToken() {
+        final String accessToken = UUID.randomUUID().toString();
+        final UserToken userToken = dummyUserToken(accessToken);
+
+        final String bearerToken = userToken.getBearerToken();
+
+        assertAll(
+                () -> assertThat(bearerToken, startsWith("Bearer ")),
+                () -> assertThat(bearerToken, endsWith(accessToken)));
+    }
+
+    private static UserToken dummyUserToken(final String accessToken) {
+        return new UserToken(
+                new TokenResponse(
+                        accessToken,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null),
+                null);
+    }
+
+    /**
+     *  convenience method to generate valid enough User token objects for testing.
+     */
+    private static UserToken base64Enc(Optional<Long> expiry) {
+        final JsonObject payload = new JsonObject();
+        if (expiry.isPresent()) {
+            payload.addProperty("exp", expiry.get());
+        }
+        final byte[] payloadBytes = payload.toString().getBytes(StandardCharsets.UTF_8);
+        final String payloadB64 = Base64.getEncoder().encodeToString(payloadBytes);
+
+        final String jwt = "a." + payloadB64 + ".a";
+        return dummyUserToken(jwt);
+    }
+}

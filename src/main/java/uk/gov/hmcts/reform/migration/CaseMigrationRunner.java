@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.PropertySource;
+import uk.gov.hmcts.reform.migration.reimpl.ReimplMigrationRunner;
 
 import java.text.MessageFormat;
 
@@ -22,6 +23,9 @@ public class CaseMigrationRunner implements CommandLineRunner {
 
     @Autowired
     private CaseMigrationRollbackProcessor caseMigrationRollbackProcessor;
+
+    @Autowired
+    private ReimplMigrationRunner reimplMigrationRunner;
 
     @Value("${migration.caseType}")
     private String caseType;
@@ -41,48 +45,55 @@ public class CaseMigrationRunner implements CommandLineRunner {
     @Value("${rollback.processing.caseReferences}")
     private boolean rollbackCaseReferences;
 
+    @Value("${migration.use_reimplementation}")
+    private boolean useReimplementation;
+
     public static void main(String[] args) {
         SpringApplication.run(CaseMigrationRunner.class, args);
     }
 
     @Override
     public void run(String... args) {
-        try {
-            if (null != caseReferences && caseReferences.length() > 0) {
-                log.info("case References to be migrate :  {}",caseReferences);
-                log.info("CaseMigrationRunner rollbackCaseReferences = {} ", rollbackCaseReferences);
-                if (rollbackCaseReferences) {
-                    caseMigrationRollbackProcessor.rollbackCaseReferenceList(caseType,caseReferences);
-                } else {
-                    caseMigrationProcessor.migrateCaseReferenceList(caseType,caseReferences);
-                }
-            } else {
-                if (defaultThreadLimit <= 1) {
-                    log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
-                    if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
-                        && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
-                            migrationrollbackStartDatetime, migrationrollbackEndDatetime);
-                        caseMigrationRollbackProcessor.rollbackCases(caseType);
+        if (useReimplementation) {
+            reimplMigrationRunner.runMigrations();
+        } else {
+            try {
+                if (null != caseReferences && caseReferences.length() > 0) {
+                    log.info("case References to be migrate :  {}", caseReferences);
+                    log.info("CaseMigrationRunner rollbackCaseReferences = {} ", rollbackCaseReferences);
+                    if (rollbackCaseReferences) {
+                        caseMigrationRollbackProcessor.rollbackCaseReferenceList(caseType, caseReferences);
                     } else {
-                        caseMigrationProcessor.migrateCases(caseType);
+                        caseMigrationProcessor.migrateCaseReferenceList(caseType, caseReferences);
                     }
                 } else {
-                    log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
-                    if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
-                        && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
-                        log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
-                            migrationrollbackStartDatetime, migrationrollbackEndDatetime);
-                        caseMigrationRollbackProcessor.processRollback("GrantOfRepresentation");
+                    if (defaultThreadLimit <= 1) {
+                        log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
+                        if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
+                            && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
+                            log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
+                                migrationrollbackStartDatetime, migrationrollbackEndDatetime);
+                            caseMigrationRollbackProcessor.rollbackCases(caseType);
+                        } else {
+                            caseMigrationProcessor.migrateCases(caseType);
+                        }
                     } else {
-                        caseMigrationProcessor.process("GrantOfRepresentation");
+                        log.info("CaseMigrationRunner.defaultThreadLimit= {} ", defaultThreadLimit);
+                        if (migrationrollbackStartDatetime != null && migrationrollbackStartDatetime.length() > 0
+                            && migrationrollbackEndDatetime != null && migrationrollbackEndDatetime.length() > 0) {
+                            log.info("CaseMigrationRunner rollback  startDatetime: {} endDatetime: {}",
+                                migrationrollbackStartDatetime, migrationrollbackEndDatetime);
+                            caseMigrationRollbackProcessor.processRollback("GrantOfRepresentation");
+                        } else {
+                            caseMigrationProcessor.process("GrantOfRepresentation");
+                        }
                     }
                 }
+            } catch (Exception e) {
+                log.error(
+                    MessageFormat.format("Migration failed with the following reason: {0}", e.getMessage()),
+                    e);
             }
-        } catch (Exception e) {
-            log.error(
-                MessageFormat.format("Migration failed with the following reason: {0}", e.getMessage()),
-                e);
         }
     }
 }
