@@ -13,51 +13,7 @@ import java.util.Optional;
 @Slf4j
 public class Dtspb5064ElasticQueries {
 
-    private static final String BASE_GOR_MIGRATION_QUERY = """
-        {
-            "query": {
-                "bool": {
-                    "filter": [
-                        {
-                            "terms": {
-                                "data.applicationType.keyword": [
-                                    "Solicitor"
-                                ]
-                            }
-                        },
-                        {
-                            "terms": {
-                                "data.channelChoice.keyword": [
-                                    "PaperForm"
-                                ]
-                            }
-                        },
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2025-01-01T00:00:00Z"
-                                }
-                            }
-                        }
-                    ],
-                    "must_not": [
-                        {
-                            "exists": {
-                                "field": "data.applicantOrganisationPolicy"
-                            }
-                        }
-                    ]
-                }
-            },
-            "_source": ["reference"],
-            "size": 0,
-            "sort": [
-                {
-                    "reference.keyword": "asc"
-                }
-            ]
-        }
-        """;
+    private static final String BASE_GOR_MIGRATION_QUERY = "";
 
     private static final String BASE_CAVEAT_MIGRATION_QUERY = """
         {
@@ -66,23 +22,9 @@ public class Dtspb5064ElasticQueries {
                     "filter": [
                         {
                             "terms": {
-                                "data.applicationType.keyword": [
-                                    "Solicitor"
+                                "state.keyword": [
+                                    "CaveatNotMatched"
                                 ]
-                            }
-                        },
-                        {
-                            "terms": {
-                                "data.paperForm": [
-                                    "Yes"
-                                ]
-                            }
-                        },
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2025-01-01T00:00:00Z"
-                                }
                             }
                         }
                     ],
@@ -105,49 +47,7 @@ public class Dtspb5064ElasticQueries {
         }
         """;
 
-    private static final String BASE_GOR_ROLLBACK_QUERY = """
-        {
-            "query": {
-                "bool": {
-                    "filter": [
-                        {
-                            "terms": {
-                                "data.applicationType.keyword": [
-                                    "Solicitor"
-                                ]
-                            }
-                        },
-                        {
-                            "terms": {
-                                "data.channelChoice.keyword": [
-                                    "PaperForm"
-                                ]
-                            }
-                        },
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2025-01-01T00:00:00Z"
-                                }
-                            }
-                        },
-                        {
-                            "exists": {
-                                "field": "data.applicantOrganisationPolicy"
-                            }
-                        }
-                    ]
-                }
-            },
-            "_source": ["reference"],
-            "size": 0,
-            "sort": [
-                {
-                    "reference.keyword": "asc"
-                }
-            ]
-        }
-        """;
+    private static final String BASE_GOR_ROLLBACK_QUERY = "";
 
     private static final String BASE_CAVEAT_ROLLBACK_QUERY = """
         {
@@ -156,23 +56,9 @@ public class Dtspb5064ElasticQueries {
                     "filter": [
                         {
                             "terms": {
-                                "data.applicationType.keyword": [
-                                    "Solicitor"
+                                "state.keyword": [
+                                    "CaveatMatching"
                                 ]
-                            }
-                        },
-                        {
-                            "terms": {
-                                "data.paperForm": [
-                                    "Yes"
-                                ]
-                            }
-                        },
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2025-01-01T00:00:00Z"
-                                }
                             }
                         },
                         {
