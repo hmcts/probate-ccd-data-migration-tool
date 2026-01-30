@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -8,13 +8,13 @@ import java.time.LocalDate;
 
 @Configuration
 @PropertySource("classpath:application.properties")
-public class Dtspb5005Config {
+public class Dtspb5064Config {
     private final int querySize;
     private final boolean dryRun;
     private final LocalDate rollbackDate;
 
-    public Dtspb5005Config(
-            @Value("${dtspb5005.query_size}")
+    public Dtspb5064Config(
+            @Value(" ${dtspb5005.query_size}")
             final int querySize,
             @Value("${dtspb5005.dry_run}")
             final boolean dryRun,

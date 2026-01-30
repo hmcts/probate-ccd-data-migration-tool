@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Component
 @Slf4j
-public class Dtspb5005ElasticQueries {
+public class Dtspb5064ElasticQueries {
 
     private static final String BASE_GOR_MIGRATION_QUERY = """
         {

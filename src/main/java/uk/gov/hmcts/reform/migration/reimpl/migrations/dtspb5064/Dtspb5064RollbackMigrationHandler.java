@@ -1,39 +1,27 @@
-package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CaseEventsApi;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
-import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
-import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
-import uk.gov.hmcts.reform.ccd.client.model.Event;
-import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.ccd.client.model.*;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
-import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
-import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
-import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
-import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
-import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
+import uk.gov.hmcts.reform.migration.reimpl.dto.*;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Component
 @Slf4j
-public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
+public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final CaseEventsApi caseEventsApi;
     private final ElasticSearchHandler elasticSearchHandler;
 
-    private final Dtspb5005Config config;
-    private final Dtspb5005ElasticQueries elasticQueries;
+    private final Dtspb5064Config config;
+    private final Dtspb5064ElasticQueries elasticQueries;
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String CAVEAT = "Caveat";
@@ -41,18 +29,17 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
 
     static final String MIGRATION_EVENT = "boHistoryCorrection";
+    static final String ROLLBACK_SUMMARY = "DTSPB-5064 - Rollback Caveat Resolution to Caveat Not Matched";
+    static final String ROLLBACK_DESCRIPTION = "Rollback Caveat Resolution to Caveat Not Matched";
 
-    static final String ROLLBACK_SUMMARY = "DTSPB-5005 - Rollback adding metadata for Notice of Change";
-    static final String ROLLBACK_DESCRIPTION = "Rollback adding metadata for Notice of Change";
+    static final String ROLLBACK_ID = "DTSPB-5064_rollback";
 
-    static final String ROLLBACK_ID = "DTSPB-5005_rollback";
-
-    public Dtspb5005RollbackMigrationHandler(
+    public Dtspb5064RollbackMigrationHandler(
         final CoreCaseDataApi coreCaseDataApi,
         final CaseEventsApi caseEventsApi,
         final ElasticSearchHandler elasticSearchHandler,
-        final Dtspb5005Config config,
-        final Dtspb5005ElasticQueries elasticQueries) {
+        final Dtspb5064Config config,
+        final Dtspb5064ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.caseEventsApi = Objects.requireNonNull(caseEventsApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
@@ -109,7 +96,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
         final UserDetails userDetails = userToken.userDetails();
 
-        log.info("DTSPB-5005_rollback start event for {} case {}",
+        log.info("DTSPB-5064_rollback start event for {} case {}",
             eventDetails.caseType(),
             caseSummary.reference());
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
@@ -136,25 +123,25 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         final UserToken userToken = migrationEvent.userToken();
         final S2sToken s2sToken = migrationEvent.s2sToken();
         if (caseDetails == null) {
-            log.error("DTSPB-5005_rollback: No case details present in startEventResponse for {} case {}",
+            log.error("DTSPB-5064_rollback: No case details present in startEventResponse for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
-            throw new Dtspb5005RollbackException(
+            throw new Dtspb5064RollbackException(
                     "No case details present in startEventResponse for " + caseSummary.reference());
         }
 
         final Map<String, Object> caseData = caseDetails.getData();
         if (caseData == null) {
-            log.error("DTSPB-5005_rollback: No case data present in startEventResponse for {} case {}",
+            log.error("DTSPB-5064_rollback: No case data present in startEventResponse for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
-            throw new Dtspb5005RollbackException(
+            throw new Dtspb5064RollbackException(
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
         final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
         if (!hasApplOrgPolicy) {
-            log.info("DTSPB-5005_rollback: {} case {} does not have applicantOrganisationPolicy so no rollback needed",
+            log.info("DTSPB-5064_rollback: {} case {} does not have applicantOrganisationPolicy so no rollback needed",
                 caseSummary.type(),
                 caseSummary.reference());
             return false;
@@ -169,21 +156,21 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 caseDetails.getId().toString());
 
         final List<CaseEventDetail> migrationEvents = caseEvents.stream()
-                .filter(this::findDtspb5005MigrationEvent)
+                .filter(this::findDtspb5064MigrationEvent)
                 .toList();
 
-        log.info("DTSPB-5005_rollback: found {} migration events for {} case {}",
+        log.info("DTSPB-5064_rollback: found {} migration events for {} case {}",
                 migrationEvents.size(),
                 caseSummary.type(),
                 caseSummary.reference());
         return !migrationEvents.isEmpty();
     }
 
-    boolean findDtspb5005MigrationEvent(final CaseEventDetail caseEventDetail) {
+    boolean findDtspb5064MigrationEvent(final CaseEventDetail caseEventDetail) {
         final String eventId = caseEventDetail.getId();
         final boolean correctEvent = eventId.equals(MIGRATION_EVENT);
         final String description = caseEventDetail.getDescription();
-        final boolean correctDescription = description.equals(Dtspb5005MigrationHandler.MIGRATION_DESCRIPTION);
+        final boolean correctDescription = description.equals(Dtspb5064MigrationHandler.MIGRATION_DESCRIPTION);
 
         return correctEvent && correctDescription;
     }
@@ -217,7 +204,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 .build();
 
         if (config.isDryRun()) {
-            log.info("DTSPB-5005_rollback: DRY RUN - returning without submission for {} case {}",
+            log.info("DTSPB-5064_rollback: DRY RUN - returning without submission for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
             return true;
@@ -237,12 +224,12 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 caseDataContent);
 
         if (result == null) {
-            log.error("DTSPB-5005_rollback: event submission returned null for {} case {}",
+            log.error("DTSPB-5064_rollback: event submission returned null for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
             return false;
         }
-        log.info("DTSPB-5005_rollback: event submission complete for {} case {}",
+        log.info("DTSPB-5064_rollback: event submission complete for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
 
@@ -251,8 +238,8 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
     private record RollbackEventDetails(String caseType, String eventId) {}
 
-    class Dtspb5005RollbackException extends RuntimeException {
-        public Dtspb5005RollbackException(final String message) {
+    class Dtspb5064RollbackException extends RuntimeException {
+        public Dtspb5064RollbackException(final String message) {
             super(message);
         }
     }
