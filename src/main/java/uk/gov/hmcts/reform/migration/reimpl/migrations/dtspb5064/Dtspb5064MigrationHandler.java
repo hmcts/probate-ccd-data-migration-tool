@@ -31,10 +31,9 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
     private final Dtspb5064Config config;
     private final Dtspb5064ElasticQueries elasticQueries;
 
-    static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
-    static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
+    static final String CAVEAT_MATCHING_STATE = "CaveatMatching";
 
     static final String MIGRATION_SUMMARY = "DTSPB-5064 - Migrate Caveat Not Matched to Caveat Resolution";
     static final String MIGRATION_DESCRIPTION = "Migrate Caveat Not Matched to Caveat Resolution";
@@ -57,14 +56,6 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
             final S2sToken s2sToken) {
         final Set<CaseSummary> candidateCases = new HashSet<>();
 
-        final Set<CaseSummary> gorCandidates = elasticSearchHandler.searchCases(
-                "DTSPB-5064",
-                userToken,
-                s2sToken,
-                CaseType.GRANT_OF_REPRESENTATION,
-                fR -> elasticQueries.getGorMigrationQuery(config.getQuerySize(), fR));
-        candidateCases.addAll(gorCandidates);
-
         final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
                 "DTSPB-5064",
                 userToken,
@@ -82,14 +73,7 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-        final MigrationEventDetails eventDetails = switch (caseSummary.type()) {
-            case GRANT_OF_REPRESENTATION -> new MigrationEventDetails(
-                    GRANT_OF_REPRESENTATION,
-                    "boHistoryCorrection");
-            case CAVEAT -> new MigrationEventDetails(
-                    CAVEAT,
-                    "boHistoryCorrection");
-        };
+        final MigrationEventDetails eventDetails = new MigrationEventDetails(CAVEAT, "boHistoryCorrection");
 
         final UserDetails userDetails = userToken.userDetails();
 
@@ -134,13 +118,13 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
-        if (hasApplOrgPolicy) {
-            log.info("DTSPB-5064: {} case {} already has applicantOrganisationPolicy so no migration needed",
+        final boolean isCaveatResolutionState = caseDetails.getState().equals(CAVEAT_MATCHING_STATE);
+        if (isCaveatResolutionState) {
+            log.info("DTSPB-5064: {} case {} already has Caveat Matching state so no migration needed",
                     caseSummary.type(),
                     caseSummary.reference());
         }
-        return !hasApplOrgPolicy;
+        return !isCaveatResolutionState;
     }
 
     @Override
@@ -171,8 +155,8 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
         policy.put("OrgPolicyCaseAssignedRole", "[APPLICANTSOLICITOR]");
 
         migratedData.put(
-                APPLICANT_ORGANISATION_POLICY,
-                policy);
+                "state",
+                CAVEAT_MATCHING_STATE);
 
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())
