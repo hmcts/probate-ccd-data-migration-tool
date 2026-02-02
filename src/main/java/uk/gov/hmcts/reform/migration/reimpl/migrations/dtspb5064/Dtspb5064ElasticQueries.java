@@ -13,8 +13,6 @@ import java.util.Optional;
 @Slf4j
 public class Dtspb5064ElasticQueries {
 
-    private static final String BASE_GOR_MIGRATION_QUERY = "";
-
     private static final String BASE_CAVEAT_MIGRATION_QUERY = """
         {
             "query": {
@@ -27,13 +25,6 @@ public class Dtspb5064ElasticQueries {
                                 ]
                             }
                         }
-                    ],
-                    "must_not": [
-                        {
-                            "exists": {
-                                "field": "data.applicantOrganisationPolicy"
-                            }
-                        }
                     ]
                 }
             },
@@ -46,8 +37,6 @@ public class Dtspb5064ElasticQueries {
             ]
         }
         """;
-
-    private static final String BASE_GOR_ROLLBACK_QUERY = "";
 
     private static final String BASE_CAVEAT_ROLLBACK_QUERY = """
         {
@@ -60,11 +49,6 @@ public class Dtspb5064ElasticQueries {
                                     "CaveatMatching"
                                 ]
                             }
-                        },
-                        {
-                            "exists": {
-                                "field": "data.applicantOrganisationPolicy"
-                            }
                         }
                     ]
                 }
@@ -79,18 +63,6 @@ public class Dtspb5064ElasticQueries {
         }
         """;
 
-    public JSONObject getGorMigrationQuery(
-            final Integer size,
-            final Optional<Long> fromReference) {
-        JSONObject migrationQuery = new JSONObject(BASE_GOR_MIGRATION_QUERY);
-
-        final JSONObject sizedQuery = addSize(migrationQuery, size);
-        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
-
-        log.debug("GoR migration query: {}", searchAfterQuery);
-        return searchAfterQuery;
-    }
-
     public JSONObject getCaveatMigrationQuery(
             final Integer size,
             final Optional<Long> fromReference) {
@@ -101,20 +73,6 @@ public class Dtspb5064ElasticQueries {
 
         log.debug("Caveat migration query: {}", searchAfterQuery);
         return searchAfterQuery;
-    }
-
-    public JSONObject getGorRollbackQuery(
-            final Integer size,
-            final LocalDate migrationDate,
-            final Optional<Long> fromReference) {
-        JSONObject rollbackQuery = new JSONObject(BASE_GOR_ROLLBACK_QUERY);
-
-        final JSONObject sizedQuery = addSize(rollbackQuery, size);
-        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
-        final JSONObject lastModifiedQuery = addLastModifiedFilter(searchAfterQuery, migrationDate);
-
-        log.debug("GoR rollback query: {}", lastModifiedQuery);
-        return lastModifiedQuery;
     }
 
     public JSONObject getCaveatRollbackQuery(
