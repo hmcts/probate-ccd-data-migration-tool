@@ -35,10 +35,9 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
     private final Dtspb5064Config config;
     private final Dtspb5064ElasticQueries elasticQueries;
 
-    static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
-    static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
+    static final String CAVEAT_MATCHING_STATE = "CaveatMatching";
 
     static final String MIGRATION_EVENT = "boHistoryCorrection";
     static final String ROLLBACK_SUMMARY = "DTSPB-5064 - Rollback Caveat Resolution to Caveat Not Matched";
@@ -66,17 +65,6 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
             final S2sToken s2sToken) {
         final Set<CaseSummary> candidateCases = new HashSet<>();
 
-        final Set<CaseSummary> gorCandidates = elasticSearchHandler.searchCases(
-            ROLLBACK_ID,
-            userToken,
-            s2sToken,
-            CaseType.GRANT_OF_REPRESENTATION,
-            fR -> elasticQueries.getGorRollbackQuery(
-                    config.getQuerySize(),
-                    config.getRollbackDate(),
-                    fR));
-        candidateCases.addAll(gorCandidates);
-
         final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
             ROLLBACK_ID,
             userToken,
@@ -97,14 +85,7 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-        final RollbackEventDetails eventDetails = switch (caseSummary.type()) {
-            case GRANT_OF_REPRESENTATION -> new RollbackEventDetails(
-                GRANT_OF_REPRESENTATION,
-                "boCorrection");
-            case CAVEAT -> new RollbackEventDetails(
-                CAVEAT,
-                "boCorrection");
-        };
+        final RollbackEventDetails eventDetails = new RollbackEventDetails(CAVEAT, "boCorrection");
 
         final UserDetails userDetails = userToken.userDetails();
 
@@ -151,9 +132,9 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
-        if (!hasApplOrgPolicy) {
-            log.info("DTSPB-5064_rollback: {} case {} does not have applicantOrganisationPolicy so no rollback needed",
+        final boolean isCaveatResolutionState = caseDetails.getState().equals(CAVEAT_MATCHING_STATE);
+        if (!isCaveatResolutionState) {
+            log.info("DTSPB-5064_rollback: {} case {} does not have Caveat Matching state so no rollback needed",
                 caseSummary.type(),
                 caseSummary.reference());
             return false;
