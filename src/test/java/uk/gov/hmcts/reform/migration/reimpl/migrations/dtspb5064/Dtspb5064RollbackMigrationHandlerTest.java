@@ -47,9 +47,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.APPLICANT_ORGANISATION_POLICY;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.CAVEAT;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.GRANT_OF_REPRESENTATION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.CAVEAT_MATCHING_STATE;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.MIGRATION_EVENT;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.ROLLBACK_DESCRIPTION;
@@ -98,16 +97,8 @@ class Dtspb5064RollbackMigrationHandlerTest {
         final UserToken userToken = mock();
         final S2sToken s2sToken = mock();
 
-        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
+        final CaseSummary caveatCase = new CaseSummary(1L, CaseType.CAVEAT);
 
-        when(elasticSearchHandlerMock.searchCases(
-                        any(),
-                        any(),
-                        any(),
-                        eq(CaseType.GRANT_OF_REPRESENTATION),
-                        any()))
-                .thenReturn(Set.of(gorCase));
         when(elasticSearchHandlerMock.searchCases(
                         any(),
                         any(),
@@ -125,63 +116,10 @@ class Dtspb5064RollbackMigrationHandlerTest {
                         any(),
                         eq(userToken),
                         eq(s2sToken),
-                        eq(CaseType.GRANT_OF_REPRESENTATION),
-                        any()),
-                () -> verify(elasticSearchHandlerMock).searchCases(
-                        any(),
-                        eq(userToken),
-                        eq(s2sToken),
                         eq(CaseType.CAVEAT),
                         any()),
-                () -> assertThat(candidateCases, hasSize(2)),
-                () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
-    }
-
-    @Test
-    void startGorEvent() {
-        final Long caseId = 1L;
-        final CaseType caseType = CaseType.GRANT_OF_REPRESENTATION;
-        final CaseSummary caseSummary = new CaseSummary(caseId, caseType);
-
-        final String userId = UUID.randomUUID().toString();
-        final UserDetails userDetails = mock();
-        when(userDetails.getId())
-                .thenReturn(userId);
-
-        final String userBearerToken = UUID.randomUUID().toString();
-        final UserToken userToken = mock();
-        when(userToken.userDetails())
-                .thenReturn(userDetails);
-        when(userToken.getBearerToken())
-                .thenReturn(userBearerToken);
-
-        final String s2sBearerToken = UUID.randomUUID().toString();
-        final S2sToken s2sToken = mock();
-        when(s2sToken.s2sToken())
-                .thenReturn(s2sBearerToken);
-
-        final StartEventResponse startEventResponse = mock();
-        when(coreCaseDataApiMock.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(startEventResponse);
-
-        final MigrationEvent actual = dtspb5064RollbackMigrationHandler.startEventForCase(
-                caseSummary,
-                userToken,
-                s2sToken);
-
-        assertAll(
-                () -> assertSame(caseSummary, actual.caseSummary()),
-                () -> assertSame(userToken, actual.userToken()),
-                () -> assertSame(s2sToken, actual.s2sToken()),
-                () -> assertSame(startEventResponse, actual.startEventResponse()),
-                () -> verify(coreCaseDataApiMock).startEventForCaseWorker(
-                        userBearerToken,
-                        s2sBearerToken,
-                        userId,
-                        JURISDICTION,
-                        GRANT_OF_REPRESENTATION,
-                        caseId.toString(),
-                        "boCorrection"));
+                () -> assertThat(candidateCases, hasSize(1)),
+                () -> assertThat(candidateCases, containsInAnyOrder(caveatCase)));
     }
 
     @Test
@@ -276,7 +214,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseNoAppOrgPolicyInDataReturnsFalse() {
+    void shouldMigrateCaseInCaveatMatchedStateReturnsFalse() {
         final MigrationEvent migrationEvent = mock();
 
         final CaseSummary caseSummary = mock();
@@ -300,7 +238,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseAppOrgPolicyInDataNoCaseEventsReturnsFalse() {
+    void shouldMigrateCaseInCaveatMatchedStateInDataNoCaseEventsReturnsFalse() {
         final CaseSummary caseSummary = mock();
 
         final StartEventResponse startEventResponse = mock();
@@ -342,7 +280,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         final Map<String, Object> caseData = Map.of(
-                APPLICANT_ORGANISATION_POLICY, "");
+                CAVEAT_MATCHING_STATE, "");
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
@@ -362,7 +300,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseAppOrgPolicyInDataMatchingCaseEventReturnsTrue() {
+    void shouldMigrateCaseInCaveatMatchedStateInDataMatchingCaseEventReturnsTrue() {
         final CaseSummary caseSummary = mock();
 
         final StartEventResponse startEventResponse = mock();
@@ -404,7 +342,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         final Map<String, Object> caseData = Map.of(
-                APPLICANT_ORGANISATION_POLICY, "");
+                CAVEAT_MATCHING_STATE, "");
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
