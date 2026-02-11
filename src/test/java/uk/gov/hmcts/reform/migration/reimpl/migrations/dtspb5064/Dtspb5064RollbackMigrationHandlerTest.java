@@ -216,6 +216,10 @@ class Dtspb5064RollbackMigrationHandlerTest {
     @Test
     void shouldMigrateCaseInCaveatMatchedStateReturnsFalse() {
         final MigrationEvent migrationEvent = mock();
+        final UserToken userToken = mock();
+        final S2sToken s2sToken = mock();
+        when(migrationEvent.userToken()).thenReturn(userToken);
+        when(migrationEvent.s2sToken()).thenReturn(s2sToken);
 
         final CaseSummary caseSummary = mock();
         final StartEventResponse startEventResponse = mock();
@@ -228,9 +232,27 @@ class Dtspb5064RollbackMigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
 
+        when(caseDetails.getState())
+                .thenReturn(Dtspb5064RollbackMigrationHandler.CAVEAT_MATCHING_STATE);
+
         final Map<String, Object> caseData = Map.of();
         when(caseDetails.getData())
                 .thenReturn(caseData);
+
+        // Also mock userToken.getBearerToken(), userToken.userDetails().getId(), s2sToken.s2sToken() as needed
+        final UserDetails userDetails = mock();
+        final String userBearer = UUID.randomUUID().toString();
+        final String userId = UUID.randomUUID().toString();
+        when(userToken.getBearerToken()).thenReturn(userBearer);
+        when(userToken.userDetails()).thenReturn(userDetails);
+        when(userDetails.getId()).thenReturn(userId);
+        final String s2sBearer = UUID.randomUUID().toString();
+        when(s2sToken.s2sToken()).thenReturn(s2sBearer);
+        when(caseDetails.getJurisdiction()).thenReturn("JURISDICTION");
+        when(caseDetails.getCaseTypeId()).thenReturn("CASE_TYPE");
+        when(caseDetails.getId()).thenReturn(1L);
+        // Also mock caseEventsApiMock.findEventDetailsForCase to return an empty list
+        when(caseEventsApiMock.findEventDetailsForCase(any(), any(), any(), any(), any(), any())).thenReturn(List.of());
 
         final boolean actual = dtspb5064RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
@@ -278,6 +300,9 @@ class Dtspb5064RollbackMigrationHandlerTest {
 
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
+
+        when(caseDetails.getState())
+                .thenReturn(Dtspb5064RollbackMigrationHandler.CAVEAT_MATCHING_STATE);
 
         final Map<String, Object> caseData = Map.of(
                 CAVEAT_MATCHING_STATE, "");
@@ -340,6 +365,9 @@ class Dtspb5064RollbackMigrationHandlerTest {
 
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
+
+        when(caseDetails.getState())
+                .thenReturn(Dtspb5064RollbackMigrationHandler.CAVEAT_MATCHING_STATE);
 
         final Map<String, Object> caseData = Map.of(
                 CAVEAT_MATCHING_STATE, "");

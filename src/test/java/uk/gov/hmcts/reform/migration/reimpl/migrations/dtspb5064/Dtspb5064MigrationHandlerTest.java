@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -74,20 +75,12 @@ class Dtspb5064MigrationHandlerTest {
     }
 
     @Test
-    void getCandidateCasesCallsElasticSearchTwice() {
+    void getCandidateCasesCallsElasticSearchOnceForCaveat() {
         final UserToken userToken = mock();
         final S2sToken s2sToken = mock();
 
-        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
         final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
 
-        when(elasticSearchHandlerMock.searchCases(
-                        any(),
-                        any(),
-                        any(),
-                        eq(CaseType.GRANT_OF_REPRESENTATION),
-                        any()))
-                .thenReturn(Set.of(gorCase));
         when(elasticSearchHandlerMock.searchCases(
                         any(),
                         any(),
@@ -102,19 +95,13 @@ class Dtspb5064MigrationHandlerTest {
 
         assertAll(
                 () -> verify(elasticSearchHandlerMock).searchCases(
-                        any(),
-                        eq(userToken),
-                        eq(s2sToken),
-                        eq(CaseType.GRANT_OF_REPRESENTATION),
-                        any()),
-                () -> verify(elasticSearchHandlerMock).searchCases(
-                        any(),
+                        anyString(),
                         eq(userToken),
                         eq(s2sToken),
                         eq(CaseType.CAVEAT),
                         any()),
-                () -> assertThat(candidateCases, hasSize(2)),
-                () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
+                () -> assertThat(candidateCases, hasSize(1)),
+                () -> assertThat(candidateCases, containsInAnyOrder(caveatCase)));
     }
 
     @Test
