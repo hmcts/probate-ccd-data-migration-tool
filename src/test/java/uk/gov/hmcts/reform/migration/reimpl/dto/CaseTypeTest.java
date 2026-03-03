@@ -25,22 +25,25 @@ class CaseTypeTest {
 
     @Test
     void testFromCcdValue_Nonsense_Throws() {
+        final String nonsense = UUID.randomUUID().toString();
         assertThrows(
                 IllegalArgumentException.class,
-                () -> CaseType.fromCcdValue(UUID.randomUUID().toString()));
+                () -> CaseType.fromCcdValue(nonsense));
     }
 
     @Test
     void testFromCcdValue_CaveatLowerCase_Throws() {
+        final String lowerCaseCaveat = CaseType.CAVEAT.getCcdValue().toLowerCase();
         assertThrows(
                 IllegalArgumentException.class,
-                () -> CaseType.fromCcdValue(CaseType.CAVEAT.getCcdValue().toLowerCase()));
+                () -> CaseType.fromCcdValue(lowerCaseCaveat));
     }
 
     @Test
     void testFromCcdValue_GrantOfRepresentationLowerCase_Throws() {
+        final String lowerCaseGor = CaseType.GRANT_OF_REPRESENTATION.getCcdValue().toLowerCase();
         assertThrows(
                 IllegalArgumentException.class,
-                () -> CaseType.fromCcdValue(CaseType.GRANT_OF_REPRESENTATION.getCcdValue().toLowerCase()));
+                () -> CaseType.fromCcdValue(lowerCaseGor));
     }
 }

@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.migration.reimpl.config;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 
@@ -17,23 +20,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ReimplConfigTest {
 
-    @Test
-    void testCasesToFilterTo_NullString_GivesEmptyOptional() {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo(null);
-
-        assertThat(actual, isEmpty());
-    }
-
-    @Test
-    void testCasesToFilterTo_EmptyString_GivesEmptyOptional() {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo("");
-
-        assertThat(actual, isEmpty());
-    }
-
-    @Test
-    void testCasesToFilterTo_SpaceString_GivesEmptyOptional() {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo("  ");
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"", " ", "\t"})
+    void testCasesToFilterTo_BlankString_GivesEmptyOptional(final String input) {
+        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo(input);
 
         assertThat(actual, isEmpty());
     }
