@@ -98,9 +98,10 @@ public class ReimplConfig {
         Set<CaseSummary> casesToFilter = new HashSet<>();
         final String[] splitCasesToRestrictTo = casesToRestrictTo
                 .trim()
-                .split("\\s*,\\s*");
+                .split(",");
         for (String splitCase : splitCasesToRestrictTo) {
-            final String[] splitInput = splitCase.split("\\s*:\\s*");
+            final String splitCaseTrimmed = splitCase.trim();
+            final String[] splitInput = splitCaseTrimmed.split(":");
             if (splitInput.length != 2) {
                 final String errMessage = new StringBuilder()
                         .append("Error reading configuration for casesToFilterTo. Found entry [")
@@ -113,8 +114,8 @@ public class ReimplConfig {
                 throw new IllegalArgumentException(errMessage);
             }
 
-            final String caseIdStr = splitInput[0];
-            final String caseTypeStr = splitInput[1];
+            final String caseIdStr = splitInput[0].trim();
+            final String caseTypeStr = splitInput[1].trim();
             try {
                 final Long caseId = Long.parseLong(caseIdStr);
                 final CaseType caseType = CaseType.fromCcdValue(caseTypeStr);
