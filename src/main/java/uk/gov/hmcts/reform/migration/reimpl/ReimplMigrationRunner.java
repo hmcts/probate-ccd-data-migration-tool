@@ -13,11 +13,13 @@ import java.util.ArrayDeque;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -55,8 +57,15 @@ public class ReimplMigrationRunner {
                     authenticationProvider.getS2sToken());
             log.info("{}: Identified {} candidate cases for migration", migrationId, candidateCaseReferences.size());
 
-            Queue<MigrationTask> taskQueue = new ArrayDeque<>(candidateCaseReferences.size());
-            for (final CaseSummary caseSummary : candidateCaseReferences) {
+            final Set<CaseSummary> filteredCaseReferences = filterCases(
+                    reimplConfig.getCasesToRestrictTo(),
+                    candidateCaseReferences);
+            log.info("{}: Identified {} cases after filtering from configuration",
+                    migrationId,
+                filteredCaseReferences.size());
+
+            Queue<MigrationTask> taskQueue = new ArrayDeque<>(filteredCaseReferences.size());
+            for (final CaseSummary caseSummary : filteredCaseReferences) {
                 final Future<MigrationState> task = executorService.submit(() -> runMigration(
                         migrationHandler,
                         caseSummary));
@@ -87,6 +96,27 @@ public class ReimplMigrationRunner {
         }
 
         report(reportingInfo);
+    }
+
+    Set<CaseSummary> filterCases(
+            final Optional<Set<CaseSummary>> casesToFilterTo,
+            final Set<CaseSummary> candidateCaseReferences) {
+        final String migrationId = reimplConfig.getMigrationId();
+        if (casesToFilterTo.isEmpty()) {
+            log.info("{}: No cases to filter to set, returning original input", migrationId);
+            return Set.copyOf(candidateCaseReferences);
+        }
+        return candidateCaseReferences.stream()
+            .filter(c -> {
+                if (casesToFilterTo.get().contains(c)) {
+                    log.info("{}: found case {} in filter list", migrationId, c);
+                    return true;
+                } else {
+                    log.info("{}: case {} not present in filter list so dropping", migrationId, c);
+                    return false;
+                }
+            })
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     MigrationState runMigration(
