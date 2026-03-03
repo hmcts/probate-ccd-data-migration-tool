@@ -152,15 +152,16 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
 
         final Map<String, Object> migratedData = caseDetails.getData();
+        // Sonar will not let me put the actual JSON example here so < and > are used as open/close curly brace...
         // We need to add an 'empty' policy:
-        // {
-        //   "Organisation": {
+        // <
+        //   "Organisation": <
         //     "OrganisationID": null,
         //     "OrganisationName": null
-        //   },
+        //   >,
         //   "OrgPolicyReference": null,
         //   "OrgPolicyCaseAssignedRole": "[APPLICANTSOLICITOR]"
-        // }
+        // >
         final Map<String, Object> organisation = new HashMap<>();
         organisation.put("OrganisationId", null);
         organisation.put("OrganisationName", null);
