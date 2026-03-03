@@ -98,9 +98,9 @@ public class ReimplConfig {
         Set<CaseSummary> casesToFilter = new HashSet<>();
         final String[] splitCasesToRestrictTo = casesToRestrictTo
                 .trim()
-                .split("[ ]*,[ ]*");
+                .split("\\s*,\\s*");
         for (String splitCase : splitCasesToRestrictTo) {
-            final String[] splitInput = splitCase.split("[ ]*:[ ]*");
+            final String[] splitInput = splitCase.split("\\s*:\\s*");
             if (splitInput.length != 2) {
                 final String errMessage = new StringBuilder()
                         .append("Error reading configuration for casesToFilterTo. Found entry [")

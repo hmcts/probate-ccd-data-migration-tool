@@ -195,7 +195,7 @@ class ReimplMigrationRunnerTest {
                 new CaseSummary(1L, CaseType.CAVEAT),
                 new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
         final Set<CaseSummary> actual = reimplMigrationRunner.filterCases(
-                Optional.of(Set.of()),
+                Optional.of(filterSet),
                 inputCases);
 
         assertThat(actual, hasSize(0));
