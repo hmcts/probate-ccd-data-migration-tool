@@ -41,7 +41,7 @@ public class ReimplConfig {
             final long userTokenRefreshMarginMins,
             @Value("${migration.reimpl.s2s_token_refresh_margin_mins}")
             final long s2sTokenRefreshMarginMins,
-            @Value("${migration.reimpl.cases_to_restrict_to")
+            @Value("${migration.reimpl.cases_to_restrict_to}")
             final String casesToRestrictTo) {
         this.defaultThreadlimit = defaultThreadlimit;
         this.migrationId = Objects.requireNonNull(migrationId);
