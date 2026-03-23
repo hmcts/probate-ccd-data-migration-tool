@@ -169,7 +169,7 @@ repositories {
 ext {
   log4JVersion = "2.25.3"
   lombokVersion = "1.18.42"
-  springSecurity   =  '6.5.7'
+  springSecurity = '6.5.7'
   springCloudVersion = '2025.0.0'
 }
 
@@ -198,11 +198,15 @@ dependencies {
   implementation group: 'org.springframework.security', name: 'spring-security-oauth2-core', version: springSecurity
   implementation group: 'org.springframework.security', name: 'spring-security-config', version: springSecurity
 
+  implementation "org.hibernate.validator:hibernate-validator:9.1.0.Final"
+  implementation "com.fasterxml.jackson.core:jackson-core:2.17.0"
+  implementation "com.fasterxml.jackson.core:jackson-databind:2.17.0"
+
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test'
   testImplementation group: 'org.wiremock', name: 'wiremock', version: '3.13.2'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '6.0.0'
 
-  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.21.0'
+  testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '5.21.0'
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
@@ -259,7 +263,7 @@ bootJar {
 }
 
 wrapper {
-    distributionType = Wrapper.DistributionType.ALL
+  distributionType = Wrapper.DistributionType.ALL
 }
 
 test {
