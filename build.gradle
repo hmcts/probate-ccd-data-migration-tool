@@ -182,7 +182,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '3.0.5'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.2.0'
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '7.0.0'
+  implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '8.0.0'
   implementation ('net.logstash.logback:logstash-logback-encoder:9.0') {
     exclude group: 'tools.jackson.core', module: 'jackson-core'
     exclude group: 'tools.jackson.core', module: 'jackson-databind'
