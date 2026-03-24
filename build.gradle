@@ -205,7 +205,7 @@ dependencies {
   testImplementation group: 'org.wiremock', name: 'wiremock', version: '3.13.2'
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '6.0.0'
 
-  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.21.0'
+  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.23.0'
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
