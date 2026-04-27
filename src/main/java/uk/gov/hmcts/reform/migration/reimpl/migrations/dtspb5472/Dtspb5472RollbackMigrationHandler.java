@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -38,14 +39,14 @@ public class Dtspb5472RollbackMigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final CaseEventsApi caseEventsApi;
     private final ElasticSearchHandler elasticSearchHandler;
-
+    private final ReimplConfig commonConfig;
     private final Dtspb5472Config config;
     private final Dtspb5472ElasticQueries elasticQueries;
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String JURISDICTION = "PROBATE";
     static final String PA_ADOPTED_IN = "primaryApplicantAdoptedIn";
-
+    // Check that a previous migration event has happened
     static final String MIGRATION_EVENT = "boHistoryCorrection";
 
     static final String ROLLBACK_SUMMARY = "DTSPB-5472 - Rollback applicant's relationship to deceased";
@@ -57,12 +58,13 @@ public class Dtspb5472RollbackMigrationHandler implements MigrationHandler {
         final CoreCaseDataApi coreCaseDataApi,
         final CaseEventsApi caseEventsApi,
         final ElasticSearchHandler elasticSearchHandler,
+        final ReimplConfig commonConfig,
         final Dtspb5472Config config,
         final Dtspb5472ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.caseEventsApi = Objects.requireNonNull(caseEventsApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
-
+        this.commonConfig = Objects.requireNonNull(commonConfig);
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
     }
@@ -78,7 +80,7 @@ public class Dtspb5472RollbackMigrationHandler implements MigrationHandler {
             s2sToken,
             CaseType.GRANT_OF_REPRESENTATION,
             fR -> elasticQueries.getGorRollbackQuery(
-                    config.getQuerySize(),
+                    commonConfig.getQuerySize(),
                     config.getRollbackDate(),
                     fR));
         final Set<CaseSummary> candidateCases = new HashSet<>(gorCandidates);
@@ -212,7 +214,7 @@ public class Dtspb5472RollbackMigrationHandler implements MigrationHandler {
                 .data(migratedData)
                 .build();
 
-        if (config.isDryRun()) {
+        if (commonConfig.isDryRun()) {
             log.info("DTSPB-5472_rollback: DRY RUN - returning without submission for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());

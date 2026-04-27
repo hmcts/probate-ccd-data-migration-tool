@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -73,6 +74,8 @@ class Dtspb5472RollbackMigrationHandlerTest {
     Dtspb5472Config dtspb5472ConfigMock;
     @Mock
     Dtspb5472ElasticQueries dtspb5472ElasticQueriesMock;
+    @Mock
+    ReimplConfig reimplConfigMock;
 
     Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler;
 
@@ -86,6 +89,7 @@ class Dtspb5472RollbackMigrationHandlerTest {
                 coreCaseDataApiMock,
                 caseEventsApiMock,
                 elasticSearchHandlerMock,
+                reimplConfigMock,
                 dtspb5472ConfigMock,
                 dtspb5472ElasticQueriesMock);
     }
@@ -376,7 +380,7 @@ class Dtspb5472RollbackMigrationHandlerTest {
 
     @Test
     void migrateShouldShortCircuitOnDryRun() {
-        when(dtspb5472ConfigMock.isDryRun())
+        when(reimplConfigMock.isDryRun())
                 .thenReturn(true);
 
         final CaseSummary caseSummary = mock();

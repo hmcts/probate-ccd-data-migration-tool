@@ -1,13 +1,15 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
-import java.util.Objects;
 import java.util.Optional;
+
+import static uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils.addLastModifiedFilter;
+import static uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils.addSearchAfter;
+import static uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils.addSize;
 
 @Component
 @Slf4j
@@ -24,7 +26,7 @@ public class Dtspb5472ElasticQueries {
                                     {
                                         "terms": {
                                             "data.primaryApplicantRelationshipToDeceased.keyword": [
-                                                "AdoptedChild"
+                                                "adoptedChild"
                                             ]
                                         }
                                     },
@@ -68,6 +70,27 @@ public class Dtspb5472ElasticQueries {
                             "exists": {
                                 "field": "data.primaryApplicantAdoptedIn"
                             }
+                        },
+                        {
+                            "bool": {
+                                "should": [
+                                    {
+                                        "terms": {
+                                            "data.primaryApplicantRelationshipToDeceased.keyword": [
+                                                "child"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "terms": {
+                                            "data.solsApplicantRelationshipToDeceased.keyword": [
+                                                "Child"
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "minimum_should_match": 1
+                            }
                         }
                     ]
                 }
@@ -106,56 +129,5 @@ public class Dtspb5472ElasticQueries {
 
         log.debug("GoR rollback query: {}", lastModifiedQuery);
         return lastModifiedQuery;
-    }
-
-    JSONObject addSize(
-            final JSONObject query,
-            final Integer size) {
-        Objects.requireNonNull(size);
-
-        if (size <= 0) {
-            log.error("Requested query size must be greater than zero, found {}", size);
-            throw new IllegalArgumentException("Requested query size must be greater than zero");
-        }
-        query.put("size", size);
-
-        return query;
-    }
-
-    JSONObject addSearchAfter(
-            final JSONObject query,
-            final Optional<Long> fromReference) {
-        Objects.requireNonNull(fromReference);
-
-        if (fromReference.isPresent()) {
-            final Long reference = fromReference.get();
-            final JSONArray fromRef = new JSONArray();
-            fromRef.put(reference);
-            query.put("search_after", fromRef);
-        }
-
-        return query;
-    }
-
-    JSONObject addLastModifiedFilter(
-            final JSONObject rollbackQuery,
-            final LocalDate migrationDate) {
-        Objects.requireNonNull(migrationDate);
-
-        final JSONObject lastModifiedFilter = new JSONObject();
-        final JSONObject range = new JSONObject();
-        final JSONObject lastModified = new JSONObject();
-        final String migrationDateStr = migrationDate.toString();
-
-        lastModifiedFilter.put("range", range);
-        range.put("last_modified", lastModified);
-        lastModified.put("gte", migrationDateStr);
-
-        final JSONObject query = rollbackQuery.getJSONObject("query");
-        final JSONObject bool = query.getJSONObject("bool");
-        final JSONArray filters = bool.getJSONArray("filter");
-        filters.put(lastModifiedFilter);
-
-        return rollbackQuery;
     }
 }

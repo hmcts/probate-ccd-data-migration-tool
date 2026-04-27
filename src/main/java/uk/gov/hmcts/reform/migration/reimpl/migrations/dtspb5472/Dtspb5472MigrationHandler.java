@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -27,6 +28,7 @@ public class Dtspb5472MigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final ElasticSearchHandler elasticSearchHandler;
 
+    private final ReimplConfig commonConfig;
     private final Dtspb5472Config config;
     private final Dtspb5472ElasticQueries elasticQueries;
 
@@ -48,11 +50,12 @@ public class Dtspb5472MigrationHandler implements MigrationHandler {
     public Dtspb5472MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
             final ElasticSearchHandler elasticSearchHandler,
+            final ReimplConfig commonConfig,
             final Dtspb5472Config config,
             final Dtspb5472ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
-
+        this.commonConfig = Objects.requireNonNull(commonConfig);
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
     }
@@ -67,7 +70,7 @@ public class Dtspb5472MigrationHandler implements MigrationHandler {
                 userToken,
                 s2sToken,
                 CaseType.GRANT_OF_REPRESENTATION,
-                fR -> elasticQueries.getGorMigrationQuery(config.getQuerySize(), fR));
+                fR -> elasticQueries.getGorMigrationQuery(commonConfig.getQuerySize(), fR));
         final Set<CaseSummary> candidateCases = new HashSet<>(gorCandidates);
 
         return Set.copyOf(candidateCases);
@@ -164,7 +167,7 @@ public class Dtspb5472MigrationHandler implements MigrationHandler {
                 .data(migratedData)
                 .build();
 
-        if (config.isDryRun()) {
+        if (commonConfig.isDryRun()) {
             log.info("DTSPB-5472: DRY RUN - returning without submission for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
