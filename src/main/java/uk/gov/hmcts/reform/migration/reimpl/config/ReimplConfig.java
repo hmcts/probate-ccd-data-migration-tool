@@ -31,6 +31,8 @@ public class ReimplConfig {
     private final Duration userTokenRefreshMargin;
     private final Duration s2sTokenRefreshMargin;
     private final Optional<Set<CaseSummary>> casesToRestrictTo;
+    private final int querySize;
+    private final boolean dryRun;
 
     public ReimplConfig(
             @Value("${default.thread.limit}")
@@ -42,12 +44,18 @@ public class ReimplConfig {
             @Value("${migration.reimpl.s2s_token_refresh_margin_mins}")
             final long s2sTokenRefreshMarginMins,
             @Value("${migration.reimpl.cases_to_restrict_to}")
-            final String casesToRestrictTo) {
+            final String casesToRestrictTo,
+            @Value("${case-migration.elasticsearch.querySize}")
+            final int querySize,
+            @Value("${migration.dryrun}")
+            final boolean dryRun) {
         this.defaultThreadlimit = defaultThreadlimit;
         this.migrationId = Objects.requireNonNull(migrationId);
         this.userTokenRefreshMargin = Duration.ofMinutes(userTokenRefreshMarginMins);
         this.s2sTokenRefreshMargin = Duration.ofMinutes(s2sTokenRefreshMarginMins);
         this.casesToRestrictTo = processCasesToFilterTo(casesToRestrictTo);
+        this.querySize = querySize;
+        this.dryRun = dryRun;
     }
 
     public String getMigrationId() {
@@ -64,6 +72,14 @@ public class ReimplConfig {
 
     public Optional<Set<CaseSummary>> getCasesToRestrictTo() {
         return casesToRestrictTo;
+    }
+
+    public int getQuerySize() {
+        return querySize;
+    }
+
+    public boolean isDryRun() {
+        return dryRun;
     }
 
     /**
