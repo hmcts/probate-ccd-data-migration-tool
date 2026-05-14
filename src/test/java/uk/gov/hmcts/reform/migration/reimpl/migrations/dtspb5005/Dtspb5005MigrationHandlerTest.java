@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -53,7 +54,7 @@ class Dtspb5005MigrationHandlerTest {
     @Mock
     ElasticSearchHandler elasticSearchHandlerMock;
     @Mock
-    Dtspb5005Config dtspb5005ConfigMock;
+    ReimplConfig reimplConfigMock;
     @Mock
     Dtspb5005ElasticQueries dtspb5005ElasticQueriesMock;
 
@@ -68,7 +69,7 @@ class Dtspb5005MigrationHandlerTest {
         dtspb5005MigrationHandler = new Dtspb5005MigrationHandler(
                 coreCaseDataApiMock,
                 elasticSearchHandlerMock,
-                dtspb5005ConfigMock,
+                reimplConfigMock,
                 dtspb5005ElasticQueriesMock);
     }
 
@@ -465,7 +466,7 @@ class Dtspb5005MigrationHandlerTest {
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
-        when(dtspb5005ConfigMock.isDryRun())
+        when(reimplConfigMock.isDryRun())
                 .thenReturn(true);
 
         final boolean actual = dtspb5005MigrationHandler.migrate(migrationEvent);
