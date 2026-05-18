@@ -29,8 +29,10 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -139,6 +141,60 @@ class Dtspb5005RollbackMigrationHandlerTest {
                         any()),
                 () -> assertThat(candidateCases, hasSize(2)),
                 () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
+    }
+
+    @Test
+    void getCandidateCasesCallsElasticQueryGet() {
+        final UserToken userToken = mock();
+        final S2sToken s2sToken = mock();
+
+        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
+        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
+
+        when(elasticSearchHandlerMock.searchCases(
+            any(),
+            any(),
+            any(),
+            eq(CaseType.GRANT_OF_REPRESENTATION),
+            any()))
+            .thenAnswer(invocation -> {
+                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
+                final JSONObject jsonObject = f.apply(Optional.of(1L));
+                return Set.of(gorCase);
+            });
+        when(elasticSearchHandlerMock.searchCases(
+            any(),
+            any(),
+            any(),
+            eq(CaseType.CAVEAT),
+            any()))
+            .thenAnswer(invocation -> {
+                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
+                final JSONObject jsonObject = f.apply(Optional.of(1L));
+                return Set.of(caveatCase);
+            });
+
+        final Set<CaseSummary> candidateCases = dtspb5005RollbackMigrationHandler.getCandidateCases(
+            userToken,
+            s2sToken);
+
+        assertAll(
+            () -> verify(elasticSearchHandlerMock).searchCases(
+                any(),
+                eq(userToken),
+                eq(s2sToken),
+                eq(CaseType.GRANT_OF_REPRESENTATION),
+                any()),
+            () -> verify(elasticSearchHandlerMock).searchCases(
+                any(),
+                eq(userToken),
+                eq(s2sToken),
+                eq(CaseType.CAVEAT),
+                any()),
+            () -> verify(dtspb5005ElasticQueriesMock).getGorRollbackQuery(any(), any(), any()),
+            () -> verify(dtspb5005ElasticQueriesMock).getCaveatRollbackQuery(any(), any(), any()),
+            () -> assertThat(candidateCases, hasSize(2)),
+            () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
     }
 
     @Test
