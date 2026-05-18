@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -21,8 +23,10 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -53,7 +57,7 @@ class Dtspb5005MigrationHandlerTest {
     @Mock
     ElasticSearchHandler elasticSearchHandlerMock;
     @Mock
-    Dtspb5005Config dtspb5005ConfigMock;
+    ReimplConfig reimplConfigMock;
     @Mock
     Dtspb5005ElasticQueries dtspb5005ElasticQueriesMock;
 
@@ -68,7 +72,7 @@ class Dtspb5005MigrationHandlerTest {
         dtspb5005MigrationHandler = new Dtspb5005MigrationHandler(
                 coreCaseDataApiMock,
                 elasticSearchHandlerMock,
-                dtspb5005ConfigMock,
+                reimplConfigMock,
                 dtspb5005ElasticQueriesMock);
     }
 
@@ -123,6 +127,60 @@ class Dtspb5005MigrationHandlerTest {
                         any()),
                 () -> assertThat(candidateCases, hasSize(2)),
                 () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
+    }
+
+    @Test
+    void getCandidateCasesCallsElasticQueryGet() {
+        final UserToken userToken = mock();
+        final S2sToken s2sToken = mock();
+
+        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
+        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
+
+        when(elasticSearchHandlerMock.searchCases(
+            any(),
+            any(),
+            any(),
+            eq(CaseType.GRANT_OF_REPRESENTATION),
+            any()))
+            .thenAnswer(invocation -> {
+                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
+                final JSONObject jsonObject = f.apply(Optional.of(1L));
+                return Set.of(gorCase);
+            });
+        when(elasticSearchHandlerMock.searchCases(
+            any(),
+            any(),
+            any(),
+            eq(CaseType.CAVEAT),
+            any()))
+            .thenAnswer(invocation -> {
+                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
+                final JSONObject jsonObject = f.apply(Optional.of(1L));
+                return Set.of(caveatCase);
+            });
+
+        final Set<CaseSummary> candidateCases = dtspb5005MigrationHandler.getCandidateCases(
+            userToken,
+            s2sToken);
+
+        assertAll(
+            () -> verify(elasticSearchHandlerMock).searchCases(
+                any(),
+                eq(userToken),
+                eq(s2sToken),
+                eq(CaseType.GRANT_OF_REPRESENTATION),
+                any()),
+            () -> verify(elasticSearchHandlerMock).searchCases(
+                any(),
+                eq(userToken),
+                eq(s2sToken),
+                eq(CaseType.CAVEAT),
+                any()),
+            () -> verify(dtspb5005ElasticQueriesMock).getGorMigrationQuery(any(), any()),
+            () -> verify(dtspb5005ElasticQueriesMock).getCaveatMigrationQuery(any(), any()),
+            () -> assertThat(candidateCases, hasSize(2)),
+            () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
     }
 
     @Test
@@ -465,7 +523,7 @@ class Dtspb5005MigrationHandlerTest {
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
-        when(dtspb5005ConfigMock.isDryRun())
+        when(reimplConfigMock.isDryRun())
                 .thenReturn(true);
 
         final boolean actual = dtspb5005MigrationHandler.migrate(migrationEvent);

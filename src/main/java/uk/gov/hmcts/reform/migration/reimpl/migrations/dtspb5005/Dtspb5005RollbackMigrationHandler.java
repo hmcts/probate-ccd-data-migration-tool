@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -32,6 +33,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     private final CaseEventsApi caseEventsApi;
     private final ElasticSearchHandler elasticSearchHandler;
 
+    private final ReimplConfig reimplConfig;
     private final Dtspb5005Config config;
     private final Dtspb5005ElasticQueries elasticQueries;
 
@@ -51,12 +53,14 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         final CoreCaseDataApi coreCaseDataApi,
         final CaseEventsApi caseEventsApi,
         final ElasticSearchHandler elasticSearchHandler,
+        final ReimplConfig reimplConfig,
         final Dtspb5005Config config,
         final Dtspb5005ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.caseEventsApi = Objects.requireNonNull(caseEventsApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
 
+        this.reimplConfig = Objects.requireNonNull(reimplConfig);
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
     }
@@ -73,7 +77,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             s2sToken,
             CaseType.GRANT_OF_REPRESENTATION,
             fR -> elasticQueries.getGorRollbackQuery(
-                    config.getQuerySize(),
+                    reimplConfig.getQuerySize(),
                     config.getRollbackDate(),
                     fR));
         candidateCases.addAll(gorCandidates);
@@ -84,7 +88,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             s2sToken,
             CaseType.CAVEAT,
             fR -> elasticQueries.getCaveatRollbackQuery(
-                    config.getQuerySize(),
+                    reimplConfig.getQuerySize(),
                     config.getRollbackDate(),
                     fR));
         candidateCases.addAll(caveatCandidates);
@@ -216,7 +220,7 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 .data(migratedData)
                 .build();
 
-        if (config.isDryRun()) {
+        if (reimplConfig.isDryRun()) {
             log.info("DTSPB-5005_rollback: DRY RUN - returning without submission for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());

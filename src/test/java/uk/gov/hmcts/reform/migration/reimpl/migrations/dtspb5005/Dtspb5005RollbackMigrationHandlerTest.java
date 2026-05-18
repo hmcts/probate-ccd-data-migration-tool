@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -28,8 +29,10 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -64,6 +67,8 @@ class Dtspb5005RollbackMigrationHandlerTest {
     @Mock
     ElasticSearchHandler elasticSearchHandlerMock;
     @Mock
+    ReimplConfig reimplConfigMock;
+    @Mock
     Dtspb5005Config dtspb5005ConfigMock;
     @Mock
     Dtspb5005ElasticQueries dtspb5005ElasticQueriesMock;
@@ -80,6 +85,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
                 coreCaseDataApiMock,
                 caseEventsApiMock,
                 elasticSearchHandlerMock,
+                reimplConfigMock,
                 dtspb5005ConfigMock,
                 dtspb5005ElasticQueriesMock);
     }
@@ -135,6 +141,60 @@ class Dtspb5005RollbackMigrationHandlerTest {
                         any()),
                 () -> assertThat(candidateCases, hasSize(2)),
                 () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
+    }
+
+    @Test
+    void getCandidateCasesCallsElasticQueryGet() {
+        final UserToken userToken = mock();
+        final S2sToken s2sToken = mock();
+
+        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
+        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
+
+        when(elasticSearchHandlerMock.searchCases(
+            any(),
+            any(),
+            any(),
+            eq(CaseType.GRANT_OF_REPRESENTATION),
+            any()))
+            .thenAnswer(invocation -> {
+                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
+                final JSONObject jsonObject = f.apply(Optional.of(1L));
+                return Set.of(gorCase);
+            });
+        when(elasticSearchHandlerMock.searchCases(
+            any(),
+            any(),
+            any(),
+            eq(CaseType.CAVEAT),
+            any()))
+            .thenAnswer(invocation -> {
+                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
+                final JSONObject jsonObject = f.apply(Optional.of(1L));
+                return Set.of(caveatCase);
+            });
+
+        final Set<CaseSummary> candidateCases = dtspb5005RollbackMigrationHandler.getCandidateCases(
+            userToken,
+            s2sToken);
+
+        assertAll(
+            () -> verify(elasticSearchHandlerMock).searchCases(
+                any(),
+                eq(userToken),
+                eq(s2sToken),
+                eq(CaseType.GRANT_OF_REPRESENTATION),
+                any()),
+            () -> verify(elasticSearchHandlerMock).searchCases(
+                any(),
+                eq(userToken),
+                eq(s2sToken),
+                eq(CaseType.CAVEAT),
+                any()),
+            () -> verify(dtspb5005ElasticQueriesMock).getGorRollbackQuery(any(), any(), any()),
+            () -> verify(dtspb5005ElasticQueriesMock).getCaveatRollbackQuery(any(), any(), any()),
+            () -> assertThat(candidateCases, hasSize(2)),
+            () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
     }
 
     @Test
@@ -430,7 +490,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
 
     @Test
     void migrateShouldShortCircuitOnDryRun() {
-        when(dtspb5005ConfigMock.isDryRun())
+        when(reimplConfigMock.isDryRun())
                 .thenReturn(true);
 
         final CaseSummary caseSummary = mock();

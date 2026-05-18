@@ -8,6 +8,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -28,7 +29,7 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final ElasticSearchHandler elasticSearchHandler;
 
-    private final Dtspb5005Config config;
+    private final ReimplConfig reimplConfig;
     private final Dtspb5005ElasticQueries elasticQueries;
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
@@ -42,12 +43,12 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
     public Dtspb5005MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
             final ElasticSearchHandler elasticSearchHandler,
-            final Dtspb5005Config config,
+            final ReimplConfig reimplConfig,
             final Dtspb5005ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
 
-        this.config = Objects.requireNonNull(config);
+        this.reimplConfig = Objects.requireNonNull(reimplConfig);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
     }
 
@@ -62,7 +63,7 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 userToken,
                 s2sToken,
                 CaseType.GRANT_OF_REPRESENTATION,
-                fR -> elasticQueries.getGorMigrationQuery(config.getQuerySize(), fR));
+                fR -> elasticQueries.getGorMigrationQuery(reimplConfig.getQuerySize(), fR));
         candidateCases.addAll(gorCandidates);
 
         final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
@@ -70,7 +71,7 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 userToken,
                 s2sToken,
                 CaseType.CAVEAT,
-                fR -> elasticQueries.getCaveatMigrationQuery(config.getQuerySize(), fR));
+                fR -> elasticQueries.getCaveatMigrationQuery(reimplConfig.getQuerySize(), fR));
         candidateCases.addAll(caveatCandidates);
 
         return Set.copyOf(candidateCases);
@@ -187,7 +188,7 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 .data(migratedData)
                 .build();
 
-        if (config.isDryRun()) {
+        if (reimplConfig.isDryRun()) {
             log.info("DTSPB-5005: DRY RUN - returning without submission for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
