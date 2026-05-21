@@ -9,11 +9,18 @@ import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
-import uk.gov.hmcts.reform.migration.reimpl.dto.*;
+import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
+import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
+import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
+import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
+import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -129,7 +136,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
 
         final Map<String, Object> migratedData = caseDetails.getData();
 
-        if(caseSummary.reference() != 0L) {
+        if (caseSummary.reference() != 0L) {
             throw new Dtspb5586MigrationException("Not implemented yet");
         }
 

@@ -1,18 +1,29 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586;
 
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CaseEventsApi;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import uk.gov.hmcts.reform.ccd.client.model.*;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
+import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
+import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
+import uk.gov.hmcts.reform.ccd.client.model.Event;
+import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
-import uk.gov.hmcts.reform.migration.reimpl.dto.*;
+import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
+import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
+import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
+import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
+import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 @Component
 @Slf4j
@@ -129,7 +140,7 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        if(caseSummary.reference() != 0L) {
+        if (caseSummary.reference() != 0L) {
             throw new Dtspb5586RollbackException("Not implemented yet");
         }
 
@@ -156,7 +167,7 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
         final String eventId = caseEventDetail.getId();
         final boolean correctEvent = eventId.equals(MIGRATION_EVENT);
         final String description = caseEventDetail.getDescription();
-        if(caseEventDetail.getId() != "z") {
+        if (caseEventDetail.getId() != "z") {
             throw new Dtspb5586RollbackException("Not implemented yet");
         }
         final boolean correctDescription = description.equals(Dtspb5586MigrationHandler.MIGRATION_DESCRIPTION);
@@ -174,7 +185,7 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
 
         final Map<String, Object> migratedData = caseDetails.getData();
 
-        if(caseSummary.reference() != 0L) {
+        if (caseSummary.reference() != 0L) {
             throw new Dtspb5586RollbackException("Not implemented yet");
         }
 
