@@ -5,5 +5,11 @@
     "local>hmcts/.github//renovate/automerge-all"
   ],
   "automergeSchedule": ["after 8am and before 2pm every weekday"],
-  "schedule": ["after 8am and before 2pm every weekday"]
+  "schedule": ["after 8am and before 2pm every weekday"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["com.github.hmcts:idam-java-client"],
+      "allowedVersions": "<4.0.0"
+    }
+  ]
 }
