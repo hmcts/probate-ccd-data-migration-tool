@@ -3,17 +3,16 @@ package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils;
 
 import java.time.LocalDate;
 import java.util.Optional;
 
-import static uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils.addLastModifiedFilter;
-import static uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils.addSearchAfter;
-import static uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils.addSize;
-
 @Component
 @Slf4j
 public class Dtspb5472ElasticQueries {
+
+    private final ElasticSearchQueryUtils elasticSearchQueryUtils;
 
     private static final String BASE_GOR_MIGRATION_QUERY = """
         {
@@ -105,13 +104,17 @@ public class Dtspb5472ElasticQueries {
         }
         """;
 
+    public Dtspb5472ElasticQueries(ElasticSearchQueryUtils elasticSearchQueryUtils) {
+        this.elasticSearchQueryUtils = elasticSearchQueryUtils;
+    }
+
     public JSONObject getGorMigrationQuery(
             final Integer size,
             final Optional<Long> fromReference) {
         JSONObject migrationQuery = new JSONObject(BASE_GOR_MIGRATION_QUERY);
 
-        final JSONObject sizedQuery = addSize(migrationQuery, size);
-        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
+        final JSONObject sizedQuery = elasticSearchQueryUtils.addSize(migrationQuery, size);
+        final JSONObject searchAfterQuery = elasticSearchQueryUtils.addSearchAfter(sizedQuery, fromReference);
 
         log.debug("GoR migration query: {}", searchAfterQuery);
         return searchAfterQuery;
@@ -123,9 +126,11 @@ public class Dtspb5472ElasticQueries {
             final Optional<Long> fromReference) {
         JSONObject rollbackQuery = new JSONObject(BASE_GOR_ROLLBACK_QUERY);
 
-        final JSONObject sizedQuery = addSize(rollbackQuery, size);
-        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
-        final JSONObject lastModifiedQuery = addLastModifiedFilter(searchAfterQuery, migrationDate);
+        final JSONObject sizedQuery = elasticSearchQueryUtils.addSize(rollbackQuery, size);
+        final JSONObject searchAfterQuery = elasticSearchQueryUtils.addSearchAfter(sizedQuery, fromReference);
+        final JSONObject lastModifiedQuery = elasticSearchQueryUtils.addLastModifiedFilter(
+            searchAfterQuery,
+            migrationDate);
 
         log.debug("GoR rollback query: {}", lastModifiedQuery);
         return lastModifiedQuery;

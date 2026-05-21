@@ -5,8 +5,12 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
+import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -19,9 +23,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 class Dtspb5472ElasticQueriesTest {
     Dtspb5472ElasticQueries dtspb5472ElasticQueries;
 
+    @Spy
+    ElasticSearchQueryUtils elasticSearchQueryUtils;
+
+    AutoCloseable closeableMocks;
+
     @BeforeEach
     void setUp() {
-        this.dtspb5472ElasticQueries = new Dtspb5472ElasticQueries();
+        closeableMocks = MockitoAnnotations.openMocks(this);
+        this.dtspb5472ElasticQueries = new Dtspb5472ElasticQueries(elasticSearchQueryUtils);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        closeableMocks.close();
     }
 
     @Test
