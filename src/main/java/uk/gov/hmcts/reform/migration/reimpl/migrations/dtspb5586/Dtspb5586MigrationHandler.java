@@ -169,10 +169,50 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
 
         final Map<String, Object> migratedData = caseDetails.getData();
 
-        if (caseSummary.reference() != 0L) {
-            throw new Dtspb5586MigrationException("Not implemented yet");
+        Object boHandofflistObj = migratedData.get("boHandoffReasonList");
+        if (!(boHandofflistObj instanceof List)) {
+            log.info("DTSPB-5586: handoff reason list is not a list");
+            return false;
         }
 
+        @SuppressWarnings("unchecked")
+        List<Object> boHandoffReasonList = (List<Object>) boHandofflistObj;
+
+        boHandoffReasonList.removeIf(boHandoffReasonObj -> {
+            if (!(boHandoffReasonObj instanceof Map)) {
+                log.info("DTSPB-5586: handoff reason list entry is not a map");
+                return false;
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> boHandoffReasonMap = (Map<Object, Object>) boHandoffReasonObj;
+
+            Object boHandoffReasonMapValue = boHandoffReasonMap.get("value");
+            if (!(boHandoffReasonMapValue instanceof Map)) {
+                log.info("DTSPB-5586: handoff reason mapped value is not a map");
+                return false;
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> boHandoffReasonMapped =
+                (Map<Object, Object>) boHandoffReasonMapValue;
+
+            Object boHandoffReasonMappedValue =
+                boHandoffReasonMapped.get("caseHandoffReason");
+
+            if (boHandoffReasonMappedValue == null) {
+                log.info("DTSPB-5586: handoff reason mapped value is null");
+                return false;
+            }
+            return List.of("AdmonWill", "ExtendedIntestacy").contains(boHandoffReasonMappedValue);
+        });
+
+
+        if (boHandoffReasonList.isEmpty()) {
+            migratedData.put("caseHandedOffToLegacySite", "No");
+        } else {
+            migratedData.put("caseHandedOffToLegacySite", "Yes");
+        }
 
 
         final Event event = Event.builder()
