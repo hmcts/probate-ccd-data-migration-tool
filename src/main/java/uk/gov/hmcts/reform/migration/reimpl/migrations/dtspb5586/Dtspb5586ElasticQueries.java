@@ -17,47 +17,32 @@ public class Dtspb5586ElasticQueries {
 
     private static final String BASE_GOR_MIGRATION_QUERY = """
         {
-            "query": {
-                "bool": {
-                    "filter": [
-                        {
-                            "terms": {
-                                "data.applicationType.keyword": [
-                                    "Solicitor"
-                                ]
-                            }
-                        },
-                        {
-                            "terms": {
-                                "data.channelChoice.keyword": [
-                                    "PaperForm"
-                                ]
-                            }
-                        },
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2025-01-01T00:00:00Z"
-                                }
-                            }
-                        }
-                    ],
-                    "must_not": [
-                        {
-                            "exists": {
-                                "field": "data.applicantOrganisationPolicy"
-                            }
-                        }
-                    ]
-                }
-            },
-            "_source": ["reference"],
-            "size": 0,
-            "sort": [
+          "query": {
+            "bool": {
+              "filter": [
                 {
-                    "reference.keyword": "asc"
+                  "range": {
+                    "last_modified": {
+                      "gte": "2024-07-23"
+                    }
+                  }
+                },
+                {
+                  "terms": {
+                    "data.boHandoffReasonList.value.caseHandoffReason.keyword": [
+                      "AdmonWill",
+                      "ExtendedIntestacy"
+                    ]
+                  }
                 }
-            ]
+              ]
+            }
+          },
+          "sort": [
+            {
+              "reference.keyword": "asc"
+            }
+          ]
         }
         """;
 

@@ -17,7 +17,10 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -123,7 +126,37 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        throw new Dtspb5586MigrationException("Not implemented yet");
+        Object boHandofflistObj = caseData.get("boHandoffReasonList");
+        if (!(boHandofflistObj instanceof List)) {
+            log.info("DTSPB-5586: handoff reason list is not a list");
+            return false;
+        }
+        @SuppressWarnings("unchecked")
+        List<Object> boHandoffReasonList = (List<Object>) boHandofflistObj;
+
+        for (Object boHandoffReasonObj : boHandoffReasonList) {
+            if (!(boHandoffReasonObj instanceof Map)) {
+                log.info("DTSPB-5586: handoff reason list entry is not a map");
+                continue;
+            }
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> boHandoffReasonMap = (Map<Object, Object>) boHandoffReasonObj;
+            Object boHandoffReasonMapValue = boHandoffReasonMap.get("value");
+            if (!(boHandoffReasonMapValue instanceof Map)) {
+                log.info("DTSPB-5586: handoff reason mapped value is not a map");
+                continue;
+            }
+            @SuppressWarnings("unchecked")
+            Map<Object, Object> boHandoffReasonMapped = (Map<Object, Object>) boHandoffReasonMapValue;
+            Object boHandoffReasonMappedValue = boHandoffReasonMapped.get("caseHandoffReason");
+            if (boHandoffReasonMappedValue == null) {
+                log.info("DTSPB-5586: handoff reason mapped value is null");
+            }
+            if (List.of("AdmonWill", "ExtendedIntestacy").contains(boHandoffReasonMappedValue)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -139,6 +172,8 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
         if (caseSummary.reference() != 0L) {
             throw new Dtspb5586MigrationException("Not implemented yet");
         }
+
+
 
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())
