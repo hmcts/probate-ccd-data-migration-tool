@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -17,8 +19,6 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +37,8 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String JURISDICTION = "PROBATE";
 
-    static final String MIGRATION_SUMMARY = "DTSPB-5585 - Migrating Handoff Reasons";
-    static final String MIGRATION_DESCRIPTION = "Migrating Handoff Reasons";
+    static final String MIGRATION_SUMMARY = "DTSPB-5586 - Migrating Handoff Reasons";
+    static String MIGRATION_DESCRIPTION = "";
 
     public Dtspb5586MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
@@ -178,6 +178,13 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
         @SuppressWarnings("unchecked")
         List<Object> boHandoffReasonList = (List<Object>) boHandofflistObj;
 
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            MIGRATION_DESCRIPTION = "DTSPB-5586?" + objectMapper.writeValueAsString(boHandoffReasonList);
+        } catch (JsonProcessingException e) {
+            throw new Dtspb5586MigrationException("Could not write into migrationData");
+        }
+
         boHandoffReasonList.removeIf(boHandoffReasonObj -> {
             if (!(boHandoffReasonObj instanceof Map)) {
                 log.info("DTSPB-5586: handoff reason list entry is not a map");
@@ -213,7 +220,6 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
         } else {
             migratedData.put("caseHandedOffToLegacySite", "Yes");
         }
-
 
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())

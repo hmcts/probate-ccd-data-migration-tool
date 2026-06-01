@@ -46,51 +46,28 @@ public class Dtspb5586ElasticQueries {
         }
         """;
 
-
     private static final String BASE_GOR_ROLLBACK_QUERY = """
         {
-            "query": {
-                "bool": {
-                    "filter": [
-                        {
-                            "terms": {
-                                "data.applicationType.keyword": [
-                                    "Solicitor"
-                                ]
-                            }
-                        },
-                        {
-                            "terms": {
-                                "data.channelChoice.keyword": [
-                                    "PaperForm"
-                                ]
-                            }
-                        },
-                        {
-                            "range": {
-                                "created_date": {
-                                    "gte": "2025-01-01T00:00:00Z"
-                                }
-                            }
-                        },
-                        {
-                            "exists": {
-                                "field": "data.applicantOrganisationPolicy"
-                            }
-                        }
-                    ]
-                }
-            },
-            "_source": ["reference"],
-            "size": 0,
-            "sort": [
+          "query": {
+            "bool": {
+              "filter": [
                 {
-                    "reference.keyword": "asc"
+                  "range": {
+                    "last_modified": {
+                      "gte": "2024-07-23"
+                    }
+                  }
                 }
-            ]
+              ]
+            }
+          },
+          "sort": [
+            {
+              "reference.keyword": "asc"
+            }
+          ]
         }
         """;
-
 
     public Dtspb5586ElasticQueries(final ElasticSearchQueryUtils elasticSearchQueryUtils) {
         this.elasticSearchQueryUtils = Objects.requireNonNull(elasticSearchQueryUtils);

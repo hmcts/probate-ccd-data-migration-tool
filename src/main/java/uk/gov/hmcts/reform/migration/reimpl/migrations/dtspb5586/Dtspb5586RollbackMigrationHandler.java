@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CaseEventsApi;
@@ -23,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -140,10 +143,6 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        if (caseSummary.reference() != 0L) {
-            throw new Dtspb5586RollbackException("Not implemented yet");
-        }
-
         final List<CaseEventDetail> caseEvents = caseEventsApi.findEventDetailsForCase(
                 userToken.getBearerToken(),
                 s2sToken.s2sToken(),
@@ -166,11 +165,10 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
     boolean findDtspb5586MigrationEvent(final CaseEventDetail caseEventDetail) {
         final String eventId = caseEventDetail.getId();
         final boolean correctEvent = eventId.equals(MIGRATION_EVENT);
-        final String description = caseEventDetail.getDescription();
-        if (caseEventDetail.getId() != "z") {
-            throw new Dtspb5586RollbackException("Not implemented yet");
-        }
-        final boolean correctDescription = description.equals(Dtspb5586MigrationHandler.MIGRATION_DESCRIPTION);
+        final boolean correctDescription =
+            Optional.ofNullable(caseEventDetail.getDescription())
+                .map(description -> description.contains("DTSPB-5586"))
+                .orElse(false);
 
         return correctEvent && correctDescription;
     }
@@ -180,14 +178,56 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
             final MigrationEvent migrationEvent) {
         final CaseSummary caseSummary = migrationEvent.caseSummary();
         final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
-
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
-
         final Map<String, Object> migratedData = caseDetails.getData();
+        final UserToken userToken = migrationEvent.userToken();
+        final S2sToken s2sToken = migrationEvent.s2sToken();
 
-        if (caseSummary.reference() != 0L) {
-            throw new Dtspb5586RollbackException("Not implemented yet");
+        final List<CaseEventDetail> caseEvents = caseEventsApi.findEventDetailsForCase(
+            userToken.getBearerToken(),
+            s2sToken.s2sToken(),
+            userToken.userDetails().getId(),
+            caseDetails.getJurisdiction(),
+            caseDetails.getCaseTypeId(),
+            caseDetails.getId().toString());
+
+
+        final List<CaseEventDetail> migrationEvents = caseEvents.stream()
+            .filter(this::findDtspb5586MigrationEvent)
+            .toList();
+
+        if (migrationEvents.isEmpty()) {
+            throw new Dtspb5586RollbackException("No migration events found for " + caseSummary.reference());
         }
+
+        CaseEventDetail migrationEventDetail = migrationEvents.get(0);
+        String description = migrationEventDetail.getDescription();
+        if (description == null || !description.contains("?")) {
+            throw new Dtspb5586RollbackException(
+                "Migration event description is invalid for " + caseSummary.reference()
+            );
+        }
+
+        String[] parts = description.split("\\?", 2);
+        String handOffReasonsStr = parts[1];
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, Object>> handOffReasonsToRestore;
+        try {
+            handOffReasonsToRestore = objectMapper.readValue(
+                handOffReasonsStr,
+                new TypeReference<>() {}
+            );
+        } catch (Exception e) {
+            throw new Dtspb5586RollbackException("Failed to parse migration handoff reasons");
+        }
+
+        if (!handOffReasonsToRestore.isEmpty()) {
+            migratedData.put("caseHandedOffToLegacySite", "Yes");
+        } else {
+            migratedData.put("caseHandedOffToLegacySite", "No");
+        }
+        migratedData.put("boHandoffReasonList", handOffReasonsToRestore);
 
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())
