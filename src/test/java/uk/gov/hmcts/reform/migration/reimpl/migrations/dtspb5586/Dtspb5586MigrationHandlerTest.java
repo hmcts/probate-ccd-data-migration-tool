@@ -79,7 +79,7 @@ class Dtspb5586MigrationHandlerTest {
     }
 
     @Test
-    void getCandidateCasesCallsElasticSearchTwice() {
+    void getCandidateCasesCallsElasticSearchOnce() {
         final UserToken userToken = mock();
         final S2sToken s2sToken = mock();
 

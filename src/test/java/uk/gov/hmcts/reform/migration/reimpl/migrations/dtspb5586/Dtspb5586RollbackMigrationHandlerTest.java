@@ -263,7 +263,7 @@ class Dtspb5586RollbackMigrationHandlerTest {
 
 
     @Test
-    void shouldMigrateCaseNoAppOrgPolicyInDataReturnsFalse() {
+    void shouldMigrateCaseReturnsFalse() {
         final MigrationEvent migrationEvent = mock();
         final CaseSummary caseSummary = mock();
         final StartEventResponse startEventResponse = mock();
