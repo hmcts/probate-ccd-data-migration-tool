@@ -304,6 +304,15 @@ class Dtspb5586RollbackMigrationHandlerTest {
         final StartEventResponse startEventResponse = mock();
         final CaseDetails caseDetails = mock();
         final Map<String, Object> caseData = new HashMap<>();
+        List<Map<String, Object>> boHandoffReasonList = new ArrayList<>();
+
+        Map<String, Object> entry = new HashMap<>();
+        Map<String, Object> value = new HashMap<>();
+        value.put("caseHandoffReason", "AdmonWill");
+        entry.put("value", value);
+        boHandoffReasonList.add(entry);
+        caseData.put("boHandoffReasonList", boHandoffReasonList);
+
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
         when(caseDetails.getData())
@@ -347,6 +356,16 @@ class Dtspb5586RollbackMigrationHandlerTest {
         final StartEventResponse startEventResponse = mock();
         final CaseDetails caseDetails = mock();
         final Map<String, Object> caseData = new HashMap<>();
+
+        List<Map<String, Object>> boHandoffReasonList = new ArrayList<>();
+
+        Map<String, Object> entry = new HashMap<>();
+        Map<String, Object> value = new HashMap<>();
+        value.put("caseHandoffReason", "AdmonWill");
+        entry.put("value", value);
+        boHandoffReasonList.add(entry);
+        caseData.put("boHandoffReasonList", boHandoffReasonList);
+
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
         when(caseDetails.getData())
@@ -429,6 +448,16 @@ class Dtspb5586RollbackMigrationHandlerTest {
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
+        List<Map<String, Object>> boHandoffReasonList = new ArrayList<>();
+
+        Map<String, Object> entry = new HashMap<>();
+        Map<String, Object> value = new HashMap<>();
+        value.put("caseHandoffReason", "AdmonWill");
+        entry.put("value", value);
+        boHandoffReasonList.add(entry);
+        caseData.put("boHandoffReasonList", boHandoffReasonList);
+        caseData.put("caseHandedOffToLegacySite", "");
+
         final CaseDetails caseResult = mock();
 
         mockValidMigrationEvent();
@@ -473,8 +502,8 @@ class Dtspb5586RollbackMigrationHandlerTest {
         @SuppressWarnings("unchecked")
         final Map<String, Object> migratedData = (Map<String, Object>) migratedObj;
 
-        assertThat(migratedData.get("caseHandedOffToLegacySite"), equalTo("No"));
-        assertThat(((List<?>) migratedData.get("boHandoffReasonList")).size(), equalTo(0));
+        assertThat(migratedData.get("caseHandedOffToLegacySite"), equalTo("Yes"));
+        assertThat(((List<?>) migratedData.get("boHandoffReasonList")).size(), equalTo(1));
         final Object callbackMetadataObj = migratedData.get("caseHandedOffToLegacySite");
         final Object handoffReasonList = migratedData.get("boHandoffReasonList");
         if (!(callbackMetadataObj instanceof String)) {

@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -144,21 +145,21 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
         }
 
         final List<CaseEventDetail> caseEvents = caseEventsApi.findEventDetailsForCase(
-                userToken.getBearerToken(),
-                s2sToken.s2sToken(),
-                userToken.userDetails().getId(),
-                caseDetails.getJurisdiction(),
-                caseDetails.getCaseTypeId(),
-                caseDetails.getId().toString());
+            userToken.getBearerToken(),
+            s2sToken.s2sToken(),
+            userToken.userDetails().getId(),
+            caseDetails.getJurisdiction(),
+            caseDetails.getCaseTypeId(),
+            caseDetails.getId().toString());
 
         final List<CaseEventDetail> migrationEvents = caseEvents.stream()
-                .filter(this::findDtspb5586MigrationEvent)
-                .toList();
+            .filter(this::findDtspb5586MigrationEvent)
+            .toList();
 
         log.info("DTSPB-5586_rollback: found {} migration events for {} case {}",
-                migrationEvents.size(),
-                caseSummary.type(),
-                caseSummary.reference());
+            migrationEvents.size(),
+            caseSummary.type(),
+            caseSummary.reference());
         return !migrationEvents.isEmpty();
     }
 
@@ -174,8 +175,7 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
     }
 
     @Override
-    public boolean migrate(
-            final MigrationEvent migrationEvent) {
+    public boolean migrate(final MigrationEvent migrationEvent) {
         final CaseSummary caseSummary = migrationEvent.caseSummary();
         final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
@@ -184,17 +184,17 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
         final S2sToken s2sToken = migrationEvent.s2sToken();
 
         final List<CaseEventDetail> caseEvents = caseEventsApi.findEventDetailsForCase(
-            userToken.getBearerToken(),
-            s2sToken.s2sToken(),
-            userToken.userDetails().getId(),
-            caseDetails.getJurisdiction(),
-            caseDetails.getCaseTypeId(),
-            caseDetails.getId().toString());
+                userToken.getBearerToken(),
+                s2sToken.s2sToken(),
+                userToken.userDetails().getId(),
+                caseDetails.getJurisdiction(),
+                caseDetails.getCaseTypeId(),
+                caseDetails.getId().toString());
 
 
         final List<CaseEventDetail> migrationEvents = caseEvents.stream()
-            .filter(this::findDtspb5586MigrationEvent)
-            .toList();
+                .filter(this::findDtspb5586MigrationEvent)
+                .toList();
 
         if (migrationEvents.isEmpty()) {
             throw new Dtspb5586RollbackException("No migration events found for " + caseSummary.reference());
@@ -215,19 +215,27 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
         List<Map<String, Object>> handOffReasonsToRestore;
         try {
             handOffReasonsToRestore = objectMapper.readValue(
-                handOffReasonsStr,
-                new TypeReference<>() {}
+                    handOffReasonsStr,
+                    new TypeReference<>() {}
             );
         } catch (Exception e) {
             throw new Dtspb5586RollbackException("Failed to parse migration handoff reasons");
         }
 
-        if (!handOffReasonsToRestore.isEmpty()) {
-            migratedData.put("caseHandedOffToLegacySite", "Yes");
-        } else {
-            migratedData.put("caseHandedOffToLegacySite", "No");
+        Object existingReasonObj = migratedData.get("boHandoffReasonList");
+        if (!(existingReasonObj instanceof List)) {
+            log.info("DTSPB-5586_rollback: handoff reason list is not a list");
+            return false;
         }
-        migratedData.put("boHandoffReasonList", handOffReasonsToRestore);
+        @SuppressWarnings("unchecked")
+        List<Object> currentboHandoffReasonList = (List<Object>) existingReasonObj;
+        List<Object> merged = new ArrayList<>();
+
+        merged.addAll(currentboHandoffReasonList);
+        merged.addAll(handOffReasonsToRestore);
+
+        migratedData.put("boHandoffReasonList", merged);
+        migratedData.put("caseHandedOffToLegacySite", "Yes");
 
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())
@@ -247,7 +255,6 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
                     caseSummary.reference());
             return true;
         }
-
         // We use the authentication provided in the MigrationEvent to ensure
         // that we don't start events with one set of authentication tokens
         // and then submit them with another.
