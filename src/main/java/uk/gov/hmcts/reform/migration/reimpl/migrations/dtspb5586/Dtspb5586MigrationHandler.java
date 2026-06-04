@@ -39,7 +39,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
     static final String JURISDICTION = "PROBATE";
 
     static final String MIGRATION_SUMMARY = "DTSPB-5586 - Migrating Handoff Reasons";
-    private String MIGRATION_DESCRIPTION = "";
+    private String migrationDescription = "";
 
     public Dtspb5586MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
@@ -215,7 +215,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
-            MIGRATION_DESCRIPTION = "DTSPB-5586?" + objectMapper.writeValueAsString(removedList);
+            migrationDescription = "DTSPB-5586?" + objectMapper.writeValueAsString(removedList);
         } catch (JsonProcessingException e) {
             throw new Dtspb5586MigrationException("Could not write migration description");
         }
@@ -229,7 +229,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())
                 .summary(MIGRATION_SUMMARY)
-                .description(MIGRATION_DESCRIPTION)
+                .description(migrationDescription)
                 .build();
 
         final CaseDataContent caseDataContent = CaseDataContent.builder()
