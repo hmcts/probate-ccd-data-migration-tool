@@ -122,13 +122,13 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
                 "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        final boolean hasCaveatNotMatched = isInCaveatNotMatchedState(caseData);
-        if (!hasCaveatNotMatched) {
+        final boolean isInCaveatNotMatchedState = isInCaveatNotMatchedState(caseData);
+        if (!isInCaveatNotMatchedState) {
             log.info("DTSPB-5064: {} case {} is in a different state than CaveatNotMatched so no migration needed",
                 caseSummary.type(),
                 caseSummary.reference());
         }
-        return hasCaveatNotMatched;
+        return isInCaveatNotMatchedState;
     }
 
     @Override
