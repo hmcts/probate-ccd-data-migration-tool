@@ -51,14 +51,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.CAVEAT;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.CAVEAT_MATCHING;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.CAVEAT_NOT_MATCHED;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.MIGRATION_EVENT;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.ROLLBACK_DESCRIPTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.ROLLBACK_ID;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.ROLLBACK_SUMMARY;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler.STATE;
 
 class Dtspb5064RollbackMigrationHandlerTest {
     @Mock
@@ -273,6 +270,8 @@ class Dtspb5064RollbackMigrationHandlerTest {
         final Map<String, Object> caseData = Map.of();
         when(caseDetails.getData())
             .thenReturn(caseData);
+        when(caseDetails.getState())
+            .thenReturn(Dtspb5064MigrationHandler.CAVEAT_MATCHING);
 
         final boolean actual = dtspb5064RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
@@ -321,24 +320,12 @@ class Dtspb5064RollbackMigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
 
-        final Map<String, Object> caseData = Map.of(
-                STATE, CAVEAT_MATCHING);
-        when(caseDetails.getData())
-                .thenReturn(caseData);
-
-        when(caseEventsApiMock.findEventDetailsForCase(any(), any(), any(), any(), any(), any()))
-                .thenReturn(List.of());
+        when(caseDetails.getState())
+                .thenReturn(Dtspb5064MigrationHandler.CAVEAT_MATCHING);
 
         final boolean actual = dtspb5064RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
         assertThat(actual, equalTo(false));
-        verify(caseEventsApiMock).findEventDetailsForCase(
-                userBearer,
-                s2sBearer,
-                userId,
-                jurisdiction,
-                caseType,
-                caseId.toString());
     }
 
     @Test
@@ -382,11 +369,8 @@ class Dtspb5064RollbackMigrationHandlerTest {
 
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
-
-        final Map<String, Object> caseData = Map.of(
-                STATE, CAVEAT_NOT_MATCHED);
-        when(caseDetails.getData())
-                .thenReturn(caseData);
+        when(caseDetails.getState())
+            .thenReturn(Dtspb5064MigrationHandler.CAVEAT_NOT_MATCHED);
 
         final CaseEventDetail caseEventDetail = mock();
         when(caseEventDetail.getId())

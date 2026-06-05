@@ -28,7 +28,6 @@ import java.util.UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -47,7 +46,6 @@ import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb506
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.MIGRATION_DESCRIPTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.MIGRATION_SUMMARY;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.STATE;
 
 class Dtspb5064MigrationHandlerTest {
     @Mock
@@ -218,10 +216,8 @@ class Dtspb5064MigrationHandlerTest {
         final CaseDetails caseDetails = mock();
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
-
-        final Map<String, Object> caseData = Map.of(STATE, CAVEAT_NOT_MATCHED);
-        when(caseDetails.getData())
-                .thenReturn(caseData);
+        when(caseDetails.getState())
+            .thenReturn(CAVEAT_NOT_MATCHED);
 
         final boolean actual = dtspb5064MigrationHandler.shouldMigrateCase(migrationEvent);
 
@@ -242,11 +238,8 @@ class Dtspb5064MigrationHandlerTest {
         final CaseDetails caseDetails = mock();
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
-
-        final Map<String, Object> caseData = Map.of(STATE, CAVEAT_MATCHING);
-
-        when(caseDetails.getData())
-                .thenReturn(caseData);
+        when(caseDetails.getState())
+                .thenReturn(CAVEAT_MATCHING);
 
         final boolean actual = dtspb5064MigrationHandler.shouldMigrateCase(migrationEvent);
 
@@ -298,6 +291,8 @@ class Dtspb5064MigrationHandlerTest {
                 .thenReturn(jurisdiction);
         when(caseDetails.getCaseTypeId())
                 .thenReturn(caseType);
+        when(caseDetails.getState())
+            .thenReturn(CAVEAT_NOT_MATCHED);
 
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
@@ -331,6 +326,9 @@ class Dtspb5064MigrationHandlerTest {
                 eq(caseId.toString()),
                 eq(true),
                 dataCaptor.capture());
+
+        verify(caseDetails).setState(CAVEAT_MATCHING);
+
         final CaseDataContent caseDataContent = dataCaptor.getValue();
         final Event event = caseDataContent.getEvent();
 
@@ -339,19 +337,13 @@ class Dtspb5064MigrationHandlerTest {
                 () -> assertThat(caseDataContent.getEventToken(), equalTo(eventToken)),
                 () -> assertThat(event.getId(), equalTo(eventId)),
                 () -> assertThat(event.getSummary(), equalTo(MIGRATION_SUMMARY)),
-                () -> assertThat(event.getDescription(), equalTo(MIGRATION_DESCRIPTION)));
+                () -> assertThat(event.getDescription(), equalTo(MIGRATION_DESCRIPTION)),
+                () -> assertSame(caseData, caseDataContent.getData()));
 
         final Object migratedObj = caseDataContent.getData();
         if (!(migratedObj instanceof Map)) {
             fail("Migrated object is not a Map");
         }
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> migratedData = (Map<String, Object>) migratedObj;
-
-        assertThat(migratedData, hasKey(STATE));
-        final Object caveatMatching = migratedData.get(STATE);
-
-        assertThat(caveatMatching, equalTo(CAVEAT_MATCHING));
     }
 
     @Test
