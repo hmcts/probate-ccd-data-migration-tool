@@ -39,7 +39,6 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
     static final String JURISDICTION = "PROBATE";
 
     static final String MIGRATION_SUMMARY = "DTSPB-5586 - Migrating Handoff Reasons";
-    private String migrationDescription = "";
 
     public Dtspb5586MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
@@ -138,14 +137,14 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
         for (Object boHandoffReasonObj : boHandoffReasonList) {
             if (!(boHandoffReasonObj instanceof Map)) {
                 log.info("DTSPB-5586: handoff reason list entry is not a map");
-                return false;
+                continue;
             }
             @SuppressWarnings("unchecked")
             Map<Object, Object> boHandoffReasonMap = (Map<Object, Object>) boHandoffReasonObj;
             Object boHandoffReasonMapValue = boHandoffReasonMap.get("value");
             if (!(boHandoffReasonMapValue instanceof Map)) {
                 log.info("DTSPB-5586: handoff reason mapped value is not a map");
-                return false;
+                continue;
             }
             @SuppressWarnings("unchecked")
             Map<Object, Object> boHandoffReasonMapped = (Map<Object, Object>) boHandoffReasonMapValue;
@@ -163,6 +162,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
     @Override
     public boolean migrate(final MigrationEvent migrationEvent) {
 
+        String migrationDescription;
         final CaseSummary caseSummary = migrationEvent.caseSummary();
         final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
@@ -185,7 +185,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
 
             if (!(boHandoffReasonObj instanceof Map)) {
                 log.info("DTSPB-5586: handoff reason list entry is not a map");
-                return false;
+                continue;
             }
 
             @SuppressWarnings("unchecked")
@@ -194,7 +194,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
             Object boHandoffReasonMapValue = boHandoffReasonMap.get("value");
             if (!(boHandoffReasonMapValue instanceof Map)) {
                 log.info("DTSPB-5586: handoff reason mapped value is not a map");
-                return false;
+                continue;
             }
 
             @SuppressWarnings("unchecked")
@@ -220,7 +220,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
             throw new Dtspb5586MigrationException("Could not write migration description");
         }
 
-        if (boHandoffReasonList.isEmpty()) {
+        if (keptList.isEmpty()) {
             migratedData.put("caseHandedOffToLegacySite", "No");
         } else {
             migratedData.put("caseHandedOffToLegacySite", "Yes");
