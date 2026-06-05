@@ -186,10 +186,7 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
 
         final Map<String, Object> migratedData = caseDetails.getData();
 
-        if (migratedData.containsKey(CAVEAT_NOT_MATCHED)) {
-            migratedData.remove(STATE, CAVEAT_NOT_MATCHED);
-            migratedData.put(STATE, CAVEAT_MATCHING);
-        }
+        caseDetails.setState(CAVEAT_NOT_MATCHED);
 
         // We cannot directly remove the data as part of the event - ccd will pick the value back up from the
         // existing data record

@@ -33,7 +33,6 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
 
     static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
-    static final String STATE = "state";
     static final String CAVEAT_NOT_MATCHED = "CaveatNotMatched";
     static final String CAVEAT_MATCHING = "CaveatMatching";
 
