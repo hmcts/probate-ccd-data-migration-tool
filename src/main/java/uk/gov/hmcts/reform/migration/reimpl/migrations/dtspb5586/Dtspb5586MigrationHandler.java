@@ -162,7 +162,6 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
     @Override
     public boolean migrate(final MigrationEvent migrationEvent) {
 
-        String migrationDescription;
         final CaseSummary caseSummary = migrationEvent.caseSummary();
         final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
@@ -212,7 +211,7 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
             }
         }
         migratedData.put("boHandoffReasonList", keptList);
-
+        String migrationDescription;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
             migrationDescription = "DTSPB-5586?" + objectMapper.writeValueAsString(removedList);
