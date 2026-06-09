@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,6 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -25,30 +24,39 @@ import java.util.Set;
 
 @Component
 @Slf4j
-public class Dtspb5005MigrationHandler implements MigrationHandler {
+public class Dtspb5472MigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final ElasticSearchHandler elasticSearchHandler;
 
-    private final ReimplConfig reimplConfig;
-    private final Dtspb5005ElasticQueries elasticQueries;
+    private final ReimplConfig commonConfig;
+    private final Dtspb5472Config config;
+    private final Dtspb5472ElasticQueries elasticQueries;
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
-    static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
-    static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
+    static final String PA_RELATIONSHIP_TO_DECEASED = "primaryApplicantRelationshipToDeceased";
+    static final String SOL_RELATIONSHIP_TO_DECEASED = "solsApplicantRelationshipToDeceased";
+    static final String PA_ADOPTED_CHILD = "adoptedChild";
+    static final String PA_CHILD = "child";
+    static final String SOL_ADOPTED_CHILD = "ChildAdopted";
+    static final String SOL_CHILD = "Child";
+    static final String PA_ADOPTED_IN = "primaryApplicantAdoptedIn";
+    static final String YES = "Yes";
 
-    static final String MIGRATION_SUMMARY = "DTSPB-5005 - Add metadata for Notice of Change";
-    static final String MIGRATION_DESCRIPTION = "Add metadata for Notice of Change";
 
-    public Dtspb5005MigrationHandler(
+    static final String MIGRATION_SUMMARY = "DTSPB-5472 - Migrate applicant's relationship to deceased";
+    static final String MIGRATION_DESCRIPTION = "Remove Adopted Child option";
+
+    public Dtspb5472MigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
             final ElasticSearchHandler elasticSearchHandler,
-            final ReimplConfig reimplConfig,
-            final Dtspb5005ElasticQueries elasticQueries) {
+            final ReimplConfig commonConfig,
+            final Dtspb5472Config config,
+            final Dtspb5472ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
-
-        this.reimplConfig = Objects.requireNonNull(reimplConfig);
+        this.commonConfig = Objects.requireNonNull(commonConfig);
+        this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
     }
 
@@ -56,23 +64,14 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
     public Set<CaseSummary> getCandidateCases(
             final UserToken userToken,
             final S2sToken s2sToken) {
-        final Set<CaseSummary> candidateCases = new HashSet<>();
 
         final Set<CaseSummary> gorCandidates = elasticSearchHandler.searchCases(
-                "DTSPB-5005",
+                "DTSPB-5472",
                 userToken,
                 s2sToken,
                 CaseType.GRANT_OF_REPRESENTATION,
-                fR -> elasticQueries.getGorMigrationQuery(reimplConfig.getQuerySize(), fR));
-        candidateCases.addAll(gorCandidates);
-
-        final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
-                "DTSPB-5005",
-                userToken,
-                s2sToken,
-                CaseType.CAVEAT,
-                fR -> elasticQueries.getCaveatMigrationQuery(reimplConfig.getQuerySize(), fR));
-        candidateCases.addAll(caveatCandidates);
+                fR -> elasticQueries.getGorMigrationQuery(commonConfig.getQuerySize(), fR));
+        final Set<CaseSummary> candidateCases = new HashSet<>(gorCandidates);
 
         return Set.copyOf(candidateCases);
     }
@@ -83,18 +82,13 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-        final MigrationEventDetails eventDetails = switch (caseSummary.type()) {
-            case GRANT_OF_REPRESENTATION -> new MigrationEventDetails(
-                    GRANT_OF_REPRESENTATION,
-                    "boHistoryCorrection");
-            case CAVEAT -> new MigrationEventDetails(
-                    CAVEAT,
-                    "boHistoryCorrection");
-        };
+        final MigrationEventDetails eventDetails =  new MigrationEventDetails(
+            GRANT_OF_REPRESENTATION,
+            "boHistoryCorrection");
 
         final UserDetails userDetails = userToken.userDetails();
 
-        log.info("DTSPB-5005 start event for {} case {}",
+        log.info("DTSPB-5472 start event for {} case {}",
                 eventDetails.caseType(),
                 caseSummary.reference());
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
@@ -119,29 +113,28 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
         final CaseSummary caseSummary = migrationEvent.caseSummary();
         final CaseDetails caseDetails = migrationEvent.startEventResponse().getCaseDetails();
         if (caseDetails == null) {
-            log.error("DTSPB-5005: No case details present in startEventResponse for {} case {}",
+            log.error("DTSPB-5472: No case details present in startEventResponse for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
-            throw new Dtspb5005MigrationException(
+            throw new Dtspb5472MigrationException(
                     "No case details present in startEventResponse for " + caseSummary.reference());
         }
 
         final Map<String, Object> caseData = caseDetails.getData();
         if (caseData == null) {
-            log.error("DTSPB-5005: No case data present in startEventResponse for {} case {}",
+            log.error("DTSPB-5472: No case data present in startEventResponse for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
-            throw new Dtspb5005MigrationException(
+            throw new Dtspb5472MigrationException(
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
-        if (hasApplOrgPolicy) {
-            log.info("DTSPB-5005: {} case {} already has applicantOrganisationPolicy so no migration needed",
-                    caseSummary.type(),
+        final boolean hasAdoptedChild = hasPaAdoptedChild(caseData) || hasSolAdoptedChild(caseData);
+        if (!hasAdoptedChild) {
+            log.info("DTSPB-5472: case {} don't have adopted child option so no migration needed",
                     caseSummary.reference());
         }
-        return !hasApplOrgPolicy;
+        return hasAdoptedChild;
     }
 
     @Override
@@ -153,28 +146,14 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
 
         final Map<String, Object> migratedData = caseDetails.getData();
-        // Sonar will not let me put the actual JSON example here so < and > are used as open/close curly brace...
-        // We need to add an 'empty' policy:
-        // <
-        //   "Organisation": <
-        //     "OrganisationID": null,
-        //     "OrganisationName": null
-        //   >,
-        //   "OrgPolicyReference": null,
-        //   "OrgPolicyCaseAssignedRole": "[APPLICANTSOLICITOR]"
-        // >
-        final Map<String, Object> organisation = new HashMap<>();
-        organisation.put("OrganisationId", null);
-        organisation.put("OrganisationName", null);
 
-        final Map<String, Object> policy = new HashMap<>();
-        policy.put("Organisation", organisation);
-        policy.put("OrgPolicyReference", null);
-        policy.put("OrgPolicyCaseAssignedRole", "[APPLICANTSOLICITOR]");
-
-        migratedData.put(
-                APPLICANT_ORGANISATION_POLICY,
-                policy);
+        if (hasPaAdoptedChild(migratedData)) {
+            migratedData.put(PA_RELATIONSHIP_TO_DECEASED, PA_CHILD);
+        }
+        if (hasSolAdoptedChild(migratedData)) {
+            migratedData.put(SOL_RELATIONSHIP_TO_DECEASED, SOL_CHILD);
+        }
+        migratedData.put(PA_ADOPTED_IN, YES);
 
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())
@@ -188,8 +167,8 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 .data(migratedData)
                 .build();
 
-        if (reimplConfig.isDryRun()) {
-            log.info("DTSPB-5005: DRY RUN - returning without submission for {} case {}",
+        if (commonConfig.isDryRun()) {
+            log.info("DTSPB-5472: DRY RUN - returning without submission for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
             return true;
@@ -208,12 +187,12 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
                 caseDataContent);
 
         if (result == null) {
-            log.error("DTSPB-5005: event submission returned null for {} case {}",
+            log.error("DTSPB-5472: event submission returned null for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
             return false;
         }
-        log.info("DTSPB-5005: event submission complete for {} case {}",
+        log.info("DTSPB-5472: event submission complete for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
         return true;
@@ -221,9 +200,19 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
 
     private record MigrationEventDetails(String caseType, String eventId) {}
 
-    class Dtspb5005MigrationException extends RuntimeException {
-        public Dtspb5005MigrationException(final String message) {
+    class Dtspb5472MigrationException extends RuntimeException {
+        public Dtspb5472MigrationException(final String message) {
             super(message);
         }
+    }
+
+    private boolean hasPaAdoptedChild(Map<String, Object> caseData) {
+        return caseData.containsKey(PA_RELATIONSHIP_TO_DECEASED)
+            && caseData.get(PA_RELATIONSHIP_TO_DECEASED).equals(PA_ADOPTED_CHILD);
+    }
+
+    private boolean hasSolAdoptedChild(Map<String, Object> caseData) {
+        return caseData.containsKey(SOL_RELATIONSHIP_TO_DECEASED)
+            && caseData.get(SOL_RELATIONSHIP_TO_DECEASED).equals(SOL_ADOPTED_CHILD);
     }
 }

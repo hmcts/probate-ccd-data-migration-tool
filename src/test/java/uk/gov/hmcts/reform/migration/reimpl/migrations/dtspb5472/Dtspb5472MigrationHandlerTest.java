@@ -1,6 +1,5 @@
-package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 
-import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,13 +22,11 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
@@ -44,24 +41,32 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler.APPLICANT_ORGANISATION_POLICY;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler.CAVEAT;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler.GRANT_OF_REPRESENTATION;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler.JURISDICTION;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler.MIGRATION_DESCRIPTION;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler.MIGRATION_SUMMARY;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.GRANT_OF_REPRESENTATION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.JURISDICTION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.MIGRATION_DESCRIPTION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.MIGRATION_SUMMARY;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_ADOPTED_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_ADOPTED_IN;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_RELATIONSHIP_TO_DECEASED;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_ADOPTED_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_RELATIONSHIP_TO_DECEASED;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.YES;
 
-class Dtspb5005MigrationHandlerTest {
+class Dtspb5472MigrationHandlerTest {
     @Mock
     CoreCaseDataApi coreCaseDataApiMock;
     @Mock
     ElasticSearchHandler elasticSearchHandlerMock;
     @Mock
-    ReimplConfig reimplConfigMock;
+    Dtspb5472Config dtspb5472ConfigMock;
     @Mock
-    Dtspb5005ElasticQueries dtspb5005ElasticQueriesMock;
+    Dtspb5472ElasticQueries dtspb5472ElasticQueriesMock;
+    @Mock
+    ReimplConfig reimplConfigMock;
 
-    Dtspb5005MigrationHandler dtspb5005MigrationHandler;
+    Dtspb5472MigrationHandler dtspb5472MigrationHandler;
 
     AutoCloseable closeableMocks;
 
@@ -69,11 +74,12 @@ class Dtspb5005MigrationHandlerTest {
     void setUp() {
         closeableMocks = MockitoAnnotations.openMocks(this);
 
-        dtspb5005MigrationHandler = new Dtspb5005MigrationHandler(
+        dtspb5472MigrationHandler = new Dtspb5472MigrationHandler(
                 coreCaseDataApiMock,
                 elasticSearchHandlerMock,
                 reimplConfigMock,
-                dtspb5005ElasticQueriesMock);
+                dtspb5472ConfigMock,
+                dtspb5472ElasticQueriesMock);
     }
 
     @AfterEach
@@ -86,12 +92,11 @@ class Dtspb5005MigrationHandlerTest {
     }
 
     @Test
-    void getCandidateCasesCallsElasticSearchTwice() {
+    void getCandidateCasesCallsElasticSearchOnce() {
         final UserToken userToken = mock();
         final S2sToken s2sToken = mock();
 
         final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
 
         when(elasticSearchHandlerMock.searchCases(
                         any(),
@@ -100,15 +105,8 @@ class Dtspb5005MigrationHandlerTest {
                         eq(CaseType.GRANT_OF_REPRESENTATION),
                         any()))
                 .thenReturn(Set.of(gorCase));
-        when(elasticSearchHandlerMock.searchCases(
-                        any(),
-                        any(),
-                        any(),
-                        eq(CaseType.CAVEAT),
-                        any()))
-                .thenReturn(Set.of(caveatCase));
 
-        final Set<CaseSummary> candidateCases = dtspb5005MigrationHandler.getCandidateCases(
+        final Set<CaseSummary> candidateCases = dtspb5472MigrationHandler.getCandidateCases(
                 userToken,
                 s2sToken);
 
@@ -119,68 +117,8 @@ class Dtspb5005MigrationHandlerTest {
                         eq(s2sToken),
                         eq(CaseType.GRANT_OF_REPRESENTATION),
                         any()),
-                () -> verify(elasticSearchHandlerMock).searchCases(
-                        any(),
-                        eq(userToken),
-                        eq(s2sToken),
-                        eq(CaseType.CAVEAT),
-                        any()),
-                () -> assertThat(candidateCases, hasSize(2)),
-                () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
-    }
-
-    @Test
-    void getCandidateCasesCallsElasticQueryGet() {
-        final UserToken userToken = mock();
-        final S2sToken s2sToken = mock();
-
-        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
-
-        when(elasticSearchHandlerMock.searchCases(
-            any(),
-            any(),
-            any(),
-            eq(CaseType.GRANT_OF_REPRESENTATION),
-            any()))
-            .thenAnswer(invocation -> {
-                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
-                final JSONObject jsonObject = f.apply(Optional.of(1L));
-                return Set.of(gorCase);
-            });
-        when(elasticSearchHandlerMock.searchCases(
-            any(),
-            any(),
-            any(),
-            eq(CaseType.CAVEAT),
-            any()))
-            .thenAnswer(invocation -> {
-                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
-                final JSONObject jsonObject = f.apply(Optional.of(1L));
-                return Set.of(caveatCase);
-            });
-
-        final Set<CaseSummary> candidateCases = dtspb5005MigrationHandler.getCandidateCases(
-            userToken,
-            s2sToken);
-
-        assertAll(
-            () -> verify(elasticSearchHandlerMock).searchCases(
-                any(),
-                eq(userToken),
-                eq(s2sToken),
-                eq(CaseType.GRANT_OF_REPRESENTATION),
-                any()),
-            () -> verify(elasticSearchHandlerMock).searchCases(
-                any(),
-                eq(userToken),
-                eq(s2sToken),
-                eq(CaseType.CAVEAT),
-                any()),
-            () -> verify(dtspb5005ElasticQueriesMock).getGorMigrationQuery(any(), any()),
-            () -> verify(dtspb5005ElasticQueriesMock).getCaveatMigrationQuery(any(), any()),
-            () -> assertThat(candidateCases, hasSize(2)),
-            () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
+                () -> assertThat(candidateCases, hasSize(1)),
+                () -> assertThat(candidateCases, contains(gorCase)));
     }
 
     @Test
@@ -210,7 +148,7 @@ class Dtspb5005MigrationHandlerTest {
         when(coreCaseDataApiMock.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(startEventResponse);
 
-        final MigrationEvent actual = dtspb5005MigrationHandler.startEventForCase(
+        final MigrationEvent actual = dtspb5472MigrationHandler.startEventForCase(
                 caseSummary,
                 userToken,
                 s2sToken);
@@ -230,52 +168,6 @@ class Dtspb5005MigrationHandlerTest {
                         "boHistoryCorrection"));
     }
 
-    @Test
-    void startCaveatEvent() {
-        final Long caseId = 1L;
-        final CaseType caseType = CaseType.CAVEAT;
-        final CaseSummary caseSummary = new CaseSummary(caseId, caseType);
-
-        final String userId = UUID.randomUUID().toString();
-        final UserDetails userDetails = mock();
-        when(userDetails.getId())
-                .thenReturn(userId);
-
-        final String userBearerToken = UUID.randomUUID().toString();
-        final UserToken userToken = mock();
-        when(userToken.userDetails())
-                .thenReturn(userDetails);
-        when(userToken.getBearerToken())
-                .thenReturn(userBearerToken);
-
-        final String s2sBearerToken = UUID.randomUUID().toString();
-        final S2sToken s2sToken = mock();
-        when(s2sToken.s2sToken())
-                .thenReturn(s2sBearerToken);
-
-        final StartEventResponse startEventResponse = mock();
-        when(coreCaseDataApiMock.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(startEventResponse);
-
-        final MigrationEvent actual = dtspb5005MigrationHandler.startEventForCase(
-                caseSummary,
-                userToken,
-                s2sToken);
-
-        assertAll(
-                () -> assertSame(caseSummary, actual.caseSummary()),
-                () -> assertSame(userToken, actual.userToken()),
-                () -> assertSame(s2sToken, actual.s2sToken()),
-                () -> assertSame(startEventResponse, actual.startEventResponse()),
-                () -> verify(coreCaseDataApiMock).startEventForCaseWorker(
-                        userBearerToken,
-                        s2sBearerToken,
-                        userId,
-                        JURISDICTION,
-                        CAVEAT,
-                        caseId.toString(),
-                        "boHistoryCorrection"));
-    }
 
     @Test
     void shouldMigrateCaseNullDetailsThrows() {
@@ -293,8 +185,8 @@ class Dtspb5005MigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         assertThrows(
-                Dtspb5005MigrationHandler.Dtspb5005MigrationException.class,
-                () -> dtspb5005MigrationHandler.shouldMigrateCase(migrationEvent));
+                Dtspb5472MigrationHandler.Dtspb5472MigrationException.class,
+                () -> dtspb5472MigrationHandler.shouldMigrateCase(migrationEvent));
     }
 
     @Test
@@ -317,36 +209,12 @@ class Dtspb5005MigrationHandlerTest {
                 .thenReturn(caseData);
 
         assertThrows(
-                Dtspb5005MigrationHandler.Dtspb5005MigrationException.class,
-                () -> dtspb5005MigrationHandler.shouldMigrateCase(migrationEvent));
+                Dtspb5472MigrationHandler.Dtspb5472MigrationException.class,
+                () -> dtspb5472MigrationHandler.shouldMigrateCase(migrationEvent));
     }
 
     @Test
-    void shouldMigrateCaseNoAppOrgPolicyTrue() {
-        final MigrationEvent migrationEvent = mock();
-
-        final CaseSummary caseSummary = mock();
-        final StartEventResponse startEventResponse = mock();
-        when(migrationEvent.caseSummary())
-                .thenReturn(caseSummary);
-        when(migrationEvent.startEventResponse())
-                .thenReturn(startEventResponse);
-
-        final CaseDetails caseDetails = mock();
-        when(startEventResponse.getCaseDetails())
-                .thenReturn(caseDetails);
-
-        final Map<String, Object> caseData = Map.of();
-        when(caseDetails.getData())
-                .thenReturn(caseData);
-
-        final boolean actual = dtspb5005MigrationHandler.shouldMigrateCase(migrationEvent);
-
-        assertThat(actual, equalTo(true));
-    }
-
-    @Test
-    void shouldMigrateCaseWithAppOrgPolicyFalse() {
+    void shouldMigrateCaseWhenHasPaAdoptedChild() {
         final MigrationEvent migrationEvent = mock();
 
         final CaseSummary caseSummary = mock();
@@ -361,17 +229,67 @@ class Dtspb5005MigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         final Map<String, Object> caseData = Map.of(
-                APPLICANT_ORGANISATION_POLICY, "");
+            PA_RELATIONSHIP_TO_DECEASED, PA_ADOPTED_CHILD
+        );
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
-        final boolean actual = dtspb5005MigrationHandler.shouldMigrateCase(migrationEvent);
+        final boolean actual = dtspb5472MigrationHandler.shouldMigrateCase(migrationEvent);
+
+        assertThat(actual, equalTo(true));
+    }
+
+    @Test
+    void shouldMigrateCaseWhenHasSolAdoptedChild() {
+        final MigrationEvent migrationEvent = mock();
+
+        final CaseSummary caseSummary = mock();
+        final StartEventResponse startEventResponse = mock();
+        when(migrationEvent.caseSummary())
+                .thenReturn(caseSummary);
+        when(migrationEvent.startEventResponse())
+                .thenReturn(startEventResponse);
+
+        final CaseDetails caseDetails = mock();
+        when(startEventResponse.getCaseDetails())
+                .thenReturn(caseDetails);
+
+        final Map<String, Object> caseData = Map.of(
+                SOL_RELATIONSHIP_TO_DECEASED, SOL_ADOPTED_CHILD);
+        when(caseDetails.getData())
+                .thenReturn(caseData);
+
+        final boolean actual = dtspb5472MigrationHandler.shouldMigrateCase(migrationEvent);
+
+        assertThat(actual, equalTo(true));
+    }
+
+    @Test
+    void shouldNotMigrateCaseWhenNoAdoptedChild() {
+        final MigrationEvent migrationEvent = mock();
+
+        final CaseSummary caseSummary = mock();
+        final StartEventResponse startEventResponse = mock();
+        when(migrationEvent.caseSummary())
+            .thenReturn(caseSummary);
+        when(migrationEvent.startEventResponse())
+            .thenReturn(startEventResponse);
+
+        final CaseDetails caseDetails = mock();
+        when(startEventResponse.getCaseDetails())
+            .thenReturn(caseDetails);
+
+        final Map<String, Object> caseData = Map.of();
+        when(caseDetails.getData())
+            .thenReturn(caseData);
+
+        final boolean actual = dtspb5472MigrationHandler.shouldMigrateCase(migrationEvent);
 
         assertThat(actual, equalTo(false));
     }
 
     @Test
-    void migrateCaseAddsAppOrgPolicyAndCallsCcdSubmit() {
+    void migrateCaseRelationshipToDeceasedAndAdoptedInAndCallsCcdSubmit() {
         final CaseSummary caseSummary = mock();
 
         final String eventId = UUID.randomUUID().toString();
@@ -419,7 +337,10 @@ class Dtspb5005MigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
 
-        final Map<String, Object> caseData = new HashMap<>();
+        final Map<String, Object> caseData = new HashMap<>(Map.of(
+            PA_RELATIONSHIP_TO_DECEASED, PA_ADOPTED_CHILD,
+            SOL_RELATIONSHIP_TO_DECEASED, SOL_ADOPTED_CHILD
+        ));
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
@@ -436,7 +357,7 @@ class Dtspb5005MigrationHandlerTest {
                 any()))
                         .thenReturn(caseResult);
 
-        final boolean actual = dtspb5005MigrationHandler.migrate(migrationEvent);
+        final boolean actual = dtspb5472MigrationHandler.migrate(migrationEvent);
 
         final ArgumentCaptor<CaseDataContent> dataCaptor = ArgumentCaptor.forClass(CaseDataContent.class);
         verify(coreCaseDataApiMock).submitEventForCaseWorker(
@@ -465,29 +386,19 @@ class Dtspb5005MigrationHandlerTest {
         @SuppressWarnings("unchecked")
         final Map<String, Object> migratedData = (Map<String, Object>) migratedObj;
 
-        assertThat(migratedData, hasKey(APPLICANT_ORGANISATION_POLICY));
-        final Object policyObj = migratedData.get(APPLICANT_ORGANISATION_POLICY);
-        if (!(policyObj instanceof Map)) {
-            fail("Policy object is not a Map");
-        }
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> policy = (Map<String, Object>) policyObj;
 
         assertAll(
-                () -> assertThat(policy, hasKey("Organisation")),
-                () -> assertThat(policy, hasKey("OrgPolicyReference")),
-                () -> assertThat(policy, hasKey("OrgPolicyCaseAssignedRole")));
-
-        final Object organisationObj = policy.get("Organisation");
-        if (!(organisationObj instanceof Map)) {
-            fail("organisationObj is not a Map");
-        }
-        @SuppressWarnings("unchecked")
-        final Map<String, Object> organisation = (Map<String, Object>) organisationObj;
+            () -> assertThat(migratedData, hasKey(PA_ADOPTED_IN)),
+            () -> assertThat(migratedData, hasKey(PA_RELATIONSHIP_TO_DECEASED)),
+            () -> assertThat(migratedData, hasKey(SOL_RELATIONSHIP_TO_DECEASED)));
+        final Object paAdoptedIn = migratedData.get(PA_ADOPTED_IN);
+        final Object paRelationshipToDeceased = migratedData.get(PA_RELATIONSHIP_TO_DECEASED);
+        final Object solRelationshipToDeceased = migratedData.get(SOL_RELATIONSHIP_TO_DECEASED);
 
         assertAll(
-                () -> assertThat(organisation, hasKey("OrganisationId")),
-                () -> assertThat(organisation, hasKey("OrganisationName")));
+                () -> assertThat(paAdoptedIn, equalTo(YES)),
+                () -> assertThat(paRelationshipToDeceased, equalTo(PA_CHILD)),
+                () -> assertThat(solRelationshipToDeceased, equalTo(SOL_CHILD)));
     }
 
     @Test
@@ -526,7 +437,7 @@ class Dtspb5005MigrationHandlerTest {
         when(reimplConfigMock.isDryRun())
                 .thenReturn(true);
 
-        final boolean actual = dtspb5005MigrationHandler.migrate(migrationEvent);
+        final boolean actual = dtspb5472MigrationHandler.migrate(migrationEvent);
 
         assertAll(
                 () -> assertThat(actual, equalTo(true)),
@@ -574,7 +485,7 @@ class Dtspb5005MigrationHandlerTest {
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
-        final boolean actual = dtspb5005MigrationHandler.migrate(migrationEvent);
+        final boolean actual = dtspb5472MigrationHandler.migrate(migrationEvent);
 
         assertAll(
                 () -> assertThat(actual, equalTo(false)),

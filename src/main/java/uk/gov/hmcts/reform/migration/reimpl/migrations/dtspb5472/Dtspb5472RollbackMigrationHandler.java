@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -26,41 +26,45 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_ADOPTED_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_RELATIONSHIP_TO_DECEASED;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_ADOPTED_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_RELATIONSHIP_TO_DECEASED;
+
 @Component
 @Slf4j
-public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
+public class Dtspb5472RollbackMigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final CaseEventsApi caseEventsApi;
     private final ElasticSearchHandler elasticSearchHandler;
-
-    private final ReimplConfig reimplConfig;
-    private final Dtspb5005Config config;
-    private final Dtspb5005ElasticQueries elasticQueries;
+    private final ReimplConfig commonConfig;
+    private final Dtspb5472Config config;
+    private final Dtspb5472ElasticQueries elasticQueries;
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
-    static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
-    static final String APPLICANT_ORGANISATION_POLICY = "applicantOrganisationPolicy";
-
+    static final String PA_ADOPTED_IN = "primaryApplicantAdoptedIn";
+    // Check that a previous migration event has happened
     static final String MIGRATION_EVENT = "boHistoryCorrection";
 
-    static final String ROLLBACK_SUMMARY = "DTSPB-5005 - Rollback adding metadata for Notice of Change";
-    static final String ROLLBACK_DESCRIPTION = "Rollback adding metadata for Notice of Change";
+    static final String ROLLBACK_SUMMARY = "DTSPB-5472 - Rollback applicant's relationship to deceased";
+    static final String ROLLBACK_DESCRIPTION = "Rollback remove Adopted Child option";
 
-    static final String ROLLBACK_ID = "DTSPB-5005_rollback";
+    static final String ROLLBACK_ID = "DTSPB-5472_rollback";
 
-    public Dtspb5005RollbackMigrationHandler(
+    public Dtspb5472RollbackMigrationHandler(
         final CoreCaseDataApi coreCaseDataApi,
         final CaseEventsApi caseEventsApi,
         final ElasticSearchHandler elasticSearchHandler,
-        final ReimplConfig reimplConfig,
-        final Dtspb5005Config config,
-        final Dtspb5005ElasticQueries elasticQueries) {
+        final ReimplConfig commonConfig,
+        final Dtspb5472Config config,
+        final Dtspb5472ElasticQueries elasticQueries) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.caseEventsApi = Objects.requireNonNull(caseEventsApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
-
-        this.reimplConfig = Objects.requireNonNull(reimplConfig);
+        this.commonConfig = Objects.requireNonNull(commonConfig);
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
     }
@@ -69,7 +73,6 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
     public Set<CaseSummary> getCandidateCases(
             final UserToken userToken,
             final S2sToken s2sToken) {
-        final Set<CaseSummary> candidateCases = new HashSet<>();
 
         final Set<CaseSummary> gorCandidates = elasticSearchHandler.searchCases(
             ROLLBACK_ID,
@@ -77,21 +80,10 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             s2sToken,
             CaseType.GRANT_OF_REPRESENTATION,
             fR -> elasticQueries.getGorRollbackQuery(
-                    reimplConfig.getQuerySize(),
+                    commonConfig.getQuerySize(),
                     config.getRollbackDate(),
                     fR));
-        candidateCases.addAll(gorCandidates);
-
-        final Set<CaseSummary> caveatCandidates = elasticSearchHandler.searchCases(
-            ROLLBACK_ID,
-            userToken,
-            s2sToken,
-            CaseType.CAVEAT,
-            fR -> elasticQueries.getCaveatRollbackQuery(
-                    reimplConfig.getQuerySize(),
-                    config.getRollbackDate(),
-                    fR));
-        candidateCases.addAll(caveatCandidates);
+        final Set<CaseSummary> candidateCases = new HashSet<>(gorCandidates);
 
         return Set.copyOf(candidateCases);
     }
@@ -102,18 +94,13 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-        final RollbackEventDetails eventDetails = switch (caseSummary.type()) {
-            case GRANT_OF_REPRESENTATION -> new RollbackEventDetails(
+        final RollbackEventDetails eventDetails = new RollbackEventDetails(
                 GRANT_OF_REPRESENTATION,
                 "boCorrection");
-            case CAVEAT -> new RollbackEventDetails(
-                CAVEAT,
-                "boCorrection");
-        };
 
         final UserDetails userDetails = userToken.userDetails();
 
-        log.info("DTSPB-5005_rollback start event for {} case {}",
+        log.info("DTSPB-5472_rollback start event for {} case {}",
             eventDetails.caseType(),
             caseSummary.reference());
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
@@ -140,26 +127,27 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         final UserToken userToken = migrationEvent.userToken();
         final S2sToken s2sToken = migrationEvent.s2sToken();
         if (caseDetails == null) {
-            log.error("DTSPB-5005_rollback: No case details present in startEventResponse for {} case {}",
+            log.error("DTSPB-5472_rollback: No case details present in startEventResponse for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
-            throw new Dtspb5005RollbackException(
+            throw new Dtspb5472RollbackException(
                     "No case details present in startEventResponse for " + caseSummary.reference());
         }
 
         final Map<String, Object> caseData = caseDetails.getData();
         if (caseData == null) {
-            log.error("DTSPB-5005_rollback: No case data present in startEventResponse for {} case {}",
+            log.error("DTSPB-5472_rollback: No case data present in startEventResponse for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
-            throw new Dtspb5005RollbackException(
+            throw new Dtspb5472RollbackException(
                     "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        final boolean hasApplOrgPolicy = caseData.containsKey(APPLICANT_ORGANISATION_POLICY);
-        if (!hasApplOrgPolicy) {
-            log.info("DTSPB-5005_rollback: {} case {} does not have applicantOrganisationPolicy so no rollback needed",
-                caseSummary.type(),
+        final boolean hasPaAdoptedIn = caseData.containsKey(PA_ADOPTED_IN);
+        final boolean hasChild = hasSolChild(caseData) || hasPaChild(caseData);
+        if (!hasPaAdoptedIn && !hasChild) {
+            log.info("DTSPB-5472_rollback: case {} "
+                + "does not have primaryApplicantAdoptedIn or Child so no rollback needed",
                 caseSummary.reference());
             return false;
         }
@@ -173,21 +161,21 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 caseDetails.getId().toString());
 
         final List<CaseEventDetail> migrationEvents = caseEvents.stream()
-                .filter(this::findDtspb5005MigrationEvent)
+                .filter(this::findDtspb5472MigrationEvent)
                 .toList();
 
-        log.info("DTSPB-5005_rollback: found {} migration events for {} case {}",
+        log.info("DTSPB-5472_rollback: found {} migration events for {} case {}",
                 migrationEvents.size(),
                 caseSummary.type(),
                 caseSummary.reference());
         return !migrationEvents.isEmpty();
     }
 
-    boolean findDtspb5005MigrationEvent(final CaseEventDetail caseEventDetail) {
+    boolean findDtspb5472MigrationEvent(final CaseEventDetail caseEventDetail) {
         final String eventId = caseEventDetail.getId();
         final boolean correctEvent = eventId.equals(MIGRATION_EVENT);
         final String description = caseEventDetail.getDescription();
-        final boolean correctDescription = description.equals(Dtspb5005MigrationHandler.MIGRATION_DESCRIPTION);
+        final boolean correctDescription = description.equals(Dtspb5472MigrationHandler.MIGRATION_DESCRIPTION);
 
         return correctEvent && correctDescription;
     }
@@ -207,6 +195,12 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
         final JSONObject migrationCallbackMetadataJson = new JSONObject();
         migrationCallbackMetadataJson.put("migrationId", ROLLBACK_ID);
         migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
+        if (hasPaChild(migratedData)) {
+            migratedData.put(PA_RELATIONSHIP_TO_DECEASED, PA_ADOPTED_CHILD);
+        }
+        if (hasSolChild(migratedData)) {
+            migratedData.put(SOL_RELATIONSHIP_TO_DECEASED, SOL_ADOPTED_CHILD);
+        }
 
         final Event event = Event.builder()
                 .id(startEventResponse.getEventId())
@@ -220,8 +214,8 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 .data(migratedData)
                 .build();
 
-        if (reimplConfig.isDryRun()) {
-            log.info("DTSPB-5005_rollback: DRY RUN - returning without submission for {} case {}",
+        if (commonConfig.isDryRun()) {
+            log.info("DTSPB-5472_rollback: DRY RUN - returning without submission for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
             return true;
@@ -241,12 +235,12 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
                 caseDataContent);
 
         if (result == null) {
-            log.error("DTSPB-5005_rollback: event submission returned null for {} case {}",
+            log.error("DTSPB-5472_rollback: event submission returned null for {} case {}",
                     caseSummary.type(),
                     caseSummary.reference());
             return false;
         }
-        log.info("DTSPB-5005_rollback: event submission complete for {} case {}",
+        log.info("DTSPB-5472_rollback: event submission complete for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
 
@@ -255,9 +249,19 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
 
     private record RollbackEventDetails(String caseType, String eventId) {}
 
-    class Dtspb5005RollbackException extends RuntimeException {
-        public Dtspb5005RollbackException(final String message) {
+    class Dtspb5472RollbackException extends RuntimeException {
+        public Dtspb5472RollbackException(final String message) {
             super(message);
         }
+    }
+
+    private boolean hasPaChild(Map<String, Object> caseData) {
+        return caseData.containsKey(PA_RELATIONSHIP_TO_DECEASED)
+            && caseData.get(PA_RELATIONSHIP_TO_DECEASED).equals(PA_CHILD);
+    }
+
+    private boolean hasSolChild(Map<String, Object> caseData) {
+        return caseData.containsKey(SOL_RELATIONSHIP_TO_DECEASED)
+            && caseData.get(SOL_RELATIONSHIP_TO_DECEASED).equals(SOL_CHILD);
     }
 }

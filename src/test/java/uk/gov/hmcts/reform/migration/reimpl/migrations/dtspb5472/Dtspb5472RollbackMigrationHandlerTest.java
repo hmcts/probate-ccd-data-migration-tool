@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005;
+package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -29,13 +29,11 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
@@ -50,16 +48,22 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.APPLICANT_ORGANISATION_POLICY;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.CAVEAT;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.GRANT_OF_REPRESENTATION;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.JURISDICTION;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.MIGRATION_EVENT;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.ROLLBACK_DESCRIPTION;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.ROLLBACK_ID;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler.ROLLBACK_SUMMARY;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_ADOPTED_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_RELATIONSHIP_TO_DECEASED;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_ADOPTED_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_CHILD;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.SOL_RELATIONSHIP_TO_DECEASED;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.YES;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler.GRANT_OF_REPRESENTATION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler.JURISDICTION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler.MIGRATION_EVENT;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler.PA_ADOPTED_IN;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler.ROLLBACK_DESCRIPTION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler.ROLLBACK_ID;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler.ROLLBACK_SUMMARY;
 
-class Dtspb5005RollbackMigrationHandlerTest {
+class Dtspb5472RollbackMigrationHandlerTest {
     @Mock
     CoreCaseDataApi coreCaseDataApiMock;
     @Mock
@@ -67,13 +71,13 @@ class Dtspb5005RollbackMigrationHandlerTest {
     @Mock
     ElasticSearchHandler elasticSearchHandlerMock;
     @Mock
+    Dtspb5472Config dtspb5472ConfigMock;
+    @Mock
+    Dtspb5472ElasticQueries dtspb5472ElasticQueriesMock;
+    @Mock
     ReimplConfig reimplConfigMock;
-    @Mock
-    Dtspb5005Config dtspb5005ConfigMock;
-    @Mock
-    Dtspb5005ElasticQueries dtspb5005ElasticQueriesMock;
 
-    Dtspb5005RollbackMigrationHandler dtspb5005RollbackMigrationHandler;
+    Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler;
 
     AutoCloseable closeableMocks;
 
@@ -81,13 +85,13 @@ class Dtspb5005RollbackMigrationHandlerTest {
     void setUp() {
         closeableMocks = MockitoAnnotations.openMocks(this);
 
-        dtspb5005RollbackMigrationHandler = new Dtspb5005RollbackMigrationHandler(
+        dtspb5472RollbackMigrationHandler = new Dtspb5472RollbackMigrationHandler(
                 coreCaseDataApiMock,
                 caseEventsApiMock,
                 elasticSearchHandlerMock,
                 reimplConfigMock,
-                dtspb5005ConfigMock,
-                dtspb5005ElasticQueriesMock);
+                dtspb5472ConfigMock,
+                dtspb5472ElasticQueriesMock);
     }
 
     @AfterEach
@@ -100,12 +104,11 @@ class Dtspb5005RollbackMigrationHandlerTest {
     }
 
     @Test
-    void getCandidateCasesCallsElasticSearchTwice() {
+    void getCandidateCasesCallsElasticSearchOnce() {
         final UserToken userToken = mock();
         final S2sToken s2sToken = mock();
 
         final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
 
         when(elasticSearchHandlerMock.searchCases(
                         any(),
@@ -114,15 +117,8 @@ class Dtspb5005RollbackMigrationHandlerTest {
                         eq(CaseType.GRANT_OF_REPRESENTATION),
                         any()))
                 .thenReturn(Set.of(gorCase));
-        when(elasticSearchHandlerMock.searchCases(
-                        any(),
-                        any(),
-                        any(),
-                        eq(CaseType.CAVEAT),
-                        any()))
-                .thenReturn(Set.of(caveatCase));
 
-        final Set<CaseSummary> candidateCases = dtspb5005RollbackMigrationHandler.getCandidateCases(
+        final Set<CaseSummary> candidateCases = dtspb5472RollbackMigrationHandler.getCandidateCases(
                 userToken,
                 s2sToken);
 
@@ -133,68 +129,8 @@ class Dtspb5005RollbackMigrationHandlerTest {
                         eq(s2sToken),
                         eq(CaseType.GRANT_OF_REPRESENTATION),
                         any()),
-                () -> verify(elasticSearchHandlerMock).searchCases(
-                        any(),
-                        eq(userToken),
-                        eq(s2sToken),
-                        eq(CaseType.CAVEAT),
-                        any()),
-                () -> assertThat(candidateCases, hasSize(2)),
-                () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
-    }
-
-    @Test
-    void getCandidateCasesCallsElasticQueryGet() {
-        final UserToken userToken = mock();
-        final S2sToken s2sToken = mock();
-
-        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-        final CaseSummary caveatCase = new CaseSummary(2L, CaseType.CAVEAT);
-
-        when(elasticSearchHandlerMock.searchCases(
-            any(),
-            any(),
-            any(),
-            eq(CaseType.GRANT_OF_REPRESENTATION),
-            any()))
-            .thenAnswer(invocation -> {
-                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
-                final JSONObject jsonObject = f.apply(Optional.of(1L));
-                return Set.of(gorCase);
-            });
-        when(elasticSearchHandlerMock.searchCases(
-            any(),
-            any(),
-            any(),
-            eq(CaseType.CAVEAT),
-            any()))
-            .thenAnswer(invocation -> {
-                final Function<Optional<Long>, JSONObject> f = invocation.getArgument(4);
-                final JSONObject jsonObject = f.apply(Optional.of(1L));
-                return Set.of(caveatCase);
-            });
-
-        final Set<CaseSummary> candidateCases = dtspb5005RollbackMigrationHandler.getCandidateCases(
-            userToken,
-            s2sToken);
-
-        assertAll(
-            () -> verify(elasticSearchHandlerMock).searchCases(
-                any(),
-                eq(userToken),
-                eq(s2sToken),
-                eq(CaseType.GRANT_OF_REPRESENTATION),
-                any()),
-            () -> verify(elasticSearchHandlerMock).searchCases(
-                any(),
-                eq(userToken),
-                eq(s2sToken),
-                eq(CaseType.CAVEAT),
-                any()),
-            () -> verify(dtspb5005ElasticQueriesMock).getGorRollbackQuery(any(), any(), any()),
-            () -> verify(dtspb5005ElasticQueriesMock).getCaveatRollbackQuery(any(), any(), any()),
-            () -> assertThat(candidateCases, hasSize(2)),
-            () -> assertThat(candidateCases, containsInAnyOrder(gorCase, caveatCase)));
+                () -> assertThat(candidateCases, hasSize(1)),
+                () -> assertThat(candidateCases, contains(gorCase)));
     }
 
     @Test
@@ -224,7 +160,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
         when(coreCaseDataApiMock.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(startEventResponse);
 
-        final MigrationEvent actual = dtspb5005RollbackMigrationHandler.startEventForCase(
+        final MigrationEvent actual = dtspb5472RollbackMigrationHandler.startEventForCase(
                 caseSummary,
                 userToken,
                 s2sToken);
@@ -244,52 +180,6 @@ class Dtspb5005RollbackMigrationHandlerTest {
                         "boCorrection"));
     }
 
-    @Test
-    void startCaveatEvent() {
-        final Long caseId = 1L;
-        final CaseType caseType = CaseType.CAVEAT;
-        final CaseSummary caseSummary = new CaseSummary(caseId, caseType);
-
-        final String userId = UUID.randomUUID().toString();
-        final UserDetails userDetails = mock();
-        when(userDetails.getId())
-                .thenReturn(userId);
-
-        final String userBearerToken = UUID.randomUUID().toString();
-        final UserToken userToken = mock();
-        when(userToken.userDetails())
-                .thenReturn(userDetails);
-        when(userToken.getBearerToken())
-                .thenReturn(userBearerToken);
-
-        final String s2sBearerToken = UUID.randomUUID().toString();
-        final S2sToken s2sToken = mock();
-        when(s2sToken.s2sToken())
-                .thenReturn(s2sBearerToken);
-
-        final StartEventResponse startEventResponse = mock();
-        when(coreCaseDataApiMock.startEventForCaseWorker(any(), any(), any(), any(), any(), any(), any()))
-                .thenReturn(startEventResponse);
-
-        final MigrationEvent actual = dtspb5005RollbackMigrationHandler.startEventForCase(
-                caseSummary,
-                userToken,
-                s2sToken);
-
-        assertAll(
-                () -> assertSame(caseSummary, actual.caseSummary()),
-                () -> assertSame(userToken, actual.userToken()),
-                () -> assertSame(s2sToken, actual.s2sToken()),
-                () -> assertSame(startEventResponse, actual.startEventResponse()),
-                () -> verify(coreCaseDataApiMock).startEventForCaseWorker(
-                        userBearerToken,
-                        s2sBearerToken,
-                        userId,
-                        JURISDICTION,
-                        CAVEAT,
-                        caseId.toString(),
-                        "boCorrection"));
-    }
 
     @Test
     void shouldMigrateCaseNullDetailsThrows() {
@@ -307,8 +197,8 @@ class Dtspb5005RollbackMigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         assertThrows(
-                Dtspb5005RollbackMigrationHandler.Dtspb5005RollbackException.class,
-                () -> dtspb5005RollbackMigrationHandler.shouldMigrateCase(migrationEvent));
+                Dtspb5472RollbackMigrationHandler.Dtspb5472RollbackException.class,
+                () -> dtspb5472RollbackMigrationHandler.shouldMigrateCase(migrationEvent));
     }
 
     @Test
@@ -331,12 +221,12 @@ class Dtspb5005RollbackMigrationHandlerTest {
                 .thenReturn(caseData);
 
         assertThrows(
-                Dtspb5005RollbackMigrationHandler.Dtspb5005RollbackException.class,
-                () -> dtspb5005RollbackMigrationHandler.shouldMigrateCase(migrationEvent));
+                Dtspb5472RollbackMigrationHandler.Dtspb5472RollbackException.class,
+                () -> dtspb5472RollbackMigrationHandler.shouldMigrateCase(migrationEvent));
     }
 
     @Test
-    void shouldMigrateCaseNoAppOrgPolicyInDataReturnsFalse() {
+    void shouldMigrateCaseNoPaAdoptedInDataReturnsFalse() {
         final MigrationEvent migrationEvent = mock();
 
         final CaseSummary caseSummary = mock();
@@ -354,13 +244,13 @@ class Dtspb5005RollbackMigrationHandlerTest {
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
-        final boolean actual = dtspb5005RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
+        final boolean actual = dtspb5472RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
         assertThat(actual, equalTo(false));
     }
 
     @Test
-    void shouldMigrateCaseAppOrgPolicyInDataNoCaseEventsReturnsFalse() {
+    void shouldMigrateCasePaAdoptedInDataNoCaseEventsReturnsFalse() {
         final CaseSummary caseSummary = mock();
 
         final StartEventResponse startEventResponse = mock();
@@ -402,14 +292,14 @@ class Dtspb5005RollbackMigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         final Map<String, Object> caseData = Map.of(
-                APPLICANT_ORGANISATION_POLICY, "");
+                PA_ADOPTED_IN, YES);
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
         when(caseEventsApiMock.findEventDetailsForCase(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of());
 
-        final boolean actual = dtspb5005RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
+        final boolean actual = dtspb5472RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
         assertThat(actual, equalTo(false));
         verify(caseEventsApiMock).findEventDetailsForCase(
@@ -422,7 +312,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseAppOrgPolicyInDataMatchingCaseEventReturnsTrue() {
+    void shouldMigrateCasePaAdoptedInDataMatchingCaseEventReturnsTrue() {
         final CaseSummary caseSummary = mock();
 
         final StartEventResponse startEventResponse = mock();
@@ -464,7 +354,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         final Map<String, Object> caseData = Map.of(
-                APPLICANT_ORGANISATION_POLICY, "");
+            PA_ADOPTED_IN, YES);
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
@@ -472,11 +362,11 @@ class Dtspb5005RollbackMigrationHandlerTest {
         when(caseEventDetail.getId())
                 .thenReturn(MIGRATION_EVENT);
         when(caseEventDetail.getDescription())
-                .thenReturn(Dtspb5005MigrationHandler.MIGRATION_DESCRIPTION);
+                .thenReturn(Dtspb5472MigrationHandler.MIGRATION_DESCRIPTION);
         when(caseEventsApiMock.findEventDetailsForCase(any(), any(), any(), any(), any(), any()))
                 .thenReturn(List.of(caseEventDetail));
 
-        final boolean actual = dtspb5005RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
+        final boolean actual = dtspb5472RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
         assertThat(actual, equalTo(true));
         verify(caseEventsApiMock).findEventDetailsForCase(
@@ -507,7 +397,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
         final S2sToken s2sToken = mock();
 
         final MigrationEvent migrationEvent = new MigrationEvent(caseSummary, startEventResponse, userToken, s2sToken);
-        final boolean actual = dtspb5005RollbackMigrationHandler.migrate(migrationEvent);
+        final boolean actual = dtspb5472RollbackMigrationHandler.migrate(migrationEvent);
 
         assertAll(
                 () -> assertThat(actual, equalTo(true)),
@@ -541,7 +431,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
         final S2sToken s2sToken = mock();
 
         final MigrationEvent migrationEvent = new MigrationEvent(caseSummary, startEventResponse, userToken, s2sToken);
-        final boolean actual = dtspb5005RollbackMigrationHandler.migrate(migrationEvent);
+        final boolean actual = dtspb5472RollbackMigrationHandler.migrate(migrationEvent);
 
         assertAll(
                 () -> assertThat(actual, equalTo(false)),
@@ -605,7 +495,11 @@ class Dtspb5005RollbackMigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
 
-        final Map<String, Object> caseData = new HashMap<>();
+        final Map<String, Object> caseData = new HashMap<>(Map.of(
+            PA_RELATIONSHIP_TO_DECEASED, PA_CHILD,
+            SOL_RELATIONSHIP_TO_DECEASED, SOL_CHILD,
+            PA_ADOPTED_IN, YES
+        ));
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
@@ -622,7 +516,7 @@ class Dtspb5005RollbackMigrationHandlerTest {
                 any()))
                         .thenReturn(caseResult);
 
-        final boolean actual = dtspb5005RollbackMigrationHandler.migrate(migrationEvent);
+        final boolean actual = dtspb5472RollbackMigrationHandler.migrate(migrationEvent);
 
         final ArgumentCaptor<CaseDataContent> dataCaptor = ArgumentCaptor.forClass(CaseDataContent.class);
         verify(coreCaseDataApiMock).submitEventForCaseWorker(
@@ -660,6 +554,16 @@ class Dtspb5005RollbackMigrationHandlerTest {
         final JSONObject callbackMetadataJson = new JSONObject(callbackMetadata);
 
         assertThat(callbackMetadataJson, jsonHasString("migrationId", ROLLBACK_ID));
+
+        assertAll(
+            () -> assertThat(migratedData, hasKey(PA_RELATIONSHIP_TO_DECEASED)),
+            () -> assertThat(migratedData, hasKey(SOL_RELATIONSHIP_TO_DECEASED)));
+        final Object paRelationshipToDeceased = migratedData.get(PA_RELATIONSHIP_TO_DECEASED);
+        final Object solRelationshipToDeceased = migratedData.get(SOL_RELATIONSHIP_TO_DECEASED);
+
+        assertAll(
+            () -> assertThat(paRelationshipToDeceased, equalTo(PA_ADOPTED_CHILD)),
+            () -> assertThat(solRelationshipToDeceased, equalTo(SOL_ADOPTED_CHILD)));
     }
 
     final Matcher<JSONObject> jsonHasString(final String key, final String value) {
