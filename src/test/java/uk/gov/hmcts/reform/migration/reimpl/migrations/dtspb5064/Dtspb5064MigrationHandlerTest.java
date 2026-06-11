@@ -327,8 +327,6 @@ class Dtspb5064MigrationHandlerTest {
                 eq(true),
                 dataCaptor.capture());
 
-        verify(caseDetails).setState(CAVEAT_MATCHING);
-
         final CaseDataContent caseDataContent = dataCaptor.getValue();
         final Event event = caseDataContent.getEvent();
 

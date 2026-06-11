@@ -39,9 +39,7 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
 
     static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
-    static final String STATE = "state";
     static final String CAVEAT_NOT_MATCHED = "CaveatNotMatched";
-    static final String CAVEAT_MATCHING = "CaveatMatching";
 
     static final String MIGRATION_EVENT = "boHistoryCorrection";
 
@@ -183,13 +181,8 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
         final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
 
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
-
         final Map<String, Object> migratedData = caseDetails.getData();
 
-        caseDetails.setState(CAVEAT_NOT_MATCHED);
-
-        // We cannot directly remove the data as part of the event - ccd will pick the value back up from the
-        // existing data record
         final JSONObject migrationCallbackMetadataJson = new JSONObject();
         migrationCallbackMetadataJson.put("migrationId", ROLLBACK_ID);
         migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());

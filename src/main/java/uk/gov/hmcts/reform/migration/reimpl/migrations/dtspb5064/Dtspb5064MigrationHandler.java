@@ -123,9 +123,10 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
 
         final boolean isInCaveatNotMatchedState = caseDetails.getState().equals(CAVEAT_NOT_MATCHED);
         if (!isInCaveatNotMatchedState) {
-            log.info("DTSPB-5064: {} case {} is in a different state than CaveatNotMatched so no migration needed",
+            log.info("DTSPB-5064: {} case {} is in state: {}, so migration is not required",
                 caseSummary.type(),
-                caseSummary.reference());
+                caseSummary.reference(),
+                caseDetails.getState());
         }
         return isInCaveatNotMatchedState;
     }
@@ -139,8 +140,6 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
 
         final Map<String, Object> migratedData = caseDetails.getData();
-
-        caseDetails.setState(CAVEAT_MATCHING);
 
         final Event event = Event.builder()
             .id(startEventResponse.getEventId())

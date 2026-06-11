@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +15,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseEventDetail;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.TestUtils;
 import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
@@ -563,36 +561,6 @@ class Dtspb5064RollbackMigrationHandlerTest {
         final String callbackMetadata = (String) callbackMetadataObj;
         final JSONObject callbackMetadataJson = new JSONObject(callbackMetadata);
 
-        assertThat(callbackMetadataJson, jsonHasString("migrationId", ROLLBACK_ID));
-    }
-
-    final Matcher<JSONObject> jsonHasString(final String key, final String value) {
-        return new BaseMatcher<JSONObject>() {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("JSON object contains entry with key: " + key + " and value: " + value);
-            }
-
-            @Override
-            public boolean matches(Object o) {
-                if (!(o instanceof JSONObject)) {
-                    return false;
-                }
-                final JSONObject jsonObject = (JSONObject) o;
-
-                final boolean hasKey = jsonObject.has(key);
-                if (!hasKey) {
-                    return false;
-                }
-
-                final Object jsonValue = jsonObject.get(key);
-                if (!(jsonValue instanceof String)) {
-                    return false;
-                }
-
-                final String jsonValueString = (String) jsonValue;
-                return jsonValueString.equals(value);
-            }
-        };
+        assertThat(callbackMetadataJson, TestUtils.jsonHasString("migrationId", ROLLBACK_ID));
     }
 }
