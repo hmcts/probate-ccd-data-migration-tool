@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
-
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
@@ -177,6 +176,7 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     }
 
     private record MigrationEventDetails(String caseType, String eventId) {}
+
     class Dtspb5005MigrationException extends RuntimeException {
         public Dtspb5005MigrationException(final String message) {
             super(message);

@@ -48,5 +48,7 @@ public class Dtspb5539Config {
         return rollbackDate;
     }
 
-    public List<CaseType> getCaseTypes() { return caseTypes; }
+    public List<CaseType> getCaseTypes() {
+        return caseTypes;
+    }
 }
