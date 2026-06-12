@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472Migrat
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586.Dtspb5586MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586.Dtspb5586RollbackMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.time.Clock;
@@ -123,6 +124,8 @@ public class ReimplConfig {
         final Dtspb5064RollbackMigrationHandler dtspb5064RollbackMigrationHandler,
         final Dtspb5586MigrationHandler dtspb5586MigrationHandler,
         final Dtspb5586RollbackMigrationHandler dtspb5586RollbackMigrationHandler
+        final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
+        final Dtspb5539MigrationHandler dtspb5539MigrationHandler
     ) {
         return Map.ofEntries(
             Map.entry("DTSPB-5005", dtspb5005MigrationHandler),
@@ -136,7 +139,8 @@ public class ReimplConfig {
             Map.entry("DTSPB-5064", dtspb5064MigrationHandler),
             Map.entry("DTSPB-5064_rollback", dtspb5064RollbackMigrationHandler),
             Map.entry("DTSPB-5586", dtspb5586MigrationHandler),
-            Map.entry("DTSPB-5586_rollback", dtspb5586RollbackMigrationHandler)
+            Map.entry("DTSPB-5586_rollback", dtspb5586RollbackMigrationHandler),
+            Map.entry("DTSPB-5539", dtspb5539MigrationHandler)
             );
     }
 
