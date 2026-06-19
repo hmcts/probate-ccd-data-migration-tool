@@ -10,6 +10,8 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586.Dtspb5586MigrationHandler;
@@ -34,6 +36,7 @@ public class ReimplConfig {
     private final String migrationId;
     private final Duration userTokenRefreshMargin;
     private final Duration s2sTokenRefreshMargin;
+    private final Optional<Set<CaseSummary>> caseReferences;
     private final Optional<Set<CaseSummary>> casesToRestrictTo;
     private final int querySize;
     private final boolean dryRun;
@@ -47,6 +50,8 @@ public class ReimplConfig {
             final long userTokenRefreshMarginMins,
             @Value("${migration.reimpl.s2s_token_refresh_margin_mins}")
             final long s2sTokenRefreshMarginMins,
+            @Value("${case.migration.processing.caseReferences:}")
+            final String caseReferences,
             @Value("${migration.reimpl.cases_to_restrict_to}")
             final String casesToRestrictTo,
             @Value("${case-migration.elasticsearch.querySize}")
@@ -57,7 +62,8 @@ public class ReimplConfig {
         this.migrationId = Objects.requireNonNull(migrationId);
         this.userTokenRefreshMargin = Duration.ofMinutes(userTokenRefreshMarginMins);
         this.s2sTokenRefreshMargin = Duration.ofMinutes(s2sTokenRefreshMarginMins);
-        this.casesToRestrictTo = processCasesToFilterTo(casesToRestrictTo);
+        this.caseReferences = processCasesConfig(caseReferences);
+        this.casesToRestrictTo = processCasesConfig(casesToRestrictTo);
         this.querySize = querySize;
         this.dryRun = dryRun;
     }
@@ -72,6 +78,10 @@ public class ReimplConfig {
 
     public Duration getS2sTokenRefreshMargin() {
         return s2sTokenRefreshMargin;
+    }
+
+    public Optional<Set<CaseSummary>> getCaseReferences() {
+        return caseReferences;
     }
 
     public Optional<Set<CaseSummary>> getCasesToRestrictTo() {
@@ -99,6 +109,8 @@ public class ReimplConfig {
     public Map<String, MigrationHandler> migrationHandlers(
         final Dtspb5005MigrationHandler dtspb5005MigrationHandler,
         final Dtspb5005RollbackMigrationHandler dtspb5005RollbackMigrationHandler,
+        final Dtspb5113MigrationHandler dtspb5113MigrationHandler,
+        final Dtspb5113RollbackMigrationHandler dtspb5113RollbackMigrationHandler,
         final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
         final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
         final Dtspb5586MigrationHandler dtspb5586MigrationHandler,
@@ -107,6 +119,8 @@ public class ReimplConfig {
         return Map.of(
             "DTSPB-5005", dtspb5005MigrationHandler,
             "DTSPB-5005_rollback", dtspb5005RollbackMigrationHandler,
+            "DTSPB-5113", dtspb5113MigrationHandler,
+            "DTSPB-5113_rollback", dtspb5113RollbackMigrationHandler,
             "DTSPB-5472", dtspb5472MigrationHandler,
             "DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler,
             "DTSPB-5586", dtspb5586MigrationHandler,
@@ -119,13 +133,13 @@ public class ReimplConfig {
         return Clock.systemUTC();
     }
 
-    static Optional<Set<CaseSummary>> processCasesToFilterTo(final String casesToRestrictTo) {
-        if (StringUtils.isBlank(casesToRestrictTo)) {
-            log.info("Returning empty optional for casesToRestrictTo input [{}]", casesToRestrictTo);
+    static Optional<Set<CaseSummary>> processCasesConfig(final String casesConfig) {
+        if (StringUtils.isBlank(casesConfig)) {
+            log.info("Returning empty optional for cases config input [{}]", casesConfig);
             return Optional.empty();
         }
-        Set<CaseSummary> casesToFilter = new HashSet<>();
-        final String[] splitCasesToRestrictTo = casesToRestrictTo
+        Set<CaseSummary> caseSummarySet = new HashSet<>();
+        final String[] splitCasesToRestrictTo = casesConfig
                 .trim()
                 .split(",");
         for (String splitCase : splitCasesToRestrictTo) {
@@ -133,10 +147,10 @@ public class ReimplConfig {
             final String[] splitInput = splitCaseTrimmed.split(":");
             if (splitInput.length != 2) {
                 final String errMessage = new StringBuilder()
-                        .append("Error reading configuration for casesToFilterTo. Found entry [")
+                        .append("Error reading configuration for cases config. Found entry [")
                         .append(splitCase)
                         .append("] without ':' separator. Full input was [")
-                        .append(casesToRestrictTo)
+                        .append(casesConfig)
                         .append("]")
                         .toString();
                 log.error(errMessage);
@@ -150,21 +164,21 @@ public class ReimplConfig {
                 final CaseType caseType = CaseType.fromCcdValue(caseTypeStr);
                 final CaseSummary caseSummary = new CaseSummary(caseId, caseType);
                 log.info("Adding case to filter for: [{}]", caseSummary);
-                casesToFilter.add(caseSummary);
+                caseSummarySet.add(caseSummary);
             } catch (RuntimeException e) {
                 final String errMessage = new StringBuilder()
-                    .append("Error reading configuration for casesToFilterTo. Found caseId [")
+                    .append("Error reading configuration for cases config. Found caseId [")
                     .append(caseIdStr)
                     .append("] and caseType [")
                     .append(caseTypeStr)
                     .append("] which could not be mapped to CaseSummary. Full input was [")
-                    .append(casesToRestrictTo)
+                    .append(casesConfig)
                     .append("]")
                     .toString();
                 log.error(errMessage, e);
                 throw new IllegalArgumentException(errMessage, e);
             }
         }
-        return Optional.of(casesToFilter);
+        return Optional.of(caseSummarySet);
     }
 }
