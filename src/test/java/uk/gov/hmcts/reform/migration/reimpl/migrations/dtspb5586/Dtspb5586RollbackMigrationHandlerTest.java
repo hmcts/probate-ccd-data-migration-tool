@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -514,33 +511,130 @@ class Dtspb5586RollbackMigrationHandlerTest {
         }
     }
 
-    final Matcher<JSONObject> jsonHasString(final String key, final String value) {
-        return new BaseMatcher<JSONObject>() {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("JSON object contains entry with key: " + key + " and value: " + value);
-            }
+    @Test
+    void migrateThrowsWhenNoMigrationEventsFound() {
+        final CaseSummary caseSummary = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        final Map<String, Object> caseData = new HashMap<>();
+        when(caseDetails.getData()).thenReturn(caseData);
+        when(caseDetails.getJurisdiction()).thenReturn("PROBATE");
+        when(caseDetails.getCaseTypeId()).thenReturn("GrantOfRepresentation");
+        when(caseDetails.getId()).thenReturn(1L);
+        final UserToken userToken = mock();
+        final UserDetails userDetails = mock();
+        when(userToken.getBearerToken()).thenReturn("auth");
+        when(userToken.userDetails()).thenReturn(userDetails);
+        when(userDetails.getId()).thenReturn("user");
+        final S2sToken s2sToken = mock();
+        when(caseEventsApiMock.findEventDetailsForCase(
+            any(), any(), any(), any(), any(), any()
+        )).thenReturn(List.of());
+        final MigrationEvent migrationEvent =
+            new MigrationEvent(caseSummary, startEventResponse, userToken, s2sToken);
 
-            @Override
-            public boolean matches(Object o) {
-                if (!(o instanceof JSONObject)) {
-                    return false;
-                }
-                final JSONObject jsonObject = (JSONObject) o;
-
-                final boolean hasKey = jsonObject.has(key);
-                if (!hasKey) {
-                    return false;
-                }
-
-                final Object jsonValue = jsonObject.get(key);
-                if (!(jsonValue instanceof String)) {
-                    return false;
-                }
-
-                final String jsonValueString = (String) jsonValue;
-                return jsonValueString.equals(value);
-            }
-        };
+        assertThrows(
+            Dtspb5586RollbackMigrationHandler.Dtspb5586RollbackException.class,
+            () -> dtspb5586RollbackMigrationHandler.migrate(migrationEvent)
+        );
     }
+
+    @Test
+    void migrateThrowsWhenMigrationEventDescriptionInvalid() {
+        final CaseSummary caseSummary = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        final Map<String, Object> caseData = new HashMap<>();
+        when(caseDetails.getData()).thenReturn(caseData);
+        when(caseDetails.getJurisdiction()).thenReturn("PROBATE");
+        when(caseDetails.getCaseTypeId()).thenReturn("GrantOfRepresentation");
+        when(caseDetails.getId()).thenReturn(1L);
+        final UserToken userToken = mock();
+        final UserDetails userDetails = mock();
+        when(userToken.getBearerToken()).thenReturn("auth");
+        when(userToken.userDetails()).thenReturn(userDetails);
+        when(userDetails.getId()).thenReturn("user");
+        final S2sToken s2sToken = mock();
+        CaseEventDetail eventDetail = mock();
+        when(eventDetail.getId()).thenReturn("boHistoryCorrection");
+        when(eventDetail.getDescription()).thenReturn("INVALID_DESCRIPTION");
+
+        when(caseEventsApiMock.findEventDetailsForCase(any(), any(), any(), any(), any(), any()))
+            .thenReturn(List.of(eventDetail));
+        final MigrationEvent migrationEvent = new MigrationEvent(caseSummary, startEventResponse, userToken, s2sToken);
+
+        assertThrows(
+            Dtspb5586RollbackMigrationHandler.Dtspb5586RollbackException.class,
+            () -> dtspb5586RollbackMigrationHandler.migrate(migrationEvent)
+        );
+    }
+
+    @Test
+    void migrateReturnsFalseWhenHandoffReasonListIsNotAList() {
+        final CaseSummary caseSummary = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        final Map<String, Object> caseData = new HashMap<>();
+        caseData.put("boHandoffReasonList", "NOT_A_LIST");
+        when(caseDetails.getData()).thenReturn(caseData);
+        when(caseDetails.getJurisdiction()).thenReturn("PROBATE");
+        when(caseDetails.getCaseTypeId()).thenReturn("GrantOfRepresentation");
+        when(caseDetails.getId()).thenReturn(1L);
+        final UserToken userToken = mock();
+        final UserDetails userDetails = mock();
+        when(userToken.getBearerToken()).thenReturn("auth");
+        when(userToken.userDetails()).thenReturn(userDetails);
+        when(userDetails.getId()).thenReturn("user");
+        final S2sToken s2sToken = mock();
+        CaseEventDetail eventDetail = mock();
+        when(eventDetail.getId()).thenReturn("boHistoryCorrection");
+        when(eventDetail.getDescription()).thenReturn("DTSPB-5586?[]");
+
+        when(caseEventsApiMock.findEventDetailsForCase(any(), any(), any(), any(), any(), any()))
+            .thenReturn(List.of(eventDetail));
+        final MigrationEvent migrationEvent =
+            new MigrationEvent(caseSummary, startEventResponse, userToken, s2sToken);
+
+        boolean result = dtspb5586RollbackMigrationHandler.migrate(migrationEvent);
+        assertThat(result, equalTo(false));
+    }
+
+    @Test
+    void migrateThrowsWhenHandOffReasonsJsonIsInvalid() {
+        final CaseSummary caseSummary = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        final Map<String, Object> caseData = new HashMap<>();
+        caseData.put("boHandoffReasonList", new ArrayList<>());
+        when(caseDetails.getData()).thenReturn(caseData);
+        when(caseDetails.getJurisdiction()).thenReturn("PROBATE");
+        when(caseDetails.getCaseTypeId()).thenReturn("GrantOfRepresentation");
+        when(caseDetails.getId()).thenReturn(1L);
+        final UserToken userToken = mock();
+        final UserDetails userDetails = mock();
+        when(userToken.getBearerToken()).thenReturn("auth");
+        when(userToken.userDetails()).thenReturn(userDetails);
+        when(userDetails.getId()).thenReturn("user");
+        final S2sToken s2sToken = mock();
+
+        CaseEventDetail eventDetail = mock();
+        when(eventDetail.getId()).thenReturn("boHistoryCorrection");
+        when(eventDetail.getDescription()).thenReturn("DTSPB-5586?BAD_JSON");
+
+        when(caseEventsApiMock.findEventDetailsForCase(
+            any(), any(), any(), any(), any(), any()
+        )).thenReturn(List.of(eventDetail));
+        final MigrationEvent migrationEvent =
+            new MigrationEvent(caseSummary, startEventResponse, userToken, s2sToken);
+
+        assertThrows(
+            Dtspb5586RollbackMigrationHandler.Dtspb5586RollbackException.class,
+            () -> dtspb5586RollbackMigrationHandler.migrate(migrationEvent)
+        );
+    }
+
 }

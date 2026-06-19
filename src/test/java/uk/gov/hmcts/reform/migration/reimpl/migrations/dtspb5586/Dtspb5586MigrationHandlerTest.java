@@ -370,7 +370,7 @@ class Dtspb5586MigrationHandlerTest {
         when(caseDetails.getId()).thenReturn(caseId);
         when(caseDetails.getJurisdiction()).thenReturn("PROBATE");
         when(caseDetails.getCaseTypeId()).thenReturn("GrantOfRepresentation");
-        Map<String, Object> innerValue = Map.of("caseHandoffReason", "AdmonWill");
+        Map<String, Object> innerValue = Map.of("caseHandoffReason", "SomeOtherReason");
         Map<String, Object> valueWrapper = Map.of("value", innerValue);
         Map<String, Object> caseData = new HashMap<>();
         caseData.put("boHandoffReasonList", List.of(valueWrapper));
@@ -470,8 +470,7 @@ class Dtspb5586MigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseSkipsWhenListEntryIsNotMap() {
-
+    void shouldCoverBothInstancesofBranchesInLoop() {
         final MigrationEvent migrationEvent = mock();
         final StartEventResponse startEventResponse = mock();
         final CaseDetails caseDetails = mock();
@@ -480,32 +479,14 @@ class Dtspb5586MigrationHandlerTest {
         when(migrationEvent.caseSummary()).thenReturn(caseSummary);
         when(migrationEvent.startEventResponse()).thenReturn(startEventResponse);
         when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
-        List<Object> badList = List.of("I_AM_NOT_A_MAP");
         Map<String, Object> caseData = new HashMap<>();
-        caseData.put("boHandoffReasonList", badList);
+        caseData.put("boHandoffReasonList", List.of(
+            "NOT_A_MAP",
+            Map.of("value", "NOT_A_MAP")
+        ));
         when(caseDetails.getData()).thenReturn(caseData);
 
-        final boolean result = dtspb5586MigrationHandler.shouldMigrateCase(migrationEvent);
-        assertThat(result, equalTo(false));
-    }
-
-    @Test
-    void shouldMigrateCaseSkipsWhenValueIsNotMap() {
-
-        final MigrationEvent migrationEvent = mock();
-        final StartEventResponse startEventResponse = mock();
-        final CaseDetails caseDetails = mock();
-        final CaseSummary caseSummary = mock();
-
-        when(migrationEvent.caseSummary()).thenReturn(caseSummary);
-        when(migrationEvent.startEventResponse()).thenReturn(startEventResponse);
-        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
-        Map<String, Object> badValueWrapper = Map.of("value", "NOT_A_MAP");
-        Map<String, Object> caseData = new HashMap<>();
-        caseData.put("boHandoffReasonList", List.of(badValueWrapper));
-        when(caseDetails.getData()).thenReturn(caseData);
-
-        final boolean result = dtspb5586MigrationHandler.shouldMigrateCase(migrationEvent);
+        boolean result = dtspb5586MigrationHandler.shouldMigrateCase(migrationEvent);
         assertThat(result, equalTo(false));
     }
 
