@@ -1,20 +1,30 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539;
 
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchQueryUtils;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @Component
 @Slf4j
 public class Dtspb5539ElasticQueries {
+
+    private final ElasticSearchQueryUtils elasticSearchQueryUtils;
+
     private static final String BASE_GOR_MIGRATION_QUERY = """
         {
             "query": {
-                "match_all": {}
+                "bool": {
+                    "must_not": [
+                        {
+                            "exists": {
+                                "field": "supplementaryData.HMCTSServiceId"
+                            }
+                        }
+                    ]
+                }
             },
             "_source": ["reference"],
             "size": 0,
@@ -26,44 +36,20 @@ public class Dtspb5539ElasticQueries {
         }
         """;
 
+    public Dtspb5539ElasticQueries(ElasticSearchQueryUtils elasticSearchQueryUtils) {
+        this.elasticSearchQueryUtils = elasticSearchQueryUtils;
+    }
+
     public JSONObject getMigrationQuery(
         final Integer size,
         final Optional<Long> fromReference) {
         JSONObject migrationQuery = new JSONObject(BASE_GOR_MIGRATION_QUERY);
 
-        final JSONObject sizedQuery = addSize(migrationQuery, size);
-        final JSONObject searchAfterQuery = addSearchAfter(sizedQuery, fromReference);
+        final JSONObject sizedQuery = elasticSearchQueryUtils.addSize(migrationQuery, size);
+        final JSONObject searchAfterQuery = elasticSearchQueryUtils.addSearchAfter(sizedQuery, fromReference);
 
         log.info("Migration query: {}", searchAfterQuery);
         return searchAfterQuery;
     }
 
-    JSONObject addSize(
-        final JSONObject query,
-        final Integer size) {
-        Objects.requireNonNull(size);
-
-        if (size <= 0) {
-            log.error("Requested query size must be greater than zero, found {}", size);
-            throw new IllegalArgumentException("Requested query size must be greater than zero");
-        }
-        query.put("size", size);
-
-        return query;
-    }
-
-    JSONObject addSearchAfter(
-        final JSONObject query,
-        final Optional<Long> fromReference) {
-        Objects.requireNonNull(fromReference);
-
-        if (fromReference.isPresent()) {
-            final Long reference = fromReference.get();
-            final JSONArray fromRef = new JSONArray();
-            fromRef.put(reference);
-            query.put("search_after", fromRef);
-        }
-
-        return query;
-    }
 }
