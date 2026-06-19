@@ -350,4 +350,163 @@ class Dtspb5586MigrationHandlerTest {
                 any())
         );
     }
+
+    @Test
+    void migrateReturnsTrueWhenCcdSubmissionSucceeds() {
+
+        final Long caseId = 123L;
+        final CaseSummary caseSummary = new CaseSummary(caseId, CaseType.GRANT_OF_REPRESENTATION);
+        final UserDetails userDetails = mock();
+        when(userDetails.getId()).thenReturn("user-1");
+        final UserToken userToken = mock();
+        when(userToken.userDetails()).thenReturn(userDetails);
+        when(userToken.getBearerToken()).thenReturn("some-token");
+        final S2sToken s2sToken = mock();
+        when(s2sToken.s2sToken()).thenReturn("s2s-token");
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        when(caseDetails.getId()).thenReturn(caseId);
+        when(caseDetails.getJurisdiction()).thenReturn("PROBATE");
+        when(caseDetails.getCaseTypeId()).thenReturn("GrantOfRepresentation");
+        Map<String, Object> innerValue = Map.of("caseHandoffReason", "AdmonWill");
+        Map<String, Object> valueWrapper = Map.of("value", innerValue);
+        Map<String, Object> caseData = new HashMap<>();
+        caseData.put("boHandoffReasonList", List.of(valueWrapper));
+        when(caseDetails.getData()).thenReturn(caseData);
+        final MigrationEvent migrationEvent = new MigrationEvent(
+            caseSummary,
+            startEventResponse,
+            userToken,
+            s2sToken
+        );
+
+        when(reimplConfigMock.isDryRun()).thenReturn(false);
+        when(coreCaseDataApiMock.submitEventForCaseWorker(
+            any(), any(), any(), any(), any(), any(), anyBoolean(), any()
+        )).thenReturn(mock(CaseDetails.class));
+        final boolean result = dtspb5586MigrationHandler.migrate(migrationEvent);
+
+        assertThat(result, equalTo(true));
+        verify(coreCaseDataApiMock).submitEventForCaseWorker(
+            eq("some-token"),
+            eq("s2s-token"),
+            eq("user-1"),
+            eq("PROBATE"),
+            eq("GrantOfRepresentation"),
+            eq(caseId.toString()),
+            eq(true),
+            any()
+        );
+    }
+
+    @Test
+    void migrateReturnsFalseWhenCcdSubmissionReturnsNull() {
+
+        final Long caseId = 456L;
+        final CaseSummary caseSummary = new CaseSummary(caseId, CaseType.GRANT_OF_REPRESENTATION);
+        final UserDetails userDetails = mock();
+        when(userDetails.getId()).thenReturn("user-2");
+        final UserToken userToken = mock();
+        when(userToken.userDetails()).thenReturn(userDetails);
+        when(userToken.getBearerToken()).thenReturn("some-token-2");
+        final S2sToken s2sToken = mock();
+        when(s2sToken.s2sToken()).thenReturn("s2s-token-2");
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        when(caseDetails.getId()).thenReturn(caseId);
+        when(caseDetails.getJurisdiction()).thenReturn("PROBATE");
+        when(caseDetails.getCaseTypeId()).thenReturn("GrantOfRepresentation");
+        Map<String, Object> innerValue = Map.of("caseHandoffReason", "ExtendedIntestacy");
+        Map<String, Object> valueWrapper = Map.of("value", innerValue);
+        Map<String, Object> caseData = new HashMap<>();
+        caseData.put("boHandoffReasonList", List.of(valueWrapper));
+        when(caseDetails.getData()).thenReturn(caseData);
+        final MigrationEvent migrationEvent = new MigrationEvent(
+            caseSummary,
+            startEventResponse,
+            userToken,
+            s2sToken
+        );
+
+        when(reimplConfigMock.isDryRun()).thenReturn(false);
+        when(coreCaseDataApiMock.submitEventForCaseWorker(
+            any(), any(), any(), any(), any(), any(), anyBoolean(), any()
+        )).thenReturn(null);
+        final boolean result = dtspb5586MigrationHandler.migrate(migrationEvent);
+        assertThat(result, equalTo(false));
+        verify(coreCaseDataApiMock).submitEventForCaseWorker(
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            anyBoolean(),
+            any()
+        );
+    }
+
+    @Test
+    void shouldMigrateCaseReturnsFalseWhenHandoffListIsNotAList() {
+
+        final MigrationEvent migrationEvent = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        final CaseSummary caseSummary = mock();
+
+        when(migrationEvent.caseSummary()).thenReturn(caseSummary);
+        when(migrationEvent.startEventResponse()).thenReturn(startEventResponse);
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        Map<String, Object> caseData = new HashMap<>();
+        caseData.put("boHandoffReasonList", "NOT_A_LIST");
+        when(caseDetails.getData()).thenReturn(caseData);
+
+        final boolean result = dtspb5586MigrationHandler.shouldMigrateCase(migrationEvent);
+        assertThat(result, equalTo(false));
+    }
+
+    @Test
+    void shouldMigrateCaseSkipsWhenListEntryIsNotMap() {
+
+        final MigrationEvent migrationEvent = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        final CaseSummary caseSummary = mock();
+
+        when(migrationEvent.caseSummary()).thenReturn(caseSummary);
+        when(migrationEvent.startEventResponse()).thenReturn(startEventResponse);
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        List<Object> badList = List.of("I_AM_NOT_A_MAP");
+        Map<String, Object> caseData = new HashMap<>();
+        caseData.put("boHandoffReasonList", badList);
+        when(caseDetails.getData()).thenReturn(caseData);
+
+        final boolean result = dtspb5586MigrationHandler.shouldMigrateCase(migrationEvent);
+        assertThat(result, equalTo(false));
+    }
+
+    @Test
+    void shouldMigrateCaseSkipsWhenValueIsNotMap() {
+
+        final MigrationEvent migrationEvent = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        final CaseSummary caseSummary = mock();
+
+        when(migrationEvent.caseSummary()).thenReturn(caseSummary);
+        when(migrationEvent.startEventResponse()).thenReturn(startEventResponse);
+        when(startEventResponse.getCaseDetails()).thenReturn(caseDetails);
+        Map<String, Object> badValueWrapper = Map.of("value", "NOT_A_MAP");
+        Map<String, Object> caseData = new HashMap<>();
+        caseData.put("boHandoffReasonList", List.of(badValueWrapper));
+        when(caseDetails.getData()).thenReturn(caseData);
+
+        final boolean result = dtspb5586MigrationHandler.shouldMigrateCase(migrationEvent);
+        assertThat(result, equalTo(false));
+    }
+
 }
