@@ -9,6 +9,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
+import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -33,16 +34,20 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     static final String MIGRATION_SUMMARY = "DTSPB-5339 - Add metadata for Global Search";
     static final String MIGRATION_DESCRIPTION = "Add metadata for Global Search";
     static final String ROLLBACK_ID = "DTSPB-5539";
+    private final ReimplConfig commonConfig;
+
 
     public Dtspb5539MigrationHandler(
         CoreCaseDataApi coreCaseDataApi,
         final ElasticSearchHandler elasticSearchHandler,
         final Dtspb5539ElasticQueries elasticQueries,
-        final Dtspb5539Config config) {
+        final Dtspb5539Config config,
+        final ReimplConfig commonConfig) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.elasticSearchHandler = elasticSearchHandler;
         this.elasticQueries = elasticQueries;
         this.config = config;
+        this.commonConfig = commonConfig;
     }
 
     @Override
@@ -56,7 +61,7 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
                 userToken,
                 s2sToken,
                 caseType,
-                fR -> elasticQueries.getMigrationQuery(config.getQuerySize(), fR));
+                fR -> elasticQueries.getMigrationQuery(commonConfig.getQuerySize(), fR));
             candidateCases.addAll(candidates);
 
 
@@ -103,11 +108,11 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
         final CaseDetails caseDetails = migrationEvent.startEventResponse().getCaseDetails();
 
         if (caseDetails == null) {
-            log.error("DTSPB-5005: No case details present in startEventResponse for {} case {}",
+            log.error("DTSPB-5539: No case details present in startEventResponse for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
 
-            throw new Dtspb5005MigrationException(
+            throw new Dtspb5539MigrationException(
                 "No case details present in startEventResponse for " + caseSummary.reference());
         }
         return true;
@@ -129,8 +134,8 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
         migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
 
         //Nothing will be migrated when dry run is true
-        if (config.isDryRun()) {
-            log.info("DTSPB-5005: DRY RUN - returning without submission for {} case {}",
+        if (commonConfig.isDryRun()) {
+            log.info("DTSPB-5539: DRY RUN - returning without submission for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
             return true;
@@ -163,12 +168,12 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
             caseDataContent);
 
         if (result == null) {
-            log.error("DTSPB-5005: event submission returned null for {} case {}",
+            log.error("DTSPB-5539: event submission returned null for {} case {}",
                 caseSummary.type(),
                 caseSummary.reference());
             return false;
         }
-        log.info("DTSPB-5005: event submission complete for {} case {}",
+        log.info("DTSPB-55439: event submission complete for {} case {}",
             caseSummary.type(),
             caseSummary.reference());
         return true;
@@ -177,8 +182,8 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
 
     private record MigrationEventDetails(String caseType, String eventId) {}
 
-    class Dtspb5005MigrationException extends RuntimeException {
-        public Dtspb5005MigrationException(final String message) {
+    class Dtspb5539MigrationException extends RuntimeException {
+        public Dtspb5539MigrationException(final String message) {
             super(message);
         }
     }
