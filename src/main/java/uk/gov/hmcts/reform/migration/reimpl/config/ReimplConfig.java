@@ -104,7 +104,7 @@ public class ReimplConfig {
         final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
         final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
         final Dtspb5064MigrationHandler dtspb5064MigrationHandler,
-        final Dtspb5064RollbackMigrationHandler dtspb5064RollbackMigrationHandler
+        final Dtspb5064RollbackMigrationHandler dtspb5064RollbackMigrationHandler,
         final Dtspb5586MigrationHandler dtspb5586MigrationHandler,
         final Dtspb5586RollbackMigrationHandler dtspb5586RollbackMigrationHandler
     ) {
@@ -114,7 +114,7 @@ public class ReimplConfig {
             "DTSPB-5472", dtspb5472MigrationHandler,
             "DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler,
             "DTSPB-5064", dtspb5064MigrationHandler,
-            "DTSPB-5064_rollback", dtspb5064RollbackMigrationHandler);
+            "DTSPB-5064_rollback", dtspb5064RollbackMigrationHandler,
             "DTSPB-5586", dtspb5586MigrationHandler,
             "DTSPB-5586_rollback", dtspb5586RollbackMigrationHandler
             );
