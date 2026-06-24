@@ -41,7 +41,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.CAVEAT;
-import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.CAVEAT_MATCHING;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.AWAITING_CAVEAT_RESOLUTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.CAVEAT_NOT_MATCHED;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler.MIGRATION_DESCRIPTION;
@@ -239,7 +239,7 @@ class Dtspb5064MigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
         when(caseDetails.getState())
-                .thenReturn(CAVEAT_MATCHING);
+                .thenReturn(AWAITING_CAVEAT_RESOLUTION);
 
         final boolean actual = dtspb5064MigrationHandler.shouldMigrateCase(migrationEvent);
 

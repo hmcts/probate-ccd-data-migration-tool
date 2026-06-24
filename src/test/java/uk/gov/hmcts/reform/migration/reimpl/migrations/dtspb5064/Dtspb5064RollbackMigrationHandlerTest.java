@@ -269,7 +269,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
         when(caseDetails.getData())
             .thenReturn(caseData);
         when(caseDetails.getState())
-            .thenReturn(Dtspb5064MigrationHandler.CAVEAT_MATCHING);
+            .thenReturn(Dtspb5064MigrationHandler.AWAITING_CAVEAT_RESOLUTION);
 
         final boolean actual = dtspb5064RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
@@ -319,7 +319,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         when(caseDetails.getState())
-                .thenReturn(Dtspb5064MigrationHandler.CAVEAT_MATCHING);
+                .thenReturn(Dtspb5064MigrationHandler.AWAITING_CAVEAT_RESOLUTION);
 
         final boolean actual = dtspb5064RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 

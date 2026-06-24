@@ -49,7 +49,7 @@ public class Dtspb5064ElasticQueries {
                         {
                             "terms": {
                                 "state.keyword": [
-                                    "CaveatMatching"
+                                    "AwaitingCaveatResolution"
                                 ]
                             }
                         }
