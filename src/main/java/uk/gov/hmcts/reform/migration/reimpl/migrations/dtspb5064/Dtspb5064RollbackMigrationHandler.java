@@ -139,8 +139,8 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
                 "No case data present in startEventResponse for " + caseSummary.reference());
         }
 
-        if (!caseDetails.getState().equals(CAVEAT_NOT_MATCHED)) {
-            log.info("DTSPB-5064_rollback: {} case {} does not have CaveatNotMatched so no rollback needed",
+        if (caseDetails.getState().equals(CAVEAT_NOT_MATCHED)) {
+            log.info("DTSPB-5064_rollback: {} case {} has CaveatNotMatched so rollback is not required",
                 caseSummary.type(),
                 caseSummary.reference());
             return false;
