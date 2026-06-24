@@ -37,6 +37,7 @@ public class Dtspb5064RollbackMigrationHandler implements MigrationHandler {
     private final Dtspb5064Config config;
     private final Dtspb5064ElasticQueries elasticQueries;
 
+    static final String AWAITING_CAVEAT_RESOLUTION = "AwaitingCaveatResolution";
     static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
     static final String CAVEAT_NOT_MATCHED = "CaveatNotMatched";

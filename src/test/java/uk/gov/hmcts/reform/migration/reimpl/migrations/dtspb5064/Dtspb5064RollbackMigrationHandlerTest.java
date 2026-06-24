@@ -251,7 +251,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseWhenNotInCaseNotMatchedStateReturnsFalse() {
+    void shouldMigrateCaseWhenInCaveatNotMatchedStateReturnsFalse() {
         final MigrationEvent migrationEvent = mock();
 
         final CaseSummary caseSummary = mock();
@@ -269,7 +269,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
         when(caseDetails.getData())
             .thenReturn(caseData);
         when(caseDetails.getState())
-            .thenReturn(Dtspb5064MigrationHandler.AWAITING_CAVEAT_RESOLUTION);
+            .thenReturn(Dtspb5064RollbackMigrationHandler.CAVEAT_NOT_MATCHED);
 
         final boolean actual = dtspb5064RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
@@ -277,7 +277,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseNotMatchedReturnsFalse() {
+    void shouldMigrateAwaitingCaveatResolutionReturnsTrue() {
         final CaseSummary caseSummary = mock();
 
         final StartEventResponse startEventResponse = mock();
@@ -319,15 +319,23 @@ class Dtspb5064RollbackMigrationHandlerTest {
                 .thenReturn(caseDetails);
 
         when(caseDetails.getState())
-                .thenReturn(Dtspb5064MigrationHandler.AWAITING_CAVEAT_RESOLUTION);
+                .thenReturn("AwaitingCaveatResolution");
+
+        final CaseEventDetail caseEventDetail = mock();
+        when(caseEventDetail.getId())
+            .thenReturn(MIGRATION_EVENT);
+        when(caseEventDetail.getDescription())
+            .thenReturn(Dtspb5064MigrationHandler.MIGRATION_DESCRIPTION);
+        when(caseEventsApiMock.findEventDetailsForCase(any(), any(), any(), any(), any(), any()))
+            .thenReturn(List.of(caseEventDetail));
 
         final boolean actual = dtspb5064RollbackMigrationHandler.shouldMigrateCase(migrationEvent);
 
-        assertThat(actual, equalTo(false));
+        assertThat(actual, equalTo(true));
     }
 
     @Test
-    void shouldMigrateCaseNotMatchedReturnsTrue() {
+    void shouldMigrateAwaitingCaveatResolutionReturnTrue() {
         final CaseSummary caseSummary = mock();
 
         final StartEventResponse startEventResponse = mock();
@@ -368,7 +376,7 @@ class Dtspb5064RollbackMigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
         when(caseDetails.getState())
-            .thenReturn(Dtspb5064MigrationHandler.CAVEAT_NOT_MATCHED);
+            .thenReturn(Dtspb5064RollbackMigrationHandler.AWAITING_CAVEAT_RESOLUTION);
 
         final CaseEventDetail caseEventDetail = mock();
         when(caseEventDetail.getId())
