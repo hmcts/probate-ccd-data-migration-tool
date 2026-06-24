@@ -6,7 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 public enum CaseType {
     GRANT_OF_REPRESENTATION("GrantOfRepresentation"),
     CAVEAT("Caveat"),
-    ;
+    WILL_LODGEMENT("WillLodgement"),
+    STANDING_SEARCH("StandingSearch");
 
     private final String ccdValue;
 
