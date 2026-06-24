@@ -81,6 +81,9 @@ public class Dtspb5586MigrationHandler implements MigrationHandler {
                     GRANT_OF_REPRESENTATION,
                     "boHistoryCorrection");
             case CAVEAT -> throw new Dtspb5586MigrationException("Unexpected CAVEAT");
+            case WILL_LODGEMENT -> throw new Dtspb5586MigrationException("Unexpected WILL_LODGEMENT");
+            case STANDING_SEARCH -> throw new Dtspb5586MigrationException("Unexpected STANDING_SEARCH");
+
         };
 
         final UserDetails userDetails = userToken.userDetails();
