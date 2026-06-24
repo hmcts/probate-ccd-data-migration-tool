@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064;
 
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -40,6 +41,8 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
         "DTSPB-5064 - Migrate cases in 'Caveat Not Matched' state to 'Caveat Resolution'";
     static final String MIGRATION_DESCRIPTION =
         "Move cases in 'Caveat Not Matched' state to 'Caveat Resolution'";
+
+    static final String MIGRATION_ID = "DTSPB-5064";
 
     public Dtspb5064MigrationHandler(
         final CoreCaseDataApi coreCaseDataApi,
@@ -140,6 +143,10 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
 
         final Map<String, Object> migratedData = caseDetails.getData();
+
+        final JSONObject migrationCallbackMetadataJson = new JSONObject();
+        migrationCallbackMetadataJson.put("migrationId", MIGRATION_ID);
+        migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
 
         final Event event = Event.builder()
             .id(startEventResponse.getEventId())
