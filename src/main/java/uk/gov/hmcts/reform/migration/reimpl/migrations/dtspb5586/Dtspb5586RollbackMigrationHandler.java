@@ -97,6 +97,8 @@ public class Dtspb5586RollbackMigrationHandler implements MigrationHandler {
                 GRANT_OF_REPRESENTATION,
                 "boCorrection");
             case CAVEAT -> throw new Dtspb5586RollbackException("Unexpected CAVEAT");
+            case WILL_LODGEMENT -> throw new Dtspb5586RollbackException("Unexpected Will Lodgement");
+            case STANDING_SEARCH -> throw new Dtspb5586RollbackException("Unexpected Standing Search");
         };
 
         final UserDetails userDetails = userToken.userDetails();

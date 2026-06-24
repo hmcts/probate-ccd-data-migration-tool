@@ -109,6 +109,8 @@ public class Dtspb5005RollbackMigrationHandler implements MigrationHandler {
             case CAVEAT -> new RollbackEventDetails(
                 CAVEAT,
                 "boCorrection");
+            case WILL_LODGEMENT -> throw new Dtspb5005RollbackException("Unexpected Will Lodgement");
+            case STANDING_SEARCH -> throw new Dtspb5005RollbackException("Unexpected Standing Search");
         };
 
         final UserDetails userDetails = userToken.userDetails();
