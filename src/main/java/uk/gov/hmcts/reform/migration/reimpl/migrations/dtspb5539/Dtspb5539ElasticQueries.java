@@ -13,21 +13,21 @@ public class Dtspb5539ElasticQueries {
 
     private final ElasticSearchQueryUtils elasticSearchQueryUtils;
 
-    private static final String BASE_GOR_MIGRATION_QUERY = """
+    private static final String BASE_MIGRATION_QUERY = """
         {
             "query": {
                 "bool": {
                     "must_not": [
                         {
                             "exists": {
-                                "field": "supplementaryData.HMCTSServiceId"
+                                "field": "supplementary_data.HMCTSServiceId"
                             }
                         }
                     ]
                 }
             },
             "_source": ["reference"],
-            "size": 0,
+            "size": 100,
             "sort": [
                 {
                     "reference.keyword": "asc"
@@ -43,7 +43,7 @@ public class Dtspb5539ElasticQueries {
     public JSONObject getMigrationQuery(
         final Integer size,
         final Optional<Long> fromReference) {
-        JSONObject migrationQuery = new JSONObject(BASE_GOR_MIGRATION_QUERY);
+        JSONObject migrationQuery = new JSONObject(BASE_MIGRATION_QUERY);
 
         final JSONObject sizedQuery = elasticSearchQueryUtils.addSize(migrationQuery, size);
         final JSONObject searchAfterQuery = elasticSearchQueryUtils.addSearchAfter(sizedQuery, fromReference);

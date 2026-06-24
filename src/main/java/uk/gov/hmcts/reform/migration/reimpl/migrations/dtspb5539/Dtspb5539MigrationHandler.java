@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
@@ -18,10 +19,13 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
+import static java.util.Collections.singletonMap;
 
 @Slf4j
 @Component
@@ -35,6 +39,10 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     static final String MIGRATION_DESCRIPTION = "Add metadata for Global Search";
     static final String ROLLBACK_ID = "DTSPB-5539";
     private final ReimplConfig commonConfig;
+    private static final String SUPPLEMENTARY_FIELD = "supplementary_data_updates";
+    private static final String SET_OPERATION = "$set";
+    private static final String SERVICE_ID_FIELD = "HMCTSServiceId";
+
 
 
     public Dtspb5539MigrationHandler(
@@ -54,7 +62,7 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     public Set<CaseSummary> getCandidateCases(UserToken userToken, S2sToken s2sToken) {
         final Set<CaseSummary> candidateCases = new HashSet<>();
         for (CaseType caseType : config.getCaseTypes()) {
-            log.info("1. Starting candidate case search for case type: {}",
+            log.info("Starting candidate case search for case type: {}",
                 caseType);
             final Set<CaseSummary> candidates = elasticSearchHandler.searchCases(
                 "DTSPB-5539",
@@ -127,6 +135,10 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
 
         final Map<String, Object> migratedData = caseDetails.getData();
 
+        Map<String, Map<String, Map<String, Object>>> supplementaryDataUpdates = new HashMap<>();
+        supplementaryDataUpdates.put(SUPPLEMENTARY_FIELD,
+            singletonMap(SET_OPERATION, singletonMap(SERVICE_ID_FIELD, config.getHmctsId())));
+
         // We cannot directly remove the data as part of the event - ccd will pick the value back up from the
         // existing data record
         final JSONObject migrationCallbackMetadataJson = new JSONObject();
@@ -173,11 +185,33 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
                 caseSummary.reference());
             return false;
         }
-        log.info("DTSPB-55439: event submission complete for {} case {}",
-            caseSummary.type(),
-            caseSummary.reference());
-        return true;
+        try {
+            coreCaseDataApi.submitSupplementaryData(migrationEvent.userToken().getBearerToken(),
+                migrationEvent.s2sToken().s2sToken(),
+                caseDetails.getId().toString(),
+                supplementaryDataUpdates);
 
+            log.info(
+                "DTSPB-5539: Global Search supplementary data added for {} case {} (caseId={})",
+                caseSummary.type(),
+                caseSummary.reference(),
+                caseDetails.getId()
+            );
+        } catch (FeignException ex) {
+            log.error(
+                "DTSPB-5539: Failed to update supplementary data for {} case {} "
+                    + "(caseId={}). Status={}, Response={}, Payload={}",
+                caseSummary.type(),
+                caseSummary.reference(),
+                caseDetails.getId(),
+                ex.status(),
+                ex.contentUTF8(),
+                supplementaryDataUpdates,
+                ex
+            );
+            return false;
+        }
+        return true;
     }
 
     private record MigrationEventDetails(String caseType, String eventId) {}
