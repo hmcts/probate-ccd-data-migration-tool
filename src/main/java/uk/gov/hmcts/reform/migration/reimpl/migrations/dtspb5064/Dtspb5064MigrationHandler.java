@@ -32,10 +32,10 @@ public class Dtspb5064MigrationHandler implements MigrationHandler {
     private final ReimplConfig reimplConfig;
     private final Dtspb5064ElasticQueries elasticQueries;
 
+    static final String AWAITING_CAVEAT_RESOLUTION = "AwaitingCaveatResolution";
     static final String CAVEAT = "Caveat";
     static final String JURISDICTION = "PROBATE";
     static final String CAVEAT_NOT_MATCHED = "CaveatNotMatched";
-    static final String AWAITING_CAVEAT_RESOLUTION = "AwaitingCaveatResolution";
 
     static final String MIGRATION_SUMMARY =
         "DTSPB-5064 - Migrate cases in 'Caveat Not Matched' state to 'Caveat Resolution'";
