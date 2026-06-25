@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -45,7 +47,10 @@ import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb511
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler.GRANT_OF_REPRESENTATION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler.MIGRATION_DESCRIPTION;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler.MIGRATION_ID;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler.MIGRATION_SUMMARY;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler.STATE_DORMANT;
+
 
 class Dtspb5113MigrationHandlerTest {
     @Mock
@@ -207,7 +212,7 @@ class Dtspb5113MigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseWhenHasGrantIssuedDate() {
+    void shouldMigrateCaseWhenHasGrantIssuedDateAndDormant() {
         final MigrationEvent migrationEvent = mock();
 
         final CaseSummary caseSummary = mock();
@@ -220,6 +225,8 @@ class Dtspb5113MigrationHandlerTest {
         final CaseDetails caseDetails = mock();
         when(startEventResponse.getCaseDetails())
                 .thenReturn(caseDetails);
+        when(caseDetails.getState())
+            .thenReturn(STATE_DORMANT);
 
         final Map<String, Object> caseData = Map.of(
             GRANT_ISSUED_DATE, "2025-01-02"
@@ -351,8 +358,13 @@ class Dtspb5113MigrationHandlerTest {
         @SuppressWarnings("unchecked")
         final Map<String, Object> migratedData = (Map<String, Object>) migratedObj;
 
+        assertThat(migratedData, aMapWithSize(1));
+        assertThat(migratedData, hasKey("migrationCallbackMetadata"));
 
-        assertThat(migratedData, aMapWithSize(0));
+        final String metadata = (String) migratedData.get("migrationCallbackMetadata");
+        final JSONObject metadataJson = new JSONObject(metadata);
+
+        assertThat(metadataJson.getString("migrationId"), equalTo(MIGRATION_ID));
     }
 
     @Test
