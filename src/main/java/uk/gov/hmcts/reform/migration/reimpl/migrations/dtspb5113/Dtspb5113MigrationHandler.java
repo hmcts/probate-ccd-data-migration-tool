@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113;
 
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -35,6 +36,8 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String JURISDICTION = "PROBATE";
     static final String GRANT_ISSUED_DATE = "grantIssuedDate";
+    static final String STATE_DORMANT = "Dormant";
+    static final String MIGRATION_ID = "DTSPB-5113";
 
 
     static final String MIGRATION_SUMMARY = "DTSPB-5113 - Move Dormant case to previous state";
@@ -123,11 +126,16 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
         }
 
         final boolean hasGrantIssuedDate = caseData.containsKey(GRANT_ISSUED_DATE);
+        final boolean isDormant = STATE_DORMANT.equalsIgnoreCase(caseDetails.getState());
         if (!hasGrantIssuedDate) {
             log.info("DTSPB-5113: case {} don't have grant issued date so no migration needed",
                     caseSummary.reference());
         }
-        return hasGrantIssuedDate;
+        if (!isDormant) {
+            log.info("DTSPB-5113: case {} is not in Dormant state so no migration needed",
+                caseSummary.reference());
+        }
+        return hasGrantIssuedDate && isDormant;
     }
 
     @Override
@@ -145,6 +153,10 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
                 .summary(MIGRATION_SUMMARY)
                 .description(MIGRATION_DESCRIPTION)
                 .build();
+
+        final JSONObject migrationCallbackMetadataJson = new JSONObject();
+        migrationCallbackMetadataJson.put("migrationId", MIGRATION_ID);
+        migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
 
         final CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())
