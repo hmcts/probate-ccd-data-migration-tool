@@ -65,6 +65,7 @@ public class Dtspb5113RollbackMigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
+        // we will use CASE_REFERENCES to determine which cases to rollback, rather than searching in elasticsearch
         final Set<CaseSummary> gorCandidates = commonConfig.getCaseReferences()
             .orElseThrow(() -> new IllegalStateException(
                 "caseReferences must be configured for this rollback migration"));

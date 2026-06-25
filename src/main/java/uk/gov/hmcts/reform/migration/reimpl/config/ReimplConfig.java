@@ -139,10 +139,10 @@ public class ReimplConfig {
             return Optional.empty();
         }
         Set<CaseSummary> caseSummarySet = new HashSet<>();
-        final String[] splitCasesToRestrictTo = casesConfig
+        final String[] splitCasesConfig = casesConfig
                 .trim()
                 .split(",");
-        for (String splitCase : splitCasesToRestrictTo) {
+        for (String splitCase : splitCasesConfig) {
             final String splitCaseTrimmed = splitCase.trim();
             final String[] splitInput = splitCaseTrimmed.split(":");
             if (splitInput.length != 2) {
