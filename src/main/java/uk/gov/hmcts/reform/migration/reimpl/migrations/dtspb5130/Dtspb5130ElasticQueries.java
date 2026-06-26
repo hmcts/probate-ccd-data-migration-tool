@@ -46,31 +46,32 @@ public class Dtspb5130ElasticQueries {
 
     private static final String BASE_GOR_ROLLBACK_QUERY = """
        {
-            "query": {
-                "bool": {
-                    "filter": [
-                        {
-                            "terms": {
-                                "data.evidenceHandled": [
+           "query": {
+               "bool": {
+                   "filter": [
+                       {
+                           "terms": {
+                               "data.evidenceHandled": [
                                     "Yes"
-                                ]
-                            }
-                        },
-                        {
-                            "match": {
-                                "state": "BOCaseClosed"
-                            }
-                        }
-                    ]
-                    }
-                },
-                "_source": ["reference"],
-                "sort": [
-                    {
-                        "reference.keyword": "asc"
-                    }
-                ]
-            }
+                               ]
+                           }
+                       },
+
+                       {
+                           "match": {
+                               "state": "BOCaseClosed"
+                           }
+                       }
+                   ]
+                   }
+               },
+               "_source": ["reference"],
+               "sort": [
+                   {
+                       "reference.keyword": "asc"
+                   }
+               ]
+           }
         """;
 
     public Dtspb5130ElasticQueries(final ElasticSearchQueryUtils elasticSearchQueryUtils) {
