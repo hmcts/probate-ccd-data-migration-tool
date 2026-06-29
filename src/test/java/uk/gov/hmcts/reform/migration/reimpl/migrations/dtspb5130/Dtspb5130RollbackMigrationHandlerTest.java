@@ -43,6 +43,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.NO;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.YES;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130RollbackMigrationHandler.GRANT_OF_REPRESENTATION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130RollbackMigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130RollbackMigrationHandler.MIGRATION_EVENT;
@@ -390,7 +392,7 @@ class Dtspb5130RollbackMigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
         final Map<String, Object> caseData = new HashMap<>();
-        caseData.put("evidenceHandled", "Yes");
+        caseData.put("evidenceHandled", YES);
         when(caseDetails.getData())
             .thenReturn(caseData);
         final CaseDetails caseResult = mock();
@@ -424,7 +426,7 @@ class Dtspb5130RollbackMigrationHandlerTest {
             () -> assertThat(event.getId(), equalTo(eventId)),
             () -> assertThat(event.getSummary(), equalTo(ROLLBACK_SUMMARY)),
             () -> assertThat(event.getDescription(), equalTo(ROLLBACK_DESCRIPTION)),
-            () -> assertThat(caseData.get("evidenceHandled"), equalTo("No")));
+            () -> assertThat(caseData.get("evidenceHandled"), equalTo(NO)));
     }
 
     @Test
@@ -468,7 +470,7 @@ class Dtspb5130RollbackMigrationHandlerTest {
         final StartEventResponse startEventResponse = mock();
         final CaseDetails caseDetails = mock();
         final Map<String, Object> caseData = new HashMap<>();
-        caseData.put("evidenceHandled", "Yes");
+        caseData.put("evidenceHandled", YES);
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
         when(caseDetails.getData())
@@ -498,7 +500,7 @@ class Dtspb5130RollbackMigrationHandlerTest {
         final StartEventResponse startEventResponse = mock();
         final CaseDetails caseDetails = mock();
         final Map<String, Object> caseData = new HashMap<>();
-        caseData.put("evidenceHandled", "Yes");
+        caseData.put("evidenceHandled", YES);
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
         when(caseDetails.getData())

@@ -33,6 +33,8 @@ public class Dtspb5130MigrationHandler implements MigrationHandler {
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String JURISDICTION = "PROBATE";
+    static final String YES = "Yes";
+    static final String NO = "No";
 
     static final String MIGRATION_SUMMARY = "DTSPB-5130 - Migrating Handoff Reasons";
     static final String MIGRATION_DESCRIPTION = "Mark Evidence Handled Yes For Closed Cases";
@@ -73,12 +75,10 @@ public class Dtspb5130MigrationHandler implements MigrationHandler {
             final UserToken userToken,
             final S2sToken s2sToken) {
 
-        final MigrationEventDetails eventDetails = switch (caseSummary.type()) {
-            case GRANT_OF_REPRESENTATION -> new MigrationEventDetails(
-                    GRANT_OF_REPRESENTATION,
-                    "boHistoryCorrection");
-            case CAVEAT -> throw new Dtspb5130MigrationException("Unexpected CAVEAT");
-        };
+        final MigrationEventDetails eventDetails = new MigrationEventDetails(
+                GRANT_OF_REPRESENTATION,
+                "boHistoryCorrection"
+        );
 
         final UserDetails userDetails = userToken.userDetails();
 
@@ -131,7 +131,7 @@ public class Dtspb5130MigrationHandler implements MigrationHandler {
         @SuppressWarnings("unchecked")
         String evidenceHandled = (String) evidenceHandledObj;
 
-        return evidenceHandled.equalsIgnoreCase("No");
+        return evidenceHandled.equalsIgnoreCase(NO);
     }
 
     @Override
@@ -151,8 +151,8 @@ public class Dtspb5130MigrationHandler implements MigrationHandler {
         @SuppressWarnings("unchecked")
         String evidenceHandled = (String) evidenceHandledObj;
 
-        if (evidenceHandled.equals("No")) {
-            migratedData.put("evidenceHandled", "Yes");
+        if (evidenceHandled.equals(NO)) {
+            migratedData.put("evidenceHandled", YES);
         }
 
         final Event event = Event.builder()

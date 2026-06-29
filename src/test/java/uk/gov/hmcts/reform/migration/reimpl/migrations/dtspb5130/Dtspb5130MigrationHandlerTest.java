@@ -41,6 +41,8 @@ import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb513
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.MIGRATION_DESCRIPTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.MIGRATION_SUMMARY;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.NO;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.YES;
 
 class Dtspb5130MigrationHandlerTest {
     @Mock
@@ -188,7 +190,7 @@ class Dtspb5130MigrationHandlerTest {
         final CaseDetails caseDetails = mock();
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
-        final Map<String, Object> caseData = Map.of("evidenceHandled", "No");
+        final Map<String, Object> caseData = Map.of("evidenceHandled", NO);
         when(caseDetails.getData())
             .thenReturn(caseData);
         final boolean actual = dtspb5130MigrationHandler.shouldMigrateCase(migrationEvent);
@@ -207,7 +209,7 @@ class Dtspb5130MigrationHandlerTest {
         final CaseDetails caseDetails = mock();
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
-        final Map<String, Object> caseData = Map.of("evidenceHandled", "Yes");
+        final Map<String, Object> caseData = Map.of("evidenceHandled", YES);
         when(caseDetails.getData())
             .thenReturn(caseData);
         final boolean actual = dtspb5130MigrationHandler.shouldMigrateCase(migrationEvent);
@@ -295,7 +297,7 @@ class Dtspb5130MigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
         final Map<String, Object> caseData = new HashMap<>();
-        caseData.put("evidenceHandled", "No");
+        caseData.put("evidenceHandled", NO);
         when(caseDetails.getData())
             .thenReturn(caseData);
         final CaseDetails caseResult = mock();
@@ -329,7 +331,7 @@ class Dtspb5130MigrationHandlerTest {
             () -> assertThat(event.getId(), equalTo(eventId)),
             () -> assertThat(event.getSummary(), equalTo(MIGRATION_SUMMARY)),
             () -> assertThat(event.getDescription(), equalTo(MIGRATION_DESCRIPTION)),
-            () -> assertThat(caseData.get("evidenceHandled"), equalTo("Yes")));
+            () -> assertThat(caseData.get("evidenceHandled"), equalTo(YES)));
     }
 
     @Test
@@ -385,7 +387,7 @@ class Dtspb5130MigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
         final Map<String, Object> caseData = new HashMap<>();
-        caseData.put("evidenceHandled", "No");
+        caseData.put("evidenceHandled", NO);
         when(caseDetails.getData())
             .thenReturn(caseData);
         when(reimplConfigMock.isDryRun())
@@ -426,7 +428,7 @@ class Dtspb5130MigrationHandlerTest {
         when(startEventResponse.getCaseDetails())
             .thenReturn(caseDetails);
         final Map<String, Object> caseData = new HashMap<>();
-        caseData.put("evidenceHandled", "No");
+        caseData.put("evidenceHandled", NO);
         when(caseDetails.getData())
             .thenReturn(caseData);
         final boolean actual = dtspb5130MigrationHandler.migrate(migrationEvent);

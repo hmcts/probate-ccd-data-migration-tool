@@ -25,6 +25,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.NO;
+import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler.YES;
+
 @Component
 @Slf4j
 public class Dtspb5130RollbackMigrationHandler implements MigrationHandler {
@@ -185,8 +188,8 @@ public class Dtspb5130RollbackMigrationHandler implements MigrationHandler {
         @SuppressWarnings("unchecked")
         String evidenceHandled = (String) evidenceHandledObj;
 
-        if (evidenceHandled.equals("Yes")) {
-            migratedData.put("evidenceHandled", "No");
+        if (evidenceHandled.equals(YES)) {
+            migratedData.put("evidenceHandled", NO);
         }
 
         final Event event = Event.builder()
