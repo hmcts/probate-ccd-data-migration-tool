@@ -194,6 +194,44 @@ class Dtspb5539MigrationHandlerTest {
         assertThat(result).isEmpty();
     }
 
+    //getCandidateCases - Tess for Get Candidate Cases Function
+    /// 2. Should only return initial set of cases
+    @Test
+    void shouldLimitCandidateCasesToInitialSizeWhenInitialRunIsTrue() {
+
+        CaseSummary case1 =
+            new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
+        CaseSummary case2 =
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION);
+        CaseSummary case3 =
+            new CaseSummary(3L, CaseType.GRANT_OF_REPRESENTATION);
+
+        when(config.getCaseTypes())
+            .thenReturn(List.of(CaseType.GRANT_OF_REPRESENTATION));
+
+        when(config.isInitialRun())
+            .thenReturn(true);
+
+        when(config.getInitialSize())
+            .thenReturn(2);
+
+        when(elasticSearchHandler.searchCases(
+            anyString(),
+            eq(userToken),
+            eq(s2sToken),
+            eq(CaseType.GRANT_OF_REPRESENTATION),
+            any()
+        ))
+            .thenReturn(Set.of(case1, case2, case3));
+
+        Set<CaseSummary> result =
+            dtspb5539migrationHandler.getCandidateCases(userToken, s2sToken);
+
+        assertThat(result)
+            .hasSize(2)
+            .isSubsetOf(case1, case2, case3);
+    }
+
 
     //startEventForCase - Tests
     /// 1. Ensuring the CCD Api for the Start Event is called for happy path

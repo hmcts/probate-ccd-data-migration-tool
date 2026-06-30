@@ -70,7 +70,13 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
                 caseType,
                 fR -> elasticQueries.getMigrationQuery(commonConfig.getQuerySize(), fR));
 
-            candidateCases.addAll(candidates);
+            if (config.isInitialRun()) {
+                candidates.stream()
+                    .limit(config.getInitialSize())
+                    .forEach(candidateCases::add);
+            } else {
+                candidateCases.addAll(candidates);
+            }
         }
 
         return Set.copyOf(candidateCases);
