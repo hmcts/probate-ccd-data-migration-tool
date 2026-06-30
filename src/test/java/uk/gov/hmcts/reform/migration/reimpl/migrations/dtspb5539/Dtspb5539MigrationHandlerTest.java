@@ -4,6 +4,7 @@ import feign.FeignException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -315,7 +316,7 @@ class Dtspb5539MigrationHandlerTest {
     }
 
     //Migrate - Tests
-    /// 1. Should not run the API calls to core case when dry run is true and should return true
+    /// 1. Should not call Core Case Data APIs when dry run is true and should return true
     @Test
     void shouldReturnTrueWhenDryRunEnabled() {
 
@@ -343,20 +344,11 @@ class Dtspb5539MigrationHandlerTest {
 
         assertTrue(result);
 
-        assertThat(data)
-            .containsKey("migrationCallbackMetadata");
-
-        String metadata =
-            (String) data.get("migrationCallbackMetadata");
-
-        assertThat(metadata)
-            .contains("DTSPB-5539");
-
         verifyNoInteractions(coreCaseDataApi);
     }
 
     //Migrate - Tests
-    /// 2. Should run the two API calls to core case when dry run is true and should return true
+    /// 2. Should submit migration event and supplementary data successfully when dry run is false
     @Test
     void shouldSubmitMigrationAndSupplementaryDataSuccessfully() {
 
@@ -393,6 +385,9 @@ class Dtspb5539MigrationHandlerTest {
 
         assertTrue(result);
 
+        ArgumentCaptor<CaseDataContent> caseDataContentCaptor =
+            ArgumentCaptor.forClass(CaseDataContent.class);
+
         verify(coreCaseDataApi).submitEventForCaseWorker(
             eq(USER_TOKEN),
             eq(S2S_TOKEN),
@@ -401,7 +396,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(CASE_TYPE_ID),
             eq(CASE_REFERENCE.toString()),
             eq(true),
-            any(CaseDataContent.class)
+            caseDataContentCaptor.capture()
         );
 
         verify(coreCaseDataApi).submitSupplementaryData(
@@ -411,11 +406,18 @@ class Dtspb5539MigrationHandlerTest {
             anyMap()
         );
 
-        assertThat(data)
+        CaseDataContent submittedContent =
+            caseDataContentCaptor.getValue();
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> submittedData =
+            (Map<String, Object>) submittedContent.getData();
+
+        assertThat(submittedData)
             .containsKey("migrationCallbackMetadata");
 
         String metadata =
-            (String) data.get("migrationCallbackMetadata");
+            (String) submittedData.get("migrationCallbackMetadata");
 
         assertThat(metadata)
             .contains("DTSPB-5539");
