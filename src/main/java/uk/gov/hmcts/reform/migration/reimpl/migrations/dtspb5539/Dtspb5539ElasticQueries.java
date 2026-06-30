@@ -13,26 +13,47 @@ public class Dtspb5539ElasticQueries {
 
     private final ElasticSearchQueryUtils elasticSearchQueryUtils;
 
+    /* The case-migration.elasticsearch.querySize environment variable controls the batch size,
+     * determining how many cases are included in each migration batch.
+     */
     private static final String BASE_MIGRATION_QUERY = """
         {
-            "query": {
-                "bool": {
-                    "must_not": [
-                        {
-                            "exists": {
-                                "field": "supplementary_data.HMCTSServiceId"
-                            }
-                        }
-                    ]
-                }
-            },
-            "_source": ["reference"],
-            "size": 100,
-            "sort": [
+          "query": {
+            "bool": {
+              "should": [
                 {
-                    "reference.keyword": "asc"
+                  "bool": {
+                    "must_not": [
+                      {
+                        "exists": {
+                          "field": "supplementary_data.HMCTSServiceId"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "bool": {
+                    "must_not": [
+                      {
+                        "exists": {
+                          "field": "data.SearchCriteria"
+                        }
+                      }
+                    ]
+                  }
                 }
-            ]
+              ],
+              "minimum_should_match": 1
+            }
+          },
+          "_source": ["reference"],
+          "size": 100,
+          "sort": [
+            {
+              "reference.keyword": "asc"
+            }
+          ]
         }
         """;
 
