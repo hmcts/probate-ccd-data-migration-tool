@@ -34,15 +34,13 @@ public class Dtspb5539Config {
         );
 
 
-        this.hmctsId = Objects.requireNonNull(
-            hmctsId,
-            "dtspb5539.supplementary-data.hmctsid must not be null"
-        );
-        if (hmctsId.isBlank()) {
+
+        if (hmctsId == null || hmctsId.isBlank()) {
             throw new IllegalArgumentException(
-                "dtspb5539.supplementary-data.hmctsid must not be blank"
+                "dtspb5539.supplementary-data.hmctsid must not be null or blank"
             );
         }
+        this.hmctsId = hmctsId;
 
         Objects.requireNonNull(
             caseTypes,
