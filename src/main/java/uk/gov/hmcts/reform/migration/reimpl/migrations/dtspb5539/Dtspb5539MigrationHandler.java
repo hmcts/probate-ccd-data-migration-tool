@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;

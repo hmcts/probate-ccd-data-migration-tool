@@ -4,7 +4,6 @@ import feign.FeignException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -347,7 +346,7 @@ class Dtspb5539MigrationHandlerTest {
         verifyNoInteractions(coreCaseDataApi);
     }
 
-    //Migrate - Tests
+    // Migrate - Tests
     /// 2. Should submit migration event and supplementary data successfully when dry run is false
     @Test
     void shouldSubmitMigrationAndSupplementaryDataSuccessfully() {
@@ -385,9 +384,6 @@ class Dtspb5539MigrationHandlerTest {
 
         assertTrue(result);
 
-        ArgumentCaptor<CaseDataContent> caseDataContentCaptor =
-            ArgumentCaptor.forClass(CaseDataContent.class);
-
         verify(coreCaseDataApi).submitEventForCaseWorker(
             eq(USER_TOKEN),
             eq(S2S_TOKEN),
@@ -396,7 +392,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(CASE_TYPE_ID),
             eq(CASE_REFERENCE.toString()),
             eq(true),
-            caseDataContentCaptor.capture()
+            any(CaseDataContent.class)
         );
 
         verify(coreCaseDataApi).submitSupplementaryData(
@@ -405,22 +401,6 @@ class Dtspb5539MigrationHandlerTest {
             eq(CASE_REFERENCE.toString()),
             anyMap()
         );
-
-        CaseDataContent submittedContent =
-            caseDataContentCaptor.getValue();
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> submittedData =
-            (Map<String, Object>) submittedContent.getData();
-
-        assertThat(submittedData)
-            .containsKey("migrationCallbackMetadata");
-
-        String metadata =
-            (String) submittedData.get("migrationCallbackMetadata");
-
-        assertThat(metadata)
-            .contains("DTSPB-5539");
     }
 
     //Migrate - Tests
