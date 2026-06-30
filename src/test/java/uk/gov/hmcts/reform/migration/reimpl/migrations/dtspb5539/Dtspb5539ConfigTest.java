@@ -22,7 +22,9 @@ public class Dtspb5539ConfigTest {
         Dtspb5539Config config = new Dtspb5539Config(
             LocalDate.of(2025, 1, 1),
             VALID_CASE_TYPES,
-            "ABA6"
+            "ABA6",
+            false,
+            0
         );
 
         assertThat(config.getRollbackDate())
@@ -33,6 +35,12 @@ public class Dtspb5539ConfigTest {
 
         assertThat(config.getCaseTypes())
             .containsExactly(CaseType.values());
+
+        assertThat(config.isInitialRun())
+            .isFalse();
+
+        assertThat(config.getInitialSize())
+            .isZero();
     }
 
     @Test
@@ -41,7 +49,9 @@ public class Dtspb5539ConfigTest {
             new Dtspb5539Config(
                 null,
                 VALID_CASE_TYPES,
-                "ABA6"
+                "ABA6",
+                false,
+                0
             ))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("dtspb5539.rollback_date must not be null");
@@ -53,7 +63,9 @@ public class Dtspb5539ConfigTest {
             new Dtspb5539Config(
                 LocalDate.now(),
                 null,
-                "ABA6"
+                "ABA6",
+                false,
+                0
             ))
             .isInstanceOf(NullPointerException.class)
             .hasMessage("dtspb5539.case_types must not be null");
@@ -65,7 +77,9 @@ public class Dtspb5539ConfigTest {
             new Dtspb5539Config(
                 LocalDate.now(),
                 List.of(),
-                "ABA6"
+                "ABA6",
+                false,
+                0
             ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("dtspb5539.case_types must not be empty");
@@ -77,7 +91,9 @@ public class Dtspb5539ConfigTest {
             new Dtspb5539Config(
                 LocalDate.now(),
                 List.of("InvalidCaseType"),
-                "ABA6"
+                "ABA6",
+                false,
+                0
             ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("Invalid case type value");
@@ -89,7 +105,9 @@ public class Dtspb5539ConfigTest {
             new Dtspb5539Config(
                 LocalDate.now(),
                 VALID_CASE_TYPES,
-                null
+                null,
+                false,
+                0
             ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("dtspb5539.supplementary-data.hmctsid must not be null or blank");
@@ -101,10 +119,13 @@ public class Dtspb5539ConfigTest {
             new Dtspb5539Config(
                 LocalDate.now(),
                 VALID_CASE_TYPES,
-                " "
+                " ",
+                false,
+                0
             ))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("dtspb5539.supplementary-data.hmctsid must not be null or blank");
+
     }
 
     @Test
@@ -115,7 +136,9 @@ public class Dtspb5539ConfigTest {
                 " GrantOfRepresentation ",
                 " Caveat "
             ),
-            "ABA6"
+            "ABA6",
+            false,
+            0
         );
 
         assertThat(config.getCaseTypes())
@@ -123,6 +146,37 @@ public class Dtspb5539ConfigTest {
                 CaseType.GRANT_OF_REPRESENTATION,
                 CaseType.CAVEAT
             );
+        assertThat(config.isInitialRun())
+            .isFalse();
+
+        assertThat(config.getInitialSize())
+            .isZero();
+    }
+
+    @Test
+    void shouldCreateConfigSuccessfullyWhenInitialRunIsTrue() {
+        Dtspb5539Config config = new Dtspb5539Config(
+            LocalDate.of(2025, 1, 1),
+            VALID_CASE_TYPES,
+            "ABA6",
+            true,
+            5
+        );
+
+        assertThat(config.isInitialRun())
+            .isTrue();
+
+        assertThat(config.getInitialSize())
+            .isEqualTo(5);
+
+        assertThat(config.getRollbackDate())
+            .isEqualTo(LocalDate.of(2025, 1, 1));
+
+        assertThat(config.getHmctsId())
+            .isEqualTo("ABA6");
+
+        assertThat(config.getCaseTypes())
+            .containsExactly(CaseType.values());
     }
 
 }
