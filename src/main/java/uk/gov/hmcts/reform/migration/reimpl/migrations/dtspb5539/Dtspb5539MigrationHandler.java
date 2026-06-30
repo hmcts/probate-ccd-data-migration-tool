@@ -35,7 +35,7 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     private final ElasticSearchHandler elasticSearchHandler;
     private final Dtspb5539ElasticQueries elasticQueries;
     private final Dtspb5539Config config;
-    static final String MIGRATION_SUMMARY = "DTSPB-5339 - Add metadata for Global Search";
+    static final String MIGRATION_SUMMARY = "DTSPB-5539 - Add metadata for Global Search";
     static final String MIGRATION_DESCRIPTION = "Add metadata for Global Search";
     static final String ROLLBACK_ID = "DTSPB-5539";
     private final ReimplConfig commonConfig;
@@ -70,17 +70,11 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
                 s2sToken,
                 caseType,
                 fR -> elasticQueries.getMigrationQuery(commonConfig.getQuerySize(), fR));
+
             candidateCases.addAll(candidates);
-
-
-            log.info("Found {} candidate cases", candidates.size());
-            candidates.forEach(caseSummary ->
-                log.info("Candidate case: {}", caseSummary)
-            );
-
         }
-        return Set.copyOf(candidateCases);
 
+        return Set.copyOf(candidateCases);
     }
 
     @Override
@@ -93,6 +87,14 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
         final UserDetails userDetails = userToken.userDetails();
         log.info("Calling BOHistoryCorrection event");
 
+        log.info(
+            "START EVENT request: userId='{}', jurisdiction='{}', caseType='{}', caseId='{}', eventId='{}'",
+            userDetails.getId(),
+            "PROBATE",
+            eventDetails.caseType(),
+            caseSummary.reference().toString(),
+            eventDetails.eventId()
+        );
         final StartEventResponse startEventResponse = coreCaseDataApi.startEventForCaseWorker(
             userToken.getBearerToken(),
             s2sToken.s2sToken(),
@@ -102,6 +104,7 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
             caseSummary.reference().toString(),
             eventDetails.eventId());
         log.info("StartEventResponse:  {} ", startEventResponse);
+
 
         return new MigrationEvent(
             caseSummary,
@@ -133,17 +136,13 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
         final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
         final CaseDetails caseDetails = startEventResponse.getCaseDetails();
 
-        final Map<String, Object> migratedData = caseDetails.getData();
+        final Map<String, Object> migratedData = new HashMap<>(caseDetails.getData());
 
         Map<String, Map<String, Map<String, Object>>> supplementaryDataUpdates = new HashMap<>();
         supplementaryDataUpdates.put(SUPPLEMENTARY_FIELD,
             singletonMap(SET_OPERATION, singletonMap(SERVICE_ID_FIELD, config.getHmctsId())));
 
-        // We cannot directly remove the data as part of the event - ccd will pick the value back up from the
-        // existing data record
-        final JSONObject migrationCallbackMetadataJson = new JSONObject();
-        migrationCallbackMetadataJson.put("migrationId", ROLLBACK_ID);
-        migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
+
 
         //Nothing will be migrated when dry run is true
         if (commonConfig.isDryRun()) {
