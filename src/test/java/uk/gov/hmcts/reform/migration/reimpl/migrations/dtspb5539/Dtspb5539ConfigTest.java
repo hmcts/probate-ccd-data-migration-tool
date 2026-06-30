@@ -91,8 +91,8 @@ public class Dtspb5539ConfigTest {
                 VALID_CASE_TYPES,
                 null
             ))
-            .isInstanceOf(NullPointerException.class)
-            .hasMessage("dtspb5539.supplementary-data.hmctsid must not be null");
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("dtspb5539.supplementary-data.hmctsid must not be null or blank");
     }
 
     @Test
@@ -104,7 +104,7 @@ public class Dtspb5539ConfigTest {
                 " "
             ))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("dtspb5539.supplementary-data.hmctsid must not be blank");
+            .hasMessage("dtspb5539.supplementary-data.hmctsid must not be null or blank");
     }
 
     @Test
