@@ -97,4 +97,34 @@ public class TestUtils {
             }
         };
     }
+
+    public static Matcher<JSONObject> jsonHasString(final String key, final String value) {
+        return new BaseMatcher<JSONObject>() {
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("JSON object contains entry with key: " + key + " and value: " + value);
+            }
+
+            @Override
+            public boolean matches(Object o) {
+                if (!(o instanceof JSONObject)) {
+                    return false;
+                }
+                final JSONObject jsonObject = (JSONObject) o;
+
+                final boolean hasKey = jsonObject.has(key);
+                if (!hasKey) {
+                    return false;
+                }
+
+                final Object jsonValue = jsonObject.get(key);
+                if (!(jsonValue instanceof String)) {
+                    return false;
+                }
+
+                final String jsonValueString = (String) jsonValue;
+                return jsonValueString.equals(value);
+            }
+        };
+    }
 }
