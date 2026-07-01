@@ -24,7 +24,7 @@ class ReimplConfigTest {
     @NullSource
     @ValueSource(strings = {"", " ", "\t"})
     void testCasesToFilterTo_BlankString_GivesEmptyOptional(final String input) {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo(input);
+        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesConfig(input);
 
         assertThat(actual, isEmpty());
     }
@@ -33,26 +33,26 @@ class ReimplConfigTest {
     void testCasesToFilterTo_InvalidCaseReference_ThrowsIllegalArgumentException() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> ReimplConfig.processCasesToFilterTo("invalid:Caveat"));
+                () -> ReimplConfig.processCasesConfig("invalid:Caveat"));
     }
 
     @Test
     void testCasesToFilterTo_InvalidCaseType_ThrowsIllegalArgumentException() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> ReimplConfig.processCasesToFilterTo("1:invalid"));
+                () -> ReimplConfig.processCasesConfig("1:invalid"));
     }
 
     @Test
     void testCasesToFilterTo_NonpositiveCaseReference_ThrowsIllegalArgumentException() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> ReimplConfig.processCasesToFilterTo("0:Caveat"));
+                () -> ReimplConfig.processCasesConfig("0:Caveat"));
     }
 
     @Test
     void testCasesToFilterTo_SingleCaveat_ReturnsOneCase() {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo("1:Caveat");
+        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesConfig("1:Caveat");
 
         assertAll(
                 () -> assertThat(actual, isPresentAnd(hasSize(1))),
@@ -61,7 +61,7 @@ class ReimplConfigTest {
 
     @Test
     void testCasesToFilterTo_SingleGop_ReturnsOneCase() {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo("1:GrantOfRepresentation");
+        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesConfig("1:GrantOfRepresentation");
 
         assertAll(
                 () -> assertThat(actual, isPresentAnd(hasSize(1))),
@@ -71,7 +71,7 @@ class ReimplConfigTest {
 
     @Test
     void testCasesToFilterTo_TwoCases_ReturnsTwoCase() {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo(
+        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesConfig(
                 "1:Caveat,2:GrantOfRepresentation");
 
         assertAll(
@@ -83,7 +83,7 @@ class ReimplConfigTest {
 
     @Test
     void testCasesToFilterTo_TwoCasesWhitespace_ReturnsTwoCase() {
-        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesToFilterTo(
+        final Optional<Set<CaseSummary>> actual = ReimplConfig.processCasesConfig(
                 " 1 : Caveat , 2 : GrantOfRepresentation ");
 
         assertAll(
