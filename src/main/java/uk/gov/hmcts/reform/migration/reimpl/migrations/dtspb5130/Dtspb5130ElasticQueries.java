@@ -16,62 +16,63 @@ public class Dtspb5130ElasticQueries {
     private final ElasticSearchQueryUtils elasticSearchQueryUtils;
 
     private static final String BASE_GOR_MIGRATION_QUERY = """
-    {
-        "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "terms": {
-                            "data.evidenceHandled": [
-                                "No"
-                            ]
+        {
+            "query": {
+                "bool": {
+                    "filter": [
+                        {
+                            "terms": {
+                                "data.evidenceHandled": [
+                                    "No"
+                                ]
+                            }
+                        },
+                        {
+                            "match": {
+                                "state": "BOCaseClosed"
+                            }
                         }
-                    },
-                    {
-                        "match": {
-                            "state": "BOCaseClosed"
-                        }
-                    }
-                ]
-            }
-        },
-        "_source": ["reference"],
-        "sort": [
-            {
-                "reference.keyword": "asc"
-            }
-        ]
-    }
-    """;
+                    ]
+                }
+            },
+            "_source": ["reference"],
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]
+        }
+        """;
+
 
     private static final String BASE_GOR_ROLLBACK_QUERY = """
-    {
-        "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "terms": {
-                            "data.evidenceHandled": [
-                                "Yes"
-                            ]
+        {
+            "query": {
+                "bool": {
+                    "filter": [
+                        {
+                            "terms": {
+                                "data.evidenceHandled": [
+                                    "Yes"
+                                ]
+                            }
+                        },
+                        {
+                            "match": {
+                                "state": "BOCaseClosed"
+                            }
                         }
-                    },
-                    {
-                        "match": {
-                            "state": "BOCaseClosed"
-                        }
-                    }
-                ]
-            }
-        },
-        "_source": ["reference"],
-        "sort": [
-            {
-                "reference.keyword": "asc"
-            }
-        ]
-    }
-    """;
+                    ]
+                }
+            },
+            "_source": ["reference"],
+            "sort": [
+                {
+                    "reference.keyword": "asc"
+                }
+            ]
+        }
+        """;
 
     public Dtspb5130ElasticQueries(final ElasticSearchQueryUtils elasticSearchQueryUtils) {
         this.elasticSearchQueryUtils = Objects.requireNonNull(elasticSearchQueryUtils);
