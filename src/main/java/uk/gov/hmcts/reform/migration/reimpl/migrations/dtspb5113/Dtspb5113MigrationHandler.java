@@ -17,8 +17,10 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
+import uk.gov.hmcts.reform.migration.service.AuditEventService;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -32,6 +34,7 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
     private final ReimplConfig commonConfig;
     private final Dtspb5113Config config;
     private final Dtspb5113ElasticQueries elasticQueries;
+    private final AuditEventService auditEventService;
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String JURISDICTION = "PROBATE";
@@ -43,17 +46,27 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
     static final String MIGRATION_SUMMARY = "DTSPB-5113 - Move Dormant case to previous state";
     static final String MIGRATION_DESCRIPTION = "Move Dormant case to previous state";
 
+    private static final List<String> POST_GRANT_STATE_LIST = List.of(
+        "BOPostGrantIssued",
+        "BOExaminingReissue",
+        "BOCaseMatchingReissue",
+        "BOCaseStoppedReissue",
+        "BOGrantIssuedRegistrarEscalation",
+        "BOPostGrantIssuedRegistrarEscalation");
+
     public Dtspb5113MigrationHandler(
-            final CoreCaseDataApi coreCaseDataApi,
-            final ElasticSearchHandler elasticSearchHandler,
-            final ReimplConfig commonConfig,
-            final Dtspb5113Config config,
-            final Dtspb5113ElasticQueries elasticQueries) {
+        final CoreCaseDataApi coreCaseDataApi,
+        final ElasticSearchHandler elasticSearchHandler,
+        final ReimplConfig commonConfig,
+        final Dtspb5113Config config,
+        final Dtspb5113ElasticQueries elasticQueries,
+        final AuditEventService auditEventService) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
         this.commonConfig = Objects.requireNonNull(commonConfig);
         this.config = Objects.requireNonNull(config);
         this.elasticQueries = Objects.requireNonNull(elasticQueries);
+        this.auditEventService = Objects.requireNonNull(auditEventService);
     }
 
     @Override
@@ -154,9 +167,27 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
                 .description(MIGRATION_DESCRIPTION)
                 .build();
 
+        String migrateToState = auditEventService.getLatestAuditEventInStateList(
+                String.valueOf(caseDetails.getId()),
+                POST_GRANT_STATE_LIST,
+                migrationEvent.userToken().getBearerToken(),
+                migrationEvent.s2sToken().s2sToken())
+            .map(auditEvent -> {
+                log.info("Audit event found: Case ID = {}, Event State = {}",
+                    caseDetails.getId(), auditEvent.getStateId());
+                return auditEvent.getStateId();
+            })
+            .orElse(null);
+
+        if (migrateToState == null) {
+            log.error("Audit event NOT found: Case ID = {}", caseDetails.getId());
+            return false;
+        }
+
         final JSONObject migrationCallbackMetadataJson = new JSONObject();
         migrationCallbackMetadataJson.put("migrationId", MIGRATION_ID);
         migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
+        migratedData.put("migrateToState", migrateToState);
 
         final CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())

@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
 import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
+import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.idam.client.models.UserDetails;
 import uk.gov.hmcts.reform.migration.reimpl.config.ReimplConfig;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
@@ -20,9 +21,11 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
+import uk.gov.hmcts.reform.migration.service.AuditEventService;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,6 +66,8 @@ class Dtspb5113MigrationHandlerTest {
     Dtspb5113ElasticQueries dtspb5113ElasticQueriesMock;
     @Mock
     ReimplConfig reimplConfigMock;
+    @Mock
+    AuditEventService auditEventServiceMock;
 
     Dtspb5113MigrationHandler dtspb5113MigrationHandler;
 
@@ -77,7 +82,8 @@ class Dtspb5113MigrationHandlerTest {
                 elasticSearchHandlerMock,
                 reimplConfigMock,
                 dtspb5113ConfigMock,
-                dtspb5113ElasticQueriesMock);
+                dtspb5113ElasticQueriesMock,
+                auditEventServiceMock);
     }
 
     @AfterEach
@@ -271,9 +277,9 @@ class Dtspb5113MigrationHandlerTest {
         final String eventToken = UUID.randomUUID().toString();
         final StartEventResponse startEventResponse = mock();
         when(startEventResponse.getEventId())
-                .thenReturn(eventId);
+            .thenReturn(eventId);
         when(startEventResponse.getToken())
-                .thenReturn(eventToken);
+            .thenReturn(eventToken);
 
         final UserToken userToken = mock();
 
@@ -281,75 +287,86 @@ class Dtspb5113MigrationHandlerTest {
         final String userBearer = UUID.randomUUID().toString();
         final String userId = UUID.randomUUID().toString();
         when(userToken.getBearerToken())
-                .thenReturn(userBearer);
+            .thenReturn(userBearer);
         when(userToken.userDetails())
-                .thenReturn(userDetails);
+            .thenReturn(userDetails);
         when(userDetails.getId())
-                .thenReturn(userId);
+            .thenReturn(userId);
 
         final String s2sBearer = UUID.randomUUID().toString();
         final S2sToken s2sToken = mock();
         when(s2sToken.s2sToken())
-                .thenReturn(s2sBearer);
+            .thenReturn(s2sBearer);
 
         final MigrationEvent migrationEvent = new MigrationEvent(
-                caseSummary,
-                startEventResponse,
-                userToken,
-                s2sToken);
+            caseSummary,
+            startEventResponse,
+            userToken,
+            s2sToken);
 
         final Long caseId = 1L;
         final String jurisdiction = UUID.randomUUID().toString();
         final String caseType = UUID.randomUUID().toString();
+        final String migrateToState = "BOPostGrantIssued";
+
         final CaseDetails caseDetails = mock();
         when(caseDetails.getId())
-                .thenReturn(caseId);
+            .thenReturn(caseId);
         when(caseDetails.getJurisdiction())
-                .thenReturn(jurisdiction);
+            .thenReturn(jurisdiction);
         when(caseDetails.getCaseTypeId())
-                .thenReturn(caseType);
+            .thenReturn(caseType);
 
         when(startEventResponse.getCaseDetails())
-                .thenReturn(caseDetails);
+            .thenReturn(caseDetails);
 
         final Map<String, Object> caseData = new HashMap<>();
         when(caseDetails.getData())
-                .thenReturn(caseData);
+            .thenReturn(caseData);
+
+        mockLatestAuditEvent(caseId, migrateToState);
 
         final CaseDetails caseResult = mock();
 
         when(coreCaseDataApiMock.submitEventForCaseWorker(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                anyBoolean(),
-                any()))
-                        .thenReturn(caseResult);
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            any(),
+            anyBoolean(),
+            any()))
+            .thenReturn(caseResult);
 
         final boolean actual = dtspb5113MigrationHandler.migrate(migrationEvent);
 
         final ArgumentCaptor<CaseDataContent> dataCaptor = ArgumentCaptor.forClass(CaseDataContent.class);
         verify(coreCaseDataApiMock).submitEventForCaseWorker(
-                eq(userBearer),
-                eq(s2sBearer),
-                eq(userId),
-                eq(jurisdiction),
-                eq(caseType),
-                eq(caseId.toString()),
-                eq(true),
-                dataCaptor.capture());
+            eq(userBearer),
+            eq(s2sBearer),
+            eq(userId),
+            eq(jurisdiction),
+            eq(caseType),
+            eq(caseId.toString()),
+            eq(true),
+            dataCaptor.capture());
+
+        verify(auditEventServiceMock).getLatestAuditEventInStateList(
+            eq(caseId.toString()),
+            any(),
+            eq(userBearer),
+            eq(s2sBearer));
+
         final CaseDataContent caseDataContent = dataCaptor.getValue();
         final Event event = caseDataContent.getEvent();
 
         assertAll(
-                () -> assertThat(actual, equalTo(true)),
-                () -> assertThat(caseDataContent.getEventToken(), equalTo(eventToken)),
-                () -> assertThat(event.getId(), equalTo(eventId)),
-                () -> assertThat(event.getSummary(), equalTo(MIGRATION_SUMMARY)),
-                () -> assertThat(event.getDescription(), equalTo(MIGRATION_DESCRIPTION)));
+            () -> assertThat(actual, equalTo(true)),
+            () -> assertThat(caseDataContent.getEventToken(), equalTo(eventToken)),
+            () -> assertThat(event.getId(), equalTo(eventId)),
+            () -> assertThat(event.getSummary(), equalTo(MIGRATION_SUMMARY)),
+            () -> assertThat(event.getDescription(), equalTo(MIGRATION_DESCRIPTION)));
 
         final Object migratedObj = caseDataContent.getData();
         if (!(migratedObj instanceof Map)) {
@@ -358,8 +375,9 @@ class Dtspb5113MigrationHandlerTest {
         @SuppressWarnings("unchecked")
         final Map<String, Object> migratedData = (Map<String, Object>) migratedObj;
 
-        assertThat(migratedData, aMapWithSize(1));
+        assertThat(migratedData, aMapWithSize(2));
         assertThat(migratedData, hasKey("migrationCallbackMetadata"));
+        assertThat(migratedData.get("migrateToState"), equalTo(migrateToState));
 
         final String metadata = (String) migratedData.get("migrationCallbackMetadata");
         final JSONObject metadataJson = new JSONObject(metadata);
@@ -403,6 +421,7 @@ class Dtspb5113MigrationHandlerTest {
         when(reimplConfigMock.isDryRun())
                 .thenReturn(true);
 
+        mockLatestAuditEvent(caseId, "BOPostGrantIssued");
         final boolean actual = dtspb5113MigrationHandler.migrate(migrationEvent);
 
         assertAll(
@@ -451,6 +470,7 @@ class Dtspb5113MigrationHandlerTest {
         when(caseDetails.getData())
                 .thenReturn(caseData);
 
+        mockLatestAuditEvent(caseId, "BOPostGrantIssued");
         final boolean actual = dtspb5113MigrationHandler.migrate(migrationEvent);
 
         assertAll(
@@ -464,5 +484,72 @@ class Dtspb5113MigrationHandlerTest {
                         any(),
                         anyBoolean(),
                         any()));
+    }
+
+    @Test
+    void migrateReturnsFalseWhenNoAuditEventFound() {
+        final CaseSummary caseSummary = mock();
+
+        final StartEventResponse startEventResponse = mock();
+
+        final UserToken userToken = mock();
+        when(userToken.getBearerToken())
+            .thenReturn(UUID.randomUUID().toString());
+
+        final S2sToken s2sToken = mock();
+        when(s2sToken.s2sToken())
+            .thenReturn(UUID.randomUUID().toString());
+
+        final MigrationEvent migrationEvent = new MigrationEvent(
+            caseSummary,
+            startEventResponse,
+            userToken,
+            s2sToken);
+
+        final Long caseId = 1L;
+        final CaseDetails caseDetails = mock();
+        when(caseDetails.getId())
+            .thenReturn(caseId);
+
+        when(startEventResponse.getCaseDetails())
+            .thenReturn(caseDetails);
+
+        final Map<String, Object> caseData = new HashMap<>();
+        when(caseDetails.getData())
+            .thenReturn(caseData);
+
+        when(auditEventServiceMock.getLatestAuditEventInStateList(
+            eq(String.valueOf(caseId)),
+            any(),
+            any(),
+            any()))
+            .thenReturn(Optional.empty());
+
+        final boolean actual = dtspb5113MigrationHandler.migrate(migrationEvent);
+
+        assertAll(
+            () -> assertThat(actual, equalTo(false)),
+            () -> verify(coreCaseDataApiMock, never()).submitEventForCaseWorker(
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                any(),
+                anyBoolean(),
+                any()));
+    }
+
+    private void mockLatestAuditEvent(final Long caseId, final String stateId) {
+        final AuditEvent auditEvent = mock(AuditEvent.class);
+        when(auditEvent.getStateId())
+            .thenReturn(stateId);
+
+        when(auditEventServiceMock.getLatestAuditEventInStateList(
+            eq(String.valueOf(caseId)),
+            any(),
+            any(),
+            any()))
+            .thenReturn(Optional.of(auditEvent));
     }
 }
