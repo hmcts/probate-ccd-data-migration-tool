@@ -164,9 +164,9 @@ public class Dtspb5130RollbackMigrationHandler implements MigrationHandler {
 
     boolean findDtspb5130MigrationEvent(final CaseEventDetail caseEventDetail) {
         final String eventId = caseEventDetail.getId();
-        final boolean correctEvent = eventId.equals(MIGRATION_EVENT);
+        final boolean correctEvent = MIGRATION_EVENT.equals(eventId);
         final String description = caseEventDetail.getDescription();
-        final boolean correctDescription = description.equals(Dtspb5130MigrationHandler.MIGRATION_DESCRIPTION);
+        final boolean correctDescription = Dtspb5130MigrationHandler.MIGRATION_DESCRIPTION.equals(description);
 
         return correctEvent && correctDescription;
     }
