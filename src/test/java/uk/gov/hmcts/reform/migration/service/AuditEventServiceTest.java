@@ -9,6 +9,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.domain.common.AuditEvent;
 import uk.gov.hmcts.reform.domain.common.AuditEventsResponse;
 import uk.gov.hmcts.reform.migration.client.CaseDataApiV2;
+import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
+import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -41,6 +43,12 @@ class AuditEventServiceTest {
     @Mock
     private AuditEventsResponse auditEventsResponse;
 
+    @Mock
+    private UserToken userToken;
+
+    @Mock
+    private S2sToken s2sToken;
+
     @InjectMocks
     private AuditEventService auditEventService;
 
@@ -52,7 +60,6 @@ class AuditEventServiceTest {
 
     @Test
     void shouldGetAuditEventByName() {
-        List<String> eventName = List.of(EVENT);
         AuditEvent expectedAuditEvent = AuditEvent.builder().id(EVENT).userId("123").build();
         when(mockCaseDataApi.getAuditEvents(USER_TOKEN, SERVICE_TOKEN, false, CASE_ID))
             .thenReturn(AuditEventsResponse.builder().auditEvents(List.of(expectedAuditEvent)).build());
@@ -82,6 +89,10 @@ class AuditEventServiceTest {
 
     @Test
     void shouldReturnLatestAuditEventWhenStateIsInProvidedStateList() {
+        when(userToken.getBearerToken())
+            .thenReturn(USER_TOKEN);
+        when(s2sToken.s2sToken())
+            .thenReturn(SERVICE_TOKEN);
         AuditEvent expectedAuditEvent =
             buildAuditEvent(EVENT_NAME, STATE_NAME, LOCAL_DATE_TIME);
 
@@ -97,8 +108,8 @@ class AuditEventServiceTest {
             auditEventService.getLatestAuditEventInStateList(
                 CASE_ID,
                 List.of(STATE_NAME),
-                USER_TOKEN,
-                SERVICE_TOKEN
+                userToken,
+                s2sToken
             );
 
         assertThat(actualAuditEvent).isPresent().contains(expectedAuditEvent);
@@ -106,6 +117,10 @@ class AuditEventServiceTest {
 
     @Test
     void shouldReturnEmptyOptionalWhenLatestAuditEventStateIsNotInProvidedList() {
+        when(userToken.getBearerToken())
+            .thenReturn(USER_TOKEN);
+        when(s2sToken.s2sToken())
+            .thenReturn(SERVICE_TOKEN);
         AuditEvent latestAuditEvent =
             buildAuditEvent(EVENT_NAME, STATE_DORMANT, LOCAL_DATE_TIME);
 
@@ -120,8 +135,8 @@ class AuditEventServiceTest {
             auditEventService.getLatestAuditEventInStateList(
                 CASE_ID,
                 List.of(STATE_NAME),
-                USER_TOKEN,
-                SERVICE_TOKEN
+                userToken,
+                s2sToken
             );
 
         assertThat(actualAuditEvent).isEmpty();
@@ -129,6 +144,10 @@ class AuditEventServiceTest {
 
     @Test
     void shouldIgnoreDormantStateAndReturnNextLatestMatchingState() {
+        when(userToken.getBearerToken())
+            .thenReturn(USER_TOKEN);
+        when(s2sToken.s2sToken())
+            .thenReturn(SERVICE_TOKEN);
         AuditEvent dormantAuditEvent =
             buildAuditEvent(EVENT_NAME, STATE_DORMANT, LOCAL_DATE_TIME);
 
@@ -146,8 +165,8 @@ class AuditEventServiceTest {
             auditEventService.getLatestAuditEventInStateList(
                 CASE_ID,
                 List.of(STATE_BO_CASE_STOPPED_REISSUE),
-                USER_TOKEN,
-                SERVICE_TOKEN
+                userToken,
+                s2sToken
             );
 
         assertThat(actualAuditEvent).isPresent().contains(expectedAuditEvent);
@@ -155,14 +174,18 @@ class AuditEventServiceTest {
 
     @Test
     void shouldReturnEmptyOptionalWhenAuditEventsIsEmptyForExcludingState() {
+        when(userToken.getBearerToken())
+            .thenReturn(USER_TOKEN);
+        when(s2sToken.s2sToken())
+            .thenReturn(SERVICE_TOKEN);
         when(auditEventsResponse.getAuditEvents()).thenReturn(List.of());
 
         Optional<AuditEvent> actualAuditEvent =
             auditEventService.getLatestAuditEventInStateList(
                 CASE_ID,
                 List.of(STATE_NAME),
-                USER_TOKEN,
-                SERVICE_TOKEN
+                userToken,
+                s2sToken
             );
 
         assertThat(actualAuditEvent).isEmpty();

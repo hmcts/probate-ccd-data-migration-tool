@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 import uk.gov.hmcts.reform.migration.service.AuditEventService;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -80,9 +79,7 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
                 s2sToken,
                 CaseType.GRANT_OF_REPRESENTATION,
                 fR -> elasticQueries.getGorMigrationQuery(commonConfig.getQuerySize(), fR));
-        final Set<CaseSummary> candidateCases = new HashSet<>(gorCandidates);
-
-        return Set.copyOf(candidateCases);
+        return gorCandidates;
     }
 
     @Override
@@ -170,8 +167,8 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
         String migrateToState = auditEventService.getLatestAuditEventInStateList(
                 String.valueOf(caseDetails.getId()),
                 POST_GRANT_STATE_LIST,
-                migrationEvent.userToken().getBearerToken(),
-                migrationEvent.s2sToken().s2sToken())
+                migrationEvent.userToken(),
+                migrationEvent.s2sToken())
             .map(auditEvent -> {
                 log.info("Audit event found: Case ID = {}, Event State = {}",
                     caseDetails.getId(), auditEvent.getStateId());
@@ -186,8 +183,8 @@ public class Dtspb5113MigrationHandler implements MigrationHandler {
 
         final JSONObject migrationCallbackMetadataJson = new JSONObject();
         migrationCallbackMetadataJson.put("migrationId", MIGRATION_ID);
+        migrationCallbackMetadataJson.put("migrateToState", migrateToState);
         migratedData.put("migrationCallbackMetadata", migrationCallbackMetadataJson.toString());
-        migratedData.put("migrateToState", migrateToState);
 
         final CaseDataContent caseDataContent = CaseDataContent.builder()
                 .eventToken(startEventResponse.getToken())

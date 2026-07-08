@@ -355,8 +355,8 @@ class Dtspb5113MigrationHandlerTest {
         verify(auditEventServiceMock).getLatestAuditEventInStateList(
             eq(caseId.toString()),
             any(),
-            eq(userBearer),
-            eq(s2sBearer));
+            eq(userToken),
+            eq(s2sToken));
 
         final CaseDataContent caseDataContent = dataCaptor.getValue();
         final Event event = caseDataContent.getEvent();
@@ -375,14 +375,14 @@ class Dtspb5113MigrationHandlerTest {
         @SuppressWarnings("unchecked")
         final Map<String, Object> migratedData = (Map<String, Object>) migratedObj;
 
-        assertThat(migratedData, aMapWithSize(2));
+        assertThat(migratedData, aMapWithSize(1));
         assertThat(migratedData, hasKey("migrationCallbackMetadata"));
-        assertThat(migratedData.get("migrateToState"), equalTo(migrateToState));
 
         final String metadata = (String) migratedData.get("migrationCallbackMetadata");
         final JSONObject metadataJson = new JSONObject(metadata);
 
         assertThat(metadataJson.getString("migrationId"), equalTo(MIGRATION_ID));
+        assertThat(metadataJson.getString("migrateToState"), equalTo(migrateToState));
     }
 
     @Test
