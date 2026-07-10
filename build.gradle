@@ -222,20 +222,9 @@ dependencyManagement {
   }
 
   dependencies {
-    dependency 'com.google.guava:guava:33.6.0-jre'
-
-    dependencySet(group: 'commons-beanutils', version: '1.11.0') {
-      entry 'commons-beanutils'
-    }
-
-    dependencySet(group: 'io.rest-assured', version: '6.0.0') {
-      entry 'json-path'
-      entry 'xml-path'
-    }
-    dependencySet(group: 'org.codehaus.groovy', version: '4.0.11') {
-      entry 'groovy'
-      entry 'groovy-xml'
-      entry 'groovy-json'
+    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.22.1') {
+      entry 'jackson-core'
+      entry 'jackson-databind'
     }
   }
 }
