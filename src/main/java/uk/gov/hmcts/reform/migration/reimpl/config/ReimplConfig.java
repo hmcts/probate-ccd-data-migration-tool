@@ -12,10 +12,10 @@ import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005Migrat
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113RollbackMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586.Dtspb5586MigrationHandler;
@@ -124,19 +124,19 @@ public class ReimplConfig {
         final Dtspb5586MigrationHandler dtspb5586MigrationHandler,
         final Dtspb5586RollbackMigrationHandler dtspb5586RollbackMigrationHandler
     ) {
-        return Map.of(
-            "DTSPB-5005", dtspb5005MigrationHandler,
-            "DTSPB-5005_rollback", dtspb5005RollbackMigrationHandler,
-            "DTSPB-5130", dtspb5130MigrationHandler,
-            "DTSPB-5130_rollback", dtspb5130RollbackMigrationHandler,
-            "DTSPB-5113", dtspb5113MigrationHandler,
-            "DTSPB-5113_rollback", dtspb5113RollbackMigrationHandler,
-            "DTSPB-5472", dtspb5472MigrationHandler,
-            "DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler,
-            "DTSPB-5064", dtspb5064MigrationHandler,
-            "DTSPB-5064_rollback", dtspb5064RollbackMigrationHandler,
-            "DTSPB-5586", dtspb5586MigrationHandler,
-            "DTSPB-5586_rollback", dtspb5586RollbackMigrationHandler
+        return Map.ofEntries(
+            Map.entry("DTSPB-5005", dtspb5005MigrationHandler),
+            Map.entry("DTSPB-5005_rollback", dtspb5005RollbackMigrationHandler),
+            Map.entry("DTSPB-5130", dtspb5130MigrationHandler),
+            Map.entry("DTSPB-5130_rollback", dtspb5130RollbackMigrationHandler),
+            Map.entry("DTSPB-5113", dtspb5113MigrationHandler),
+            Map.entry("DTSPB-5113_rollback", dtspb5113RollbackMigrationHandler),
+            Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
+            Map.entry("DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler),
+            Map.entry("DTSPB-5064", dtspb5064MigrationHandler),
+            Map.entry("DTSPB-5064_rollback", dtspb5064RollbackMigrationHandler),
+            Map.entry("DTSPB-5586", dtspb5586MigrationHandler),
+            Map.entry("DTSPB-5586_rollback", dtspb5586RollbackMigrationHandler)
             );
     }
 
