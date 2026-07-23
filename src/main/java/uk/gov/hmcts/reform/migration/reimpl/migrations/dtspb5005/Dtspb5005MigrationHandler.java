@@ -90,6 +90,8 @@ public class Dtspb5005MigrationHandler implements MigrationHandler {
             case CAVEAT -> new MigrationEventDetails(
                     CAVEAT,
                     "boHistoryCorrection");
+            case WILL_LODGEMENT -> throw new Dtspb5005MigrationException("Unexpected Will Lodgement");
+            case STANDING_SEARCH -> throw new Dtspb5005MigrationException("Unexpected Standing Search");
         };
 
         final UserDetails userDetails = userToken.userDetails();
