@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
@@ -96,6 +97,8 @@ public class Dtspb5130RollbackMigrationHandler implements MigrationHandler {
                 GRANT_OF_REPRESENTATION,
                 "boCorrection");
             case CAVEAT -> throw new Dtspb5130RollbackException("Unexpected CAVEAT");
+            case WILL_LODGEMENT -> throw new Dtspb5130RollbackException("Unexpected Will Lodgement");
+            case STANDING_SEARCH -> throw new Dtspb5130RollbackException("Unexpected Standing Search");
         };
 
         final UserDetails userDetails = userToken.userDetails();

@@ -125,8 +125,6 @@ public class ReimplConfig {
         final Dtspb5064RollbackMigrationHandler dtspb5064RollbackMigrationHandler,
         final Dtspb5586MigrationHandler dtspb5586MigrationHandler,
         final Dtspb5586RollbackMigrationHandler dtspb5586RollbackMigrationHandler
-        final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
-        final Dtspb5539MigrationHandler dtspb5539MigrationHandler
     ) {
         return Map.ofEntries(
             Map.entry("DTSPB-5005", dtspb5005MigrationHandler),
