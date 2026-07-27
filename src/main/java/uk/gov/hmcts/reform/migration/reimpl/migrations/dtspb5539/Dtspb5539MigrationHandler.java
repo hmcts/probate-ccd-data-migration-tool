@@ -108,7 +108,6 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
             eventDetails.caseType(),
             caseSummary.reference().toString(),
             eventDetails.eventId());
-        log.info("StartEventResponse:  {} ", startEventResponse);
 
 
         return new MigrationEvent(
