@@ -127,8 +127,17 @@ jacocoTestReport {
   }
 }
 
-project.tasks['sonarqube'].dependsOn jacocoTestReport
-project.tasks['check'].dependsOn integration
+tasks.named('check') {
+  dependsOn tasks.named('integration')
+}
+
+tasks.named('sonarqube') {
+  dependsOn tasks.named('jacocoTestReport')
+}
+
+tasks.named('sonarResolver') {
+  dependsOn tasks.named('processResources')
+}
 
 sonarqube {
   properties {
