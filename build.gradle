@@ -269,7 +269,7 @@ wrapper {
 
 test {
   timeout = Duration.ofMinutes(30)
-  systemProperty 'java.locale.providers', 'COMPAT'
+  systemProperty 'java.locale.providers', 'CLDR'
 
   useJUnitPlatform()
 
