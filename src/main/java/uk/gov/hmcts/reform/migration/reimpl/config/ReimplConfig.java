@@ -8,8 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
@@ -106,8 +104,6 @@ public class ReimplConfig {
 
     @Bean
     public Map<String, MigrationHandler> migrationHandlers(
-        final Dtspb5130MigrationHandler dtspb5130MigrationHandler,
-        final Dtspb5130RollbackMigrationHandler dtspb5130RollbackMigrationHandler,
         final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
         final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
         final Dtspb5539MigrationHandler dtspb5539MigrationHandler,
@@ -115,8 +111,6 @@ public class ReimplConfig {
         final Dtspb5586RollbackMigrationHandler dtspb5586RollbackMigrationHandler
     ) {
         return Map.ofEntries(
-            Map.entry("DTSPB-5130", dtspb5130MigrationHandler),
-            Map.entry("DTSPB-5130_rollback", dtspb5130RollbackMigrationHandler),
             Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
             Map.entry("DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler),
             Map.entry("DTSPB-5586", dtspb5586MigrationHandler),
