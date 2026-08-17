@@ -31,8 +31,8 @@ public class ReimplConfig {
     private final String migrationId;
     private final Duration userTokenRefreshMargin;
     private final Duration s2sTokenRefreshMargin;
-    private final Optional<Set<CaseSummary>> caseReferences;
-    private final Optional<Set<CaseSummary>> casesToRestrictTo;
+    private final Optional<Set<CaseSummary>> casesToExclude;
+    private final Optional<Set<CaseSummary>> casesToMigrate;
     private final int querySize;
     private final boolean dryRun;
 
@@ -45,10 +45,10 @@ public class ReimplConfig {
             final long userTokenRefreshMarginMins,
             @Value("${migration.reimpl.s2s_token_refresh_margin_mins}")
             final long s2sTokenRefreshMarginMins,
-            @Value("${case.migration.processing.caseReferences:}")
-            final String caseReferences,
-            @Value("${migration.reimpl.cases_to_restrict_to}")
-            final String casesToRestrictTo,
+            @Value("${migration.reimpl.cases_to_exclude:}")
+            final String casesToExclude,
+            @Value("${migration.reimpl.cases_to_migrate}")
+            final String casesToMigrate,
             @Value("${case-migration.elasticsearch.querySize}")
             final int querySize,
             @Value("${migration.dryrun}")
@@ -57,8 +57,8 @@ public class ReimplConfig {
         this.migrationId = Objects.requireNonNull(migrationId);
         this.userTokenRefreshMargin = Duration.ofMinutes(userTokenRefreshMarginMins);
         this.s2sTokenRefreshMargin = Duration.ofMinutes(s2sTokenRefreshMarginMins);
-        this.caseReferences = processCasesConfig(caseReferences);
-        this.casesToRestrictTo = processCasesConfig(casesToRestrictTo);
+        this.casesToExclude = processCasesConfig(casesToExclude);
+        this.casesToMigrate = processCasesConfig(casesToMigrate);
         this.querySize = querySize;
         this.dryRun = dryRun;
     }
@@ -75,12 +75,12 @@ public class ReimplConfig {
         return s2sTokenRefreshMargin;
     }
 
-    public Optional<Set<CaseSummary>> getCaseReferences() {
-        return caseReferences;
+    public Optional<Set<CaseSummary>> getCasesToExclude() {
+        return casesToExclude;
     }
 
-    public Optional<Set<CaseSummary>> getCasesToRestrictTo() {
-        return casesToRestrictTo;
+    public Optional<Set<CaseSummary>> getCasesToMigrate() {
+        return casesToMigrate;
     }
 
     public int getQuerySize() {

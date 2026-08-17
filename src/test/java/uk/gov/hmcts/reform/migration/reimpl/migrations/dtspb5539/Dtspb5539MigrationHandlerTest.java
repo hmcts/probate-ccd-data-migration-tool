@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -133,6 +134,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.GRANT_OF_REPRESENTATION),
+            eq(OptionalInt.empty()),
             any()))
             .thenReturn(Set.of(case1));
 
@@ -141,6 +143,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.CAVEAT),
+            eq(OptionalInt.empty()),
             any()))
             .thenReturn(Set.of(case2));
 
@@ -149,6 +152,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.WILL_LODGEMENT),
+            eq(OptionalInt.empty()),
             any()))
             .thenReturn(Set.of(case3));
 
@@ -157,6 +161,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.STANDING_SEARCH),
+            eq(OptionalInt.empty()),
             any()))
             .thenReturn(Set.of(case4));
 
@@ -197,39 +202,43 @@ class Dtspb5539MigrationHandlerTest {
     //getCandidateCases - Tess for Get Candidate Cases Function
     /// 2. Should only return initial set of cases
     @Test
-    void shouldLimitCandidateCasesToInitialSizeWhenInitialRunIsTrue() {
-
-        CaseSummary case1 =
+    void shouldPassInitialSizeToElasticSearchHandler() {
+        final CaseSummary case1 =
             new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-        CaseSummary case2 =
+        final CaseSummary case2 =
             new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION);
-        CaseSummary case3 =
-            new CaseSummary(3L, CaseType.GRANT_OF_REPRESENTATION);
 
         when(config.getCaseTypes())
             .thenReturn(List.of(CaseType.GRANT_OF_REPRESENTATION));
-
-        when(config.isInitialRun())
-            .thenReturn(true);
-
-        when(config.getInitialSize())
-            .thenReturn(2);
+        when(config.isInitialRun()).thenReturn(true);
+        when(config.getInitialSize()).thenReturn(2);
 
         when(elasticSearchHandler.searchCases(
             anyString(),
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.GRANT_OF_REPRESENTATION),
+            eq(OptionalInt.of(2)),
             any()
-        ))
-            .thenReturn(Set.of(case1, case2, case3));
+        )).thenReturn(Set.of(case1, case2));
 
-        Set<CaseSummary> result =
-            dtspb5539migrationHandler.getCandidateCases(userToken, s2sToken);
+        final Set<CaseSummary> result =
+            dtspb5539migrationHandler.getCandidateCases(
+                userToken,
+                s2sToken
+            );
 
         assertThat(result)
-            .hasSize(2)
-            .isSubsetOf(case1, case2, case3);
+            .containsExactlyInAnyOrder(case1, case2);
+
+        verify(elasticSearchHandler).searchCases(
+            anyString(),
+            eq(userToken),
+            eq(s2sToken),
+            eq(CaseType.GRANT_OF_REPRESENTATION),
+            eq(OptionalInt.of(2)),
+            any()
+        );
     }
 
 

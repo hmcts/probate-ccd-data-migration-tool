@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -53,6 +52,10 @@ class ReimplMigrationRunnerTest {
     @BeforeEach
     void setUp() {
         closeableMocks = MockitoAnnotations.openMocks(this);
+        when(reimplConfigMock.getCasesToMigrate())
+            .thenReturn(Optional.empty());
+        when(reimplConfigMock.getCasesToExclude())
+            .thenReturn(Optional.empty());
         reimplMigrationRunner = new ReimplMigrationRunner(
                 reimplConfigMock,
                 authenticationProviderMock,
@@ -61,6 +64,7 @@ class ReimplMigrationRunnerTest {
 
     @AfterEach
     void tearDown() {
+        Thread.interrupted();
         try {
             closeableMocks.close();
         } catch (Exception e) {
@@ -126,91 +130,124 @@ class ReimplMigrationRunnerTest {
     }
 
     @Test
-    void filterCases_ToFilterEmpty_ThenReturnInput() {
-        final Set<CaseSummary> inputCases = Set.of(
-                new CaseSummary(1L, CaseType.CAVEAT),
-                new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
-        final Set<CaseSummary> actual = reimplMigrationRunner.filterCases(
-                Optional.empty(),
-                inputCases);
-
-        assertAll(
-                () -> assertThat(actual, hasSize(2)),
-                () -> assertThat(actual, containsInAnyOrder(inputCases.toArray())));
-    }
-
-    @Test
-    void filterCases_ToFilterHoldsInputSet_ThenReturnInputSet() {
-        final Set<CaseSummary> inputCases = Set.of(
-                new CaseSummary(1L, CaseType.CAVEAT),
-                new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
-        final Set<CaseSummary> actual = reimplMigrationRunner.filterCases(
-                Optional.of(inputCases),
-                inputCases);
-
-        assertAll(
-                () -> assertThat(actual, hasSize(2)),
-                () -> assertThat(actual, containsInAnyOrder(inputCases.toArray())));
-    }
-
-    @Test
-    void filterCases_ToFilterHoldsSubsetOfInputSet_ThenReturnInputSet() {
-        final Set<CaseSummary> toFilter = Set.of(
-                new CaseSummary(1L, CaseType.CAVEAT));
-        final Set<CaseSummary> inputCases = Set.of(
-                new CaseSummary(1L, CaseType.CAVEAT),
-                new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
-        final Set<CaseSummary> actual = reimplMigrationRunner.filterCases(
-                Optional.of(toFilter),
-                inputCases);
-
-        assertAll(
-                () -> assertThat(actual, hasSize(1)),
-                () -> assertThat(actual, containsInAnyOrder(toFilter.toArray())));
-    }
-
-    @Test
-    void filterCases_ToFilterHoldsOverlapOfInputSet_ThenReturnIntersection() {
-        final Set<CaseSummary> toFilter = Set.of(
-                new CaseSummary(1L, CaseType.CAVEAT),
-                new CaseSummary(3L, CaseType.CAVEAT));
-        final Set<CaseSummary> inputCases = Set.of(
-                new CaseSummary(1L, CaseType.CAVEAT),
-                new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
-        final Set<CaseSummary> actual = reimplMigrationRunner.filterCases(
-                Optional.of(toFilter),
-                inputCases);
-
-        assertAll(
-                () -> assertThat(actual, hasSize(1)),
-                () -> assertThat(actual, containsInAnyOrder(new CaseSummary(1L, CaseType.CAVEAT))));
-    }
-
-    @Test
-    void filterCases_ToFilterHoldsMismatchedCaseType_ThenReturnEmptySet() {
-        final Set<CaseSummary> filterSet = Set.of(
-                new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION),
-                new CaseSummary(2L, CaseType.CAVEAT));
-        final Set<CaseSummary> inputCases = Set.of(
-                new CaseSummary(1L, CaseType.CAVEAT),
-                new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
-        final Set<CaseSummary> actual = reimplMigrationRunner.filterCases(
-                Optional.of(filterSet),
-                inputCases);
-
-        assertThat(actual, hasSize(0));
-    }
-
-    @Test
-    void filterCases_ToFilterHoldsEmptySet_ThenReturnEmptySet() {
-        final Set<CaseSummary> inputCases = Set.of(
+    void excludeCases_whenExclusionsAbsent_returnsAllCandidates() {
+        final Set<CaseSummary> candidates = Set.of(
             new CaseSummary(1L, CaseType.CAVEAT),
             new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
-        final Set<CaseSummary> actual = reimplMigrationRunner.filterCases(
-            Optional.of(Set.of()),
-            inputCases);
 
-        assertThat(actual, hasSize(0));
+        final Set<CaseSummary> actual = reimplMigrationRunner.excludeCases(
+            Optional.empty(),
+            candidates);
+
+        assertThat(actual, equalTo(candidates));
+    }
+
+    @Test
+    void excludeCases_whenAllCandidatesExcluded_returnsEmptySet() {
+        final Set<CaseSummary> candidates = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT),
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
+
+        final Set<CaseSummary> actual = reimplMigrationRunner.excludeCases(
+            Optional.of(candidates),
+            candidates);
+
+        assertThat(actual, equalTo(Set.of()));
+    }
+
+    @Test
+    void excludeCases_whenOneCandidateExcluded_returnsRemainingCandidate() {
+        final Set<CaseSummary> excludedCases = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT));
+        final Set<CaseSummary> candidates = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT),
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
+
+        final Set<CaseSummary> actual = reimplMigrationRunner.excludeCases(
+            Optional.of(excludedCases),
+            candidates);
+
+        assertThat(actual, equalTo(Set.of(
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION))));
+    }
+
+    @Test
+    void excludeCases_whenExclusionsPartiallyOverlap_returnsRemainingCandidates() {
+        final Set<CaseSummary> excludedCases = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT),
+            new CaseSummary(3L, CaseType.CAVEAT));
+        final Set<CaseSummary> candidates = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT),
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
+
+        final Set<CaseSummary> actual = reimplMigrationRunner.excludeCases(
+            Optional.of(excludedCases),
+            candidates);
+
+        assertThat(actual, equalTo(Set.of(
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION))));
+    }
+
+    @Test
+    void excludeCases_whenCaseTypesDiffer_returnsAllCandidates() {
+        final Set<CaseSummary> excludedCases = Set.of(
+            new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION),
+            new CaseSummary(2L, CaseType.CAVEAT));
+        final Set<CaseSummary> candidates = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT),
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
+
+        final Set<CaseSummary> actual = reimplMigrationRunner.excludeCases(
+            Optional.of(excludedCases),
+            candidates);
+
+        assertThat(actual, equalTo(candidates));
+    }
+
+    @Test
+    void excludeCases_whenExclusionSetEmpty_returnsAllCandidates() {
+        final Set<CaseSummary> candidates = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT),
+            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION));
+
+        final Set<CaseSummary> actual = reimplMigrationRunner.excludeCases(
+            Optional.of(Set.of()),
+            candidates);
+
+        assertThat(actual, equalTo(candidates));
+    }
+
+    @Test
+    void runMigrations_whenCasesConfigured_doesNotSearchForCandidates()
+        throws ExecutionException, InterruptedException {
+        final CaseSummary configuredCase =
+            new CaseSummary(1L, CaseType.CAVEAT);
+
+        when(reimplConfigMock.getMigrationId())
+            .thenReturn("CONFIGURED_CASES");
+        when(reimplConfigMock.getCasesToMigrate())
+            .thenReturn(Optional.of(Set.of(configuredCase)));
+
+        final ExecutorService executorServiceMock = mock();
+        when(reimplConfigMock.getNewExecutor())
+            .thenReturn(executorServiceMock);
+
+        final MigrationHandler migrationHandlerMock = mock();
+        when(migrationHandlersMock.get(any()))
+            .thenReturn(migrationHandlerMock);
+
+        final Future<ReimplMigrationRunner.MigrationState> futureMock = mock();
+        when(executorServiceMock.submit(argThat(submitArg())))
+            .thenReturn(futureMock);
+        when(futureMock.isDone())
+            .thenReturn(true);
+        when(futureMock.get())
+            .thenReturn(ReimplMigrationRunner.MigrationState.SUCCESS);
+
+        reimplMigrationRunner.runMigrations();
+
+        verify(migrationHandlerMock, never()).getCandidateCases(any(), any());
+        verify(executorServiceMock, times(1)).submit(argThat(submitArg()));
     }
 
     @Test
