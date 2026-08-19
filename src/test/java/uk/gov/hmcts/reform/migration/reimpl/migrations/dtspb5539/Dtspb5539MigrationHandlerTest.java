@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539;
 
 import feign.FeignException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,8 +23,9 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -134,8 +136,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.GRANT_OF_REPRESENTATION),
-            eq(OptionalInt.empty()),
-            any()))
+            anyPageSizeAwareQuery()))
             .thenReturn(Set.of(case1));
 
         when(elasticSearchHandler.searchCases(
@@ -143,8 +144,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.CAVEAT),
-            eq(OptionalInt.empty()),
-            any()))
+            anyPageSizeAwareQuery()))
             .thenReturn(Set.of(case2));
 
         when(elasticSearchHandler.searchCases(
@@ -152,8 +152,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.WILL_LODGEMENT),
-            eq(OptionalInt.empty()),
-            any()))
+            anyPageSizeAwareQuery()))
             .thenReturn(Set.of(case3));
 
         when(elasticSearchHandler.searchCases(
@@ -161,8 +160,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.STANDING_SEARCH),
-            eq(OptionalInt.empty()),
-            any()))
+            anyPageSizeAwareQuery()))
             .thenReturn(Set.of(case4));
 
         Set<CaseSummary> result =
@@ -187,7 +185,7 @@ class Dtspb5539MigrationHandlerTest {
             eq(userToken),
             eq(s2sToken),
             eq(CaseType.GRANT_OF_REPRESENTATION),
-            any()))
+            anyPageSizeAwareQuery()))
             .thenReturn(Set.of());
 
         final Set<CaseSummary> result =
@@ -198,49 +196,6 @@ class Dtspb5539MigrationHandlerTest {
 
         assertThat(result).isEmpty();
     }
-
-    //getCandidateCases - Tess for Get Candidate Cases Function
-    /// 2. Should only return initial set of cases
-    @Test
-    void shouldPassInitialSizeToElasticSearchHandler() {
-        final CaseSummary case1 =
-            new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-        final CaseSummary case2 =
-            new CaseSummary(2L, CaseType.GRANT_OF_REPRESENTATION);
-
-        when(config.getCaseTypes())
-            .thenReturn(List.of(CaseType.GRANT_OF_REPRESENTATION));
-        when(config.isInitialRun()).thenReturn(true);
-        when(config.getInitialSize()).thenReturn(2);
-
-        when(elasticSearchHandler.searchCases(
-            anyString(),
-            eq(userToken),
-            eq(s2sToken),
-            eq(CaseType.GRANT_OF_REPRESENTATION),
-            eq(OptionalInt.of(2)),
-            any()
-        )).thenReturn(Set.of(case1, case2));
-
-        final Set<CaseSummary> result =
-            dtspb5539migrationHandler.getCandidateCases(
-                userToken,
-                s2sToken
-            );
-
-        assertThat(result)
-            .containsExactlyInAnyOrder(case1, case2);
-
-        verify(elasticSearchHandler).searchCases(
-            anyString(),
-            eq(userToken),
-            eq(s2sToken),
-            eq(CaseType.GRANT_OF_REPRESENTATION),
-            eq(OptionalInt.of(2)),
-            any()
-        );
-    }
-
 
     //startEventForCase - Tests
     /// 1. Ensuring the CCD Api for the Start Event is called for happy path
@@ -587,5 +542,9 @@ class Dtspb5539MigrationHandlerTest {
             .thenReturn(EVENT_TOKEN);
 
         return startEventResponse;
+    }
+
+    private static BiFunction<Integer, Optional<Long>, JSONObject> anyPageSizeAwareQuery() {
+        return any();
     }
 }

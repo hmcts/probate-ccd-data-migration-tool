@@ -48,6 +48,8 @@ class ElasticSearchHandlerTest {
     void setUp() {
         closeableMocks = MockitoAnnotations.openMocks(this);
         when(reimplConfigMock.getQuerySize()).thenReturn(10);
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.empty());
         elasticSearchHandler = new ElasticSearchHandler(coreCaseDataApiMock, reimplConfigMock);
     }
 
@@ -274,6 +276,9 @@ class ElasticSearchHandlerTest {
 
     @Test
     void shouldRejectNegativeMaximumResults() {
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(-1));
+
         final BiFunction<Integer, Optional<Long>, JSONObject> querySource =
             mock();
 
@@ -284,7 +289,6 @@ class ElasticSearchHandlerTest {
                 mock(UserToken.class),
                 mock(S2sToken.class),
                 CaseType.CAVEAT,
-                OptionalInt.of(-1),
                 querySource
             )
         );
@@ -294,18 +298,19 @@ class ElasticSearchHandlerTest {
 
     @Test
     void shouldNotSearchWhenMaximumResultsIsZero() {
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(0));
+
         final BiFunction<Integer, Optional<Long>, JSONObject> querySource =
             mock();
 
-        final Set<CaseSummary> result =
-            elasticSearchHandler.searchCases(
-                "ZERO_LIMIT",
-                mock(UserToken.class),
-                mock(S2sToken.class),
-                CaseType.CAVEAT,
-                OptionalInt.of(0),
-                querySource
-            );
+        final Set<CaseSummary> result = elasticSearchHandler.searchCases(
+            "ZERO_LIMIT",
+            mock(UserToken.class),
+            mock(S2sToken.class),
+            CaseType.CAVEAT,
+            querySource
+        );
 
         assertThat(result, Matchers.empty());
         verifyNoInteractions(coreCaseDataApiMock, querySource);
@@ -314,15 +319,19 @@ class ElasticSearchHandlerTest {
     @Test
     void shouldLimitInitialSearchToMaximumResults() {
         when(reimplConfigMock.getQuerySize()).thenReturn(10);
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(2));
 
         final JSONObject queryJson = mock();
         when(queryJson.toString()).thenReturn("LIMITED_QUERY");
 
-        final BiFunction<Integer, Optional<Long>, JSONObject> querySource = mock();
+        final BiFunction<Integer, Optional<Long>, JSONObject> querySource =
+            mock();
         when(querySource.apply(2, Optional.empty()))
             .thenReturn(queryJson);
 
-        final List<CaseDetails> initialCases = caseDetailsMocks(1L, 2L);
+        final List<CaseDetails> initialCases =
+            caseDetailsMocks(1L, 2L);
 
         final SearchResult initialResult = mock();
         when(initialResult.getTotal()).thenReturn(2);
@@ -331,15 +340,11 @@ class ElasticSearchHandlerTest {
         when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
             .thenReturn(initialResult);
 
-        final UserToken userToken = mock();
-        final S2sToken s2sToken = mock();
-
         final Set<CaseSummary> result = elasticSearchHandler.searchCases(
             "LIMIT_INITIAL_SEARCH",
-            userToken,
-            s2sToken,
+            mock(UserToken.class),
+            mock(S2sToken.class),
             CaseType.CAVEAT,
-            OptionalInt.of(2),
             querySource
         );
 
@@ -353,15 +358,21 @@ class ElasticSearchHandlerTest {
     @Test
     void shouldUseRemainingLimitForNextPage() {
         when(reimplConfigMock.getQuerySize()).thenReturn(2);
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(3));
 
         final JSONObject queryJson = mock();
         when(queryJson.toString()).thenReturn("PAGED_QUERY");
 
-        final BiFunction<Integer, Optional<Long>, JSONObject> querySource = mock();
-        when(querySource.apply(anyInt(), any())).thenReturn(queryJson);
+        final BiFunction<Integer, Optional<Long>, JSONObject> querySource =
+            mock();
+        when(querySource.apply(anyInt(), any()))
+            .thenReturn(queryJson);
 
-        final List<CaseDetails> initialCases = caseDetailsMocks(1L, 2L);
-        final List<CaseDetails> nextCases = caseDetailsMocks(3L, 1L);
+        final List<CaseDetails> initialCases =
+            caseDetailsMocks(1L, 2L);
+        final List<CaseDetails> nextCases =
+            caseDetailsMocks(3L, 1L);
 
         final SearchResult initialResult = mock();
         when(initialResult.getTotal()).thenReturn(3);
@@ -373,15 +384,11 @@ class ElasticSearchHandlerTest {
         when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
             .thenReturn(initialResult, nextResult);
 
-        final UserToken userToken = mock();
-        final S2sToken s2sToken = mock();
-
         final Set<CaseSummary> result = elasticSearchHandler.searchCases(
             "LIMIT_NEXT_PAGE",
-            userToken,
-            s2sToken,
+            mock(UserToken.class),
+            mock(S2sToken.class),
             CaseType.CAVEAT,
-            OptionalInt.of(3),
             querySource
         );
 
@@ -389,7 +396,46 @@ class ElasticSearchHandlerTest {
 
         verify(querySource).apply(2, Optional.empty());
         verify(querySource).apply(1, Optional.of(2L));
+        verify(coreCaseDataApiMock, times(2))
+            .searchCases(any(), any(), any(), any());
+    }
 
+    @Test
+    void shouldUseQuerySizeWhenMaximumResultsIsNotConfigured() {
+        when(reimplConfigMock.getQuerySize()).thenReturn(2);
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.empty());
+
+        final JSONObject queryJson = mock();
+        when(queryJson.toString()).thenReturn("UNLIMITED_QUERY");
+
+        final BiFunction<Integer, Optional<Long>, JSONObject> querySource =
+            mock();
+        when(querySource.apply(anyInt(), any()))
+            .thenReturn(queryJson);
+
+        final List<CaseDetails> initialCases =
+            caseDetailsMocks(1L, 1L);
+
+        final SearchResult initialResult = mock();
+        when(initialResult.getTotal()).thenReturn(1);
+        when(initialResult.getCases()).thenReturn(initialCases);
+
+        when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
+            .thenReturn(initialResult, (SearchResult) null);
+
+        final Set<CaseSummary> result = elasticSearchHandler.searchCases(
+            "UNLIMITED_SEARCH",
+            mock(UserToken.class),
+            mock(S2sToken.class),
+            CaseType.CAVEAT,
+            querySource
+        );
+
+        assertThat(result, Matchers.hasSize(1));
+
+        verify(querySource).apply(2, Optional.empty());
+        verify(querySource).apply(2, Optional.of(1L));
         verify(coreCaseDataApiMock, times(2))
             .searchCases(any(), any(), any(), any());
     }

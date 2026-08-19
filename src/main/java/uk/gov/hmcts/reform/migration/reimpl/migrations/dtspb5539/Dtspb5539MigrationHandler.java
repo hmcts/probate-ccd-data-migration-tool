@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalInt;
 import java.util.Set;
 
 import static java.util.Collections.singletonMap;
@@ -61,10 +60,6 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     public Set<CaseSummary> getCandidateCases(UserToken userToken, S2sToken s2sToken) {
         final Set<CaseSummary> candidateCases = new HashSet<>();
 
-        final OptionalInt maximumResults = config.isInitialRun()
-            ? OptionalInt.of(config.getInitialSize())
-            : OptionalInt.empty();
-
         for (CaseType caseType : config.getCaseTypes()) {
             log.info("Starting candidate case search for case type: {}", caseType);
             candidateCases.addAll(
@@ -73,7 +68,6 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
                     userToken,
                     s2sToken,
                     caseType,
-                    maximumResults,
                     elasticQueries::getMigrationQuery
                 )
             );

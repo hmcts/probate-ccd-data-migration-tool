@@ -33,14 +33,28 @@ public class ElasticSearchHandler {
         this.reimplConfig = Objects.requireNonNull(reimplConfig);
     }
 
+    /**
+     * Executes the case search using a query source that does not accept a
+     * page size.
+     *
+     * <p>The configured maximum-results limit is not applied to this overload
+     * because the query source cannot adjust the Elasticsearch page size.</p>
+     *
+     * @param migrationId identifier used in search logging
+     * @param userToken IDAM user token
+     * @param s2sToken service-to-service token
+     * @param caseType CCD case type being searched
+     * @param querySource creates the query using the previous page's highest case reference
+     * @return matching cases
+     */
     public Set<CaseSummary> searchCases(
-        final String migrationId,
-        final UserToken userToken,
-        final S2sToken s2sToken,
-        final CaseType caseType,
-        final Function<Optional<Long>, JSONObject> querySource) {
+            final String migrationId,
+            final UserToken userToken,
+            final S2sToken s2sToken,
+            final CaseType caseType,
+            final Function<Optional<Long>, JSONObject> querySource) {
 
-        return searchCases(
+        return executeSearch(
             migrationId,
             userToken,
             s2sToken,
@@ -50,13 +64,55 @@ public class ElasticSearchHandler {
         );
     }
 
+    /**
+     * Executes a page-size-aware case search using the maximum-results setting
+     * from {@link ReimplConfig}.
+     *
+     * <p>The maximum applies to this search invocation only. For example, if a
+     * migration invokes this method once for each case type, a limit of 100 can
+     * return up to 100 cases per case type rather than 100 cases for the complete
+     * migration.</p>
+     *
+     * @param migrationId identifier used in search logging
+     * @param userToken IDAM user token
+     * @param s2sToken service-to-service token
+     * @param caseType CCD case type being searched
+     * @param querySource creates a query using the requested page size and the
+     *                    previous page's highest case reference
+     * @return matching cases, limited by the configured maximum when present
+     */
     public Set<CaseSummary> searchCases(
+            final String migrationId,
+            final UserToken userToken,
+            final S2sToken s2sToken,
+            final CaseType caseType,
+            final BiFunction<Integer, Optional<Long>, JSONObject> querySource) {
+
+        return executeSearch(
+            migrationId,
+            userToken,
+            s2sToken,
+            caseType,
+            reimplConfig.getMaximumResults(),
+            querySource
+        );
+    }
+
+    /**
+     * Performs one paginated Elasticsearch search for a single case type.
+     *
+     * <p>When a maximum is supplied, page sizes are reduced as the search
+     * approaches the limit and pagination stops once that many unique cases have
+     * been collected.</p>
+     */
+    private Set<CaseSummary> executeSearch(
             final String migrationId,
             final UserToken userToken,
             final S2sToken s2sToken,
             final CaseType caseType,
             final OptionalInt maximumResults,
             final BiFunction<Integer, Optional<Long>, JSONObject> querySource) {
+
         final int maximum = maximumResults.orElse(Integer.MAX_VALUE);
 
         if (maximum < 0) {
@@ -65,13 +121,16 @@ public class ElasticSearchHandler {
             );
         }
         if (maximum == 0) {
-            log.info(
-                "{}: maximum results is zero, skipping {} case search",
-                migrationId,
-                caseType
+            log.info("{}: maximum results is zero, skipping {} case search",
+                    migrationId,
+                    caseType
             );
             return Set.of();
         }
+        log.info("{}: limiting {} candidate search to {} cases; ",
+                migrationId,
+                caseType,
+                maximum);
 
         final int initialPageSize = Math.min(
             reimplConfig.getQuerySize(),
@@ -80,9 +139,10 @@ public class ElasticSearchHandler {
 
         final JSONObject initialQuery = querySource.apply(initialPageSize, Optional.empty());
 
-        log.info("{}: initial query for {} cases",
+        log.info("{}: initial query for {} cases with page size {}",
                 migrationId,
-                caseType);
+                caseType,
+                initialPageSize);
         final SearchResult initialResult = coreCaseDataApi.searchCases(
                 userToken.getBearerToken(),
                 s2sToken.s2sToken(),
@@ -127,9 +187,10 @@ public class ElasticSearchHandler {
                 nextPageSize,
                 Optional.of(highestCaseRef)
             );
-            log.info("{}: searching for next {} cases",
+            log.info("{}: searching for next {} cases with page size {}",
                     migrationId,
-                    caseType);
+                    caseType,
+                    nextPageSize);
             final SearchResult nextResult = coreCaseDataApi.searchCases(
                     userToken.getBearerToken(),
                     s2sToken.s2sToken(),
@@ -151,6 +212,11 @@ public class ElasticSearchHandler {
                 if (nextCases.isEmpty()) {
                     keepSearching = false;
                 } else {
+                    log.info("{}: next {} search returned {} cases",
+                            migrationId,
+                            caseType,
+                            nextCases.size()
+                    );
                     for (final CaseDetails cd : nextCases) {
                         if (candidateCases.size() >= maximum) {
                             keepSearching = false;
@@ -162,15 +228,16 @@ public class ElasticSearchHandler {
 
                     if (candidateCases.size() >= maximum) {
                         keepSearching = false;
-
-                        log.info("{}: reached maximum of {} {} cases",
-                                migrationId,
-                                maximum,
-                                caseType
-                        );
                     }
                 }
             }
+        }
+        if (maximumResults.isPresent()
+            && candidateCases.size() >= maximum) {
+            log.info("{}: reached configured maximum of {} candidate cases for {}",
+                    migrationId,
+                    maximum,
+                    caseType);
         }
         return Set.copyOf(candidateCases);
     }

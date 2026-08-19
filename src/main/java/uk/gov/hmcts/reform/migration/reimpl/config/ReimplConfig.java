@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,6 +36,8 @@ public class ReimplConfig {
     private final Optional<Set<CaseSummary>> casesToMigrate;
     private final int querySize;
     private final boolean dryRun;
+    private final boolean initialRun;
+    private final int initialSize;
 
     public ReimplConfig(
             @Value("${default.thread.limit}")
@@ -52,7 +55,16 @@ public class ReimplConfig {
             @Value("${case-migration.elasticsearch.querySize}")
             final int querySize,
             @Value("${migration.dryrun}")
-            final boolean dryRun) {
+            final boolean dryRun,
+            @Value("${migration.reimpl.initial_run:}")
+            final boolean initialRun,
+            @Value("${migration.reimpl.initial_size:}")
+            final int initialSize) {
+        if (initialRun && initialSize <= 0) {
+            throw new IllegalArgumentException(
+                "MIGRATION_INITIAL_SIZE must be greater than zero when MIGRATION_INITIAL_RUN is enabled"
+            );
+        }
         this.defaultThreadlimit = defaultThreadlimit;
         this.migrationId = Objects.requireNonNull(migrationId);
         this.userTokenRefreshMargin = Duration.ofMinutes(userTokenRefreshMarginMins);
@@ -61,6 +73,8 @@ public class ReimplConfig {
         this.casesToMigrate = processCasesConfig(casesToMigrate);
         this.querySize = querySize;
         this.dryRun = dryRun;
+        this.initialRun = initialRun;
+        this.initialSize = initialSize;
     }
 
     public String getMigrationId() {
@@ -89,6 +103,12 @@ public class ReimplConfig {
 
     public boolean isDryRun() {
         return dryRun;
+    }
+
+    public OptionalInt getMaximumResults() {
+        return initialRun
+            ? OptionalInt.of(initialSize)
+            : OptionalInt.empty();
     }
 
     /**
