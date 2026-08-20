@@ -46,7 +46,11 @@ public class ElasticSearchHandler {
      * @param caseType CCD case type being searched
      * @param querySource creates the query using the previous page's highest case reference
      * @return matching cases
+     * @deprecated use the page-size-aware {@link #searchCases(String, UserToken, S2sToken,
+     *     CaseType, BiFunction)} overload so that the configured maximum-results limit
+     *     can be applied
      */
+    @Deprecated
     public Set<CaseSummary> searchCases(
             final String migrationId,
             final UserToken userToken,
@@ -68,9 +72,9 @@ public class ElasticSearchHandler {
      * Executes a page-size-aware case search using the maximum-results setting
      * from {@link ReimplConfig}.
      *
-     * <p>The maximum applies to this search invocation only. For example, if a
-     * migration invokes this method once for each case type, a limit of 100 can
-     * return up to 100 cases per case type rather than 100 cases for the complete
+     * <p>The configured maximum applies to this search invocation only. For example,
+     * if a migration invokes this method once for each case type, a limit of 100 can
+     * return up to 100 cases per case type rather than 100 cases across the complete
      * migration.</p>
      *
      * @param migrationId identifier used in search logging
