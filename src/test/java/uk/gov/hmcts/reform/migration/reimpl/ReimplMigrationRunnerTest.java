@@ -56,6 +56,8 @@ class ReimplMigrationRunnerTest {
             .thenReturn(Optional.empty());
         when(reimplConfigMock.getCasesToExclude())
             .thenReturn(Optional.empty());
+        when(reimplConfigMock.getCasesToRestrictTo())
+            .thenReturn(Optional.empty());
         reimplMigrationRunner = new ReimplMigrationRunner(
                 reimplConfigMock,
                 authenticationProviderMock,
@@ -556,6 +558,116 @@ class ReimplMigrationRunnerTest {
                 () -> assertThat(reportingInfo.exceptionMigrations(), hasSize(0)),
                 () -> assertThat(actual, equalTo(ReimplMigrationRunner.TaskStatus.REQUEUE)),
                 () -> assertThat(Thread.currentThread().isInterrupted(), equalTo(true)));
+    }
+
+    @Test
+    void restrictCases_whenRestrictionAbsent_returnsAllCandidates() {
+        final Set<CaseSummary> candidates = Set.of(
+            new CaseSummary(1L, CaseType.CAVEAT),
+            new CaseSummary(
+                2L,
+                CaseType.GRANT_OF_REPRESENTATION
+            )
+        );
+
+        final Set<CaseSummary> result =
+            reimplMigrationRunner.restrictCases(
+                Optional.empty(),
+                candidates
+            );
+
+        assertThat(result, equalTo(candidates));
+    }
+
+    @Test
+    void restrictCases_whenRestrictionConfigured_returnsIntersection() {
+        final CaseSummary retainedCase =
+            new CaseSummary(1L, CaseType.CAVEAT);
+        final CaseSummary droppedCase =
+            new CaseSummary(
+                2L,
+                CaseType.GRANT_OF_REPRESENTATION
+            );
+
+        final Set<CaseSummary> result =
+            reimplMigrationRunner.restrictCases(
+                Optional.of(Set.of(retainedCase)),
+                Set.of(retainedCase, droppedCase)
+            );
+
+        assertThat(
+            result,
+            equalTo(Set.of(retainedCase))
+        );
+    }
+
+    @Test
+    void restrictCases_whenCaseTypeDoesNotMatch_dropsCandidate() {
+        final CaseSummary candidate =
+            new CaseSummary(1L, CaseType.CAVEAT);
+        final CaseSummary restriction =
+            new CaseSummary(
+                1L,
+                CaseType.GRANT_OF_REPRESENTATION
+            );
+
+        final Set<CaseSummary> result =
+            reimplMigrationRunner.restrictCases(
+                Optional.of(Set.of(restriction)),
+                Set.of(candidate)
+            );
+
+        assertThat(result, equalTo(Set.of()));
+    }
+
+    @Test
+    void runMigrations_whenRestrictionConfigured_stillSearchesCandidates()
+        throws ExecutionException, InterruptedException {
+
+        final CaseSummary retainedCase =
+            new CaseSummary(1L, CaseType.CAVEAT);
+        final CaseSummary droppedCase =
+            new CaseSummary(
+                2L,
+                CaseType.GRANT_OF_REPRESENTATION
+            );
+
+        when(reimplConfigMock.getMigrationId())
+            .thenReturn("RESTRICTED_CASES");
+        when(reimplConfigMock.getCasesToRestrictTo())
+            .thenReturn(Optional.of(Set.of(retainedCase)));
+
+        final UserToken userToken = mock();
+        final S2sToken s2sToken = mock();
+
+        when(authenticationProviderMock.getUserToken())
+            .thenReturn(userToken);
+        when(authenticationProviderMock.getS2sToken())
+            .thenReturn(s2sToken);
+
+        final MigrationHandler migrationHandler = mock();
+        when(migrationHandlersMock.get(any()))
+            .thenReturn(migrationHandler);
+        when(migrationHandler.getCandidateCases(userToken, s2sToken))
+            .thenReturn(Set.of(retainedCase, droppedCase));
+
+        final ExecutorService executorService = mock();
+        when(reimplConfigMock.getNewExecutor())
+            .thenReturn(executorService);
+
+        final Future<ReimplMigrationRunner.MigrationState> future = mock();
+        when(executorService.submit(argThat(submitArg())))
+            .thenReturn(future);
+        when(future.isDone()).thenReturn(true);
+        when(future.get())
+            .thenReturn(ReimplMigrationRunner.MigrationState.SUCCESS);
+
+        reimplMigrationRunner.runMigrations();
+
+        verify(migrationHandler)
+            .getCandidateCases(userToken, s2sToken);
+        verify(executorService, times(1))
+            .submit(argThat(submitArg()));
     }
 
     ArgumentMatcher<Callable<ReimplMigrationRunner.MigrationState>> submitArg() {

@@ -9,7 +9,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class Dtspb5539ConfigTest {
+class Dtspb5539ConfigTest {
     private static final List<String> VALID_CASE_TYPES = List.of(
         "GrantOfRepresentation",
         "Caveat",

@@ -15,8 +15,10 @@ import static com.github.npathai.hamcrestopt.OptionalMatchers.isEmpty;
 import static com.github.npathai.hamcrestopt.OptionalMatchers.isPresentAnd;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -121,6 +123,66 @@ class ReimplConfigTest {
         assertEquals(OptionalInt.of(10), result);
     }
 
+    @Test
+    void constructor_whenCasesToMigrateAndRestrictToConfigured_throws() {
+        final IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> createConfigWithCaseSelection(
+                "1:Caveat",
+                "1:Caveat"
+            )
+        );
+
+        assertThat(
+            exception.getMessage(),
+            equalTo(
+                "MIGRATION_CASES_TO_MIGRATE and MIGRATION_CASES_TO_RESTRICT_TO cannot both be configured"
+            )
+        );
+    }
+
+    @Test
+    void constructor_whenOnlyCasesToMigrateConfigured_succeeds() {
+        final ReimplConfig config = assertDoesNotThrow(
+            () -> createConfigWithCaseSelection(
+                "1:Caveat",
+                ""
+            )
+        );
+
+        assertAll(
+            () -> assertThat(
+                config.getCasesToMigrate(),
+                isPresentAnd(hasSize(1))
+            ),
+            () -> assertThat(
+                config.getCasesToRestrictTo(),
+                isEmpty()
+            )
+        );
+    }
+
+    @Test
+    void constructor_whenOnlyCasesToRestrictToConfigured_succeeds() {
+        final ReimplConfig config = assertDoesNotThrow(
+            () -> createConfigWithCaseSelection(
+                "",
+                "1:Caveat"
+            )
+        );
+
+        assertAll(
+            () -> assertThat(
+                config.getCasesToMigrate(),
+                isEmpty()
+            ),
+            () -> assertThat(
+                config.getCasesToRestrictTo(),
+                isPresentAnd(hasSize(1))
+            )
+        );
+    }
+
     private static ReimplConfig createConfig(
         final boolean initialRun,
         final int initialSize) {
@@ -129,12 +191,31 @@ class ReimplConfigTest {
             "TEST",         // migrationId
             1,              // userTokenRefreshMarginMins
             1,              // s2sTokenRefreshMarginMins
-            "",             // caseReferences/casesToMigrate
-            "",             // casesToRestrictTo/casesToExclude
+            "",             // casesToExclude
+            "",             // casesToMigrate
+            "",             // casesToRestrictTo
             10,             // querySize
             false,          // dryRun
             initialRun,
             initialSize
+        );
+    }
+
+    private static ReimplConfig createConfigWithCaseSelection(
+        final String casesToMigrate,
+        final String casesToRestrictTo) {
+        return new ReimplConfig(
+            1,                      // defaultThreadLimit
+            "TEST",                 // migrationId
+            1,                      // userTokenRefreshMarginMins
+            1,                      // s2sTokenRefreshMarginMins
+            "",                     // casesToExclude
+            casesToMigrate,
+            casesToRestrictTo,
+            10,                     // querySize
+            false,                  // dryRun
+            false,                  // initialRun
+            10                      // initialSize
         );
     }
 }

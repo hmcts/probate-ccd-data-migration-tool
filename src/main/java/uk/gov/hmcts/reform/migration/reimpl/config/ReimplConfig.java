@@ -34,6 +34,7 @@ public class ReimplConfig {
     private final Duration s2sTokenRefreshMargin;
     private final Optional<Set<CaseSummary>> casesToExclude;
     private final Optional<Set<CaseSummary>> casesToMigrate;
+    private final Optional<Set<CaseSummary>> casesToRestrictTo;
     private final int querySize;
     private final boolean dryRun;
     private final boolean initialRun;
@@ -50,8 +51,10 @@ public class ReimplConfig {
             final long s2sTokenRefreshMarginMins,
             @Value("${migration.reimpl.cases_to_exclude:}")
             final String casesToExclude,
-            @Value("${migration.reimpl.cases_to_migrate}")
+            @Value("${migration.reimpl.cases_to_migrate:}")
             final String casesToMigrate,
+            @Value("${migration.reimpl.cases_to_restrict_to:}")
+            final String casesToRestrictTo,
             @Value("${case-migration.elasticsearch.querySize}")
             final int querySize,
             @Value("${migration.dryrun}")
@@ -71,10 +74,12 @@ public class ReimplConfig {
         this.s2sTokenRefreshMargin = Duration.ofMinutes(s2sTokenRefreshMarginMins);
         this.casesToExclude = processCasesConfig(casesToExclude);
         this.casesToMigrate = processCasesConfig(casesToMigrate);
+        this.casesToRestrictTo = processCasesConfig(casesToRestrictTo);
         this.querySize = querySize;
         this.dryRun = dryRun;
         this.initialRun = initialRun;
         this.initialSize = initialSize;
+        validateCaseSelectionConfiguration();
     }
 
     public String getMigrationId() {
@@ -95,6 +100,10 @@ public class ReimplConfig {
 
     public Optional<Set<CaseSummary>> getCasesToMigrate() {
         return casesToMigrate;
+    }
+
+    public Optional<Set<CaseSummary>> getCasesToRestrictTo() {
+        return casesToRestrictTo;
     }
 
     public int getQuerySize() {
@@ -185,5 +194,14 @@ public class ReimplConfig {
             }
         }
         return Optional.of(caseSummarySet);
+    }
+
+    private void validateCaseSelectionConfiguration() {
+        if (casesToMigrate.isPresent()
+            && casesToRestrictTo.isPresent()) {
+            throw new IllegalArgumentException(
+                "MIGRATION_CASES_TO_MIGRATE and MIGRATION_CASES_TO_RESTRICT_TO cannot both be configured"
+            );
+        }
     }
 }
