@@ -52,16 +52,41 @@ public class ReimplMigrationRunner {
         log.info("{}: Starting migration", migrationId);
 
         try (final ExecutorService executorService = reimplConfig.getNewExecutor()) {
-            final Set<CaseSummary> candidateCaseReferences = migrationHandler.getCandidateCases(
+            final Set<CaseSummary> candidateCaseReferences;
+            final Optional<Set<CaseSummary>> casesToMigrate = reimplConfig.getCasesToMigrate();
+            final Optional<Set<CaseSummary>> casesToRestrictTo = reimplConfig.getCasesToRestrictTo();
+
+            if (casesToMigrate.isPresent()) {
+                log.info("{}: Running migration for {} cases from configuration",
+                        migrationId,
+                        casesToMigrate.get().size());
+                candidateCaseReferences = Set.copyOf(casesToMigrate.get());
+            } else {
+                log.info("{}: CasesToMigrate is unset, start to getCandidateCases", migrationId);
+                final Set<CaseSummary> eligibleCases = migrationHandler.getCandidateCases(
                     authenticationProvider.getUserToken(),
                     authenticationProvider.getS2sToken());
-            log.info("{}: Identified {} candidate cases for migration", migrationId, candidateCaseReferences.size());
+                log.info("{}: Identified {} candidate cases for migration",
+                    migrationId,
+                    eligibleCases.size());
 
-            final Set<CaseSummary> filteredCaseReferences = filterCases(
-                    reimplConfig.getCasesToRestrictTo(),
+                candidateCaseReferences = restrictCases(
+                    casesToRestrictTo,
+                    eligibleCases
+                );
+
+                log.info(
+                    "{}: identified {} candidate cases after restriction",
+                    migrationId,
+                    candidateCaseReferences.size()
+                );
+            }
+
+            final Set<CaseSummary> filteredCaseReferences = excludeCases(
+                    reimplConfig.getCasesToExclude(),
                     candidateCaseReferences);
             log.info("{}: Identified {} cases after filtering from configuration",
-                    migrationId,
+                migrationId,
                 filteredCaseReferences.size());
 
             Queue<MigrationTask> taskQueue = new ArrayDeque<>(filteredCaseReferences.size());
@@ -98,21 +123,44 @@ public class ReimplMigrationRunner {
         report(reportingInfo);
     }
 
-    Set<CaseSummary> filterCases(
-            final Optional<Set<CaseSummary>> casesToFilterTo,
+    Set<CaseSummary> excludeCases(
+            final Optional<Set<CaseSummary>> casesToExclude,
             final Set<CaseSummary> candidateCaseReferences) {
+        final Set<CaseSummary> exclusions = casesToExclude.orElseGet(Set::of);
         final String migrationId = reimplConfig.getMigrationId();
-        if (casesToFilterTo.isEmpty()) {
-            log.info("{}: No cases to filter to set, returning original input", migrationId);
+        if (exclusions.isEmpty()) {
+            log.info("{}: No cases configured for exclusion, returning original input", migrationId);
             return Set.copyOf(candidateCaseReferences);
         }
         return candidateCaseReferences.stream()
             .filter(c -> {
-                if (casesToFilterTo.get().contains(c)) {
-                    log.info("{}: found case {} in filter list", migrationId, c);
+                if (exclusions.contains(c)) {
+                    log.info("{}: found case {} in exclude list so dropping", migrationId, c);
+                    return false;
+                } else {
+                    log.info("{}: case {} not present in exclude list", migrationId, c);
+                    return true;
+                }
+            })
+            .collect(Collectors.toUnmodifiableSet());
+    }
+
+    Set<CaseSummary> restrictCases(
+        final Optional<Set<CaseSummary>> casesToRestrictTo,
+        final Set<CaseSummary> candidateCaseReferences) {
+        final String migrationId = reimplConfig.getMigrationId();
+        if (casesToRestrictTo.isEmpty()) {
+            log.info("{}: no case restriction configured", migrationId);
+            return Set.copyOf(candidateCaseReferences);
+        }
+        final Set<CaseSummary> restrictions = casesToRestrictTo.get();
+        return candidateCaseReferences.stream()
+            .filter(c -> {
+                if (restrictions.contains(c)) {
+                    log.info("{}: found case {} in restriction list", migrationId, c);
                     return true;
                 } else {
-                    log.info("{}: case {} not present in filter list so dropping", migrationId, c);
+                    log.info("{}: case {} not present in restriction list so dropping", migrationId, c);
                     return false;
                 }
             })

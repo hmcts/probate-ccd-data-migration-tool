@@ -4,6 +4,7 @@
 !gradle/wrapper/gradle-wrapper.jar
 target/
 .aat-env
+*.sh
 
 ### STS ###
 .apt_generated

@@ -2,10 +2,6 @@
 
 CCD Case Migration Starter provides a framework for data migrations within CCD , to assist with case migrations that are required when the case definition changes in a way that requires existing cases to be updated to match the new case definition.
 
-The framework runs the following process :-
-
-![diagram](docs/process.png)
-
 The source code is maintained as a template within GitHub and is typically either cloned by a service team to establish a migration capability , or branched within the repository.
 
 CCD Case Migration Starter framework source code is located in HMCTS GitHub repository  https://github.com/hmcts/ccd-case-migration-starter
@@ -75,6 +71,82 @@ migration.caseId= # optional CCD case ID in case only one case needs to be migra
 case-migration.elasticsearch.querySize= # Elasticsearch query size limit
 case-migration.processing.limit= # Migration processing size limit
 ```
+
+
+## Re-implemented migration runner
+
+Reimplemented migration runner supports direct case selection, candidate-query restriction, exclusions, and limited initial runs.
+
+### Case selection
+
+The following environment variables control which cases are migrated:
+
+| Environment variable | Candidate query | Behaviour |
+| --- | --- | --- |
+| `MIGRATION_CASES_TO_MIGRATE` | Skipped | Migrates exactly the configured cases. This is the efficient option when the case references are already known. |
+| `MIGRATION_CASES_TO_RESTRICT_TO` | Executed | Intersects the eligible query results with the configured cases. This is primarily intended for demo and integration testing of migration queries while limiting the cases that are changed. |
+| `MIGRATION_CASES_TO_EXCLUDE` | Depends on the selection path | Removes the configured cases from the final selection after direct selection or candidate querying. |
+
+The corresponding application properties are:
+
+```properties
+migration.reimpl.cases_to_migrate=${MIGRATION_CASES_TO_MIGRATE:}
+migration.reimpl.cases_to_restrict_to=${MIGRATION_CASES_TO_RESTRICT_TO:}
+migration.reimpl.cases_to_exclude=${MIGRATION_CASES_TO_EXCLUDE:}
+```
+
+`MIGRATION_CASES_TO_MIGRATE` and `MIGRATION_CASES_TO_RESTRICT_TO` cannot both be configured. The application fails during configuration when both values are present.
+
+Case lists use the following format:
+
+```text
+case-reference:case-type,case-reference:case-type
+```
+
+For example:
+
+```text
+1234567890123456:Caveat,1234567890123457:GrantOfRepresentation
+```
+
+Case type forms part of a case's identity for selection purposes. A case reference configured with the wrong case type does not match the candidate case.
+
+The selection order is:
+
+1. When `MIGRATION_CASES_TO_MIGRATE` is configured, use those cases directly and skip the candidate query.
+2. Otherwise, execute the migration's candidate query and optionally intersect its results with `MIGRATION_CASES_TO_RESTRICT_TO`.
+3. Remove any cases configured in `MIGRATION_CASES_TO_EXCLUDE`.
+4. Queue the remaining cases for migration.
+
+### Limiting an initial run
+
+The following properties limit page-size-aware Elasticsearch candidate searches:
+
+```properties
+# Limits each page-size-aware Elasticsearch search invocation.
+# A migration searching multiple case types may apply this limit once per case type.
+migration.reimpl.initial_run=${MIGRATION_INITIAL_RUN:false}
+migration.reimpl.initial_size=${MIGRATION_INITIAL_SIZE:10}
+```
+
+The default is an unlimited run because `MIGRATION_INITIAL_RUN` is `false`. When it is set to `true`, each page-size-aware candidate search returns at most `MIGRATION_INITIAL_SIZE` cases.
+
+The limit applies per search invocation, not necessarily to the migration as a whole. If a migration performs one search for each of four case types with an initial size of 10, it may retrieve up to 10 cases per case type and therefore up to 40 cases overall.
+
+The tool logs when a limit is applied and when a search reaches that limit.
+
+Avoid combining a small `MIGRATION_INITIAL_SIZE` with `MIGRATION_CASES_TO_RESTRICT_TO`. A configured restricted case is not selected if it falls outside the limited candidate-query results.
+
+### Common scenarios
+
+| Scenario | Configuration |
+| --- | --- |
+| Migrate every eligible case | Leave `MIGRATION_CASES_TO_MIGRATE` and `MIGRATION_CASES_TO_RESTRICT_TO` unset; leave `MIGRATION_INITIAL_RUN` as `false`. |
+| Migrate up to a fixed number of eligible cases | Set `MIGRATION_INITIAL_RUN=true` and set `MIGRATION_INITIAL_SIZE` to the required per-search maximum. |
+| Migrate a fixed set of known cases without running the candidate query | Set `MIGRATION_CASES_TO_MIGRATE`. |
+| Verify that known cases are selected by the candidate query and migrate only those matches | Set `MIGRATION_CASES_TO_RESTRICT_TO`; normally leave the initial-run limit disabled. |
+| Skip known cases from an otherwise selected set | Set `MIGRATION_CASES_TO_EXCLUDE`. |
+
 
 ## Unit tests
 

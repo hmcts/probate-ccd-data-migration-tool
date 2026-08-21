@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.gov.hmcts.reform.migration.reimpl.TestUtils.jsonArrayWith;
 
-public class Dtspb5539ElasticQueriesTest {
+class Dtspb5539ElasticQueriesTest {
     Dtspb5539ElasticQueries dtspb5539ElasticQueries;
 
     @Spy
