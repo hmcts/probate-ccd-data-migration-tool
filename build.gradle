@@ -19,7 +19,7 @@ application {
 
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(21)
+    languageVersion = JavaLanguageVersion.of(25)
   }
 }
 
@@ -114,7 +114,7 @@ tasks.register('smoke', Test) {
 
 checkstyle {
   maxWarnings = 0
-  toolVersion = '13.11.0'
+  toolVersion = '14.0.0'
   getConfigDirectory().set(new File(rootDir, 'config/checkstyle'))
 }
 
@@ -180,7 +180,7 @@ repositories {
 ext {
   log4JVersion       = "2.26.1"
   lombokVersion      = "1.18.46"
-  springSecurity     =  '7.1.0'
+  springSecurity     =  '7.1.1'
   springCloudVersion = '2025.0.3'
 }
 
