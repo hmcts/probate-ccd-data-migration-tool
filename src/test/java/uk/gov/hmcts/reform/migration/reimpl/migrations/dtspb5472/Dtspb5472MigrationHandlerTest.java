@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,8 +23,10 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -103,7 +106,7 @@ class Dtspb5472MigrationHandlerTest {
                         any(),
                         any(),
                         eq(CaseType.GRANT_OF_REPRESENTATION),
-                        any()))
+                        anyQuery()))
                 .thenReturn(Set.of(gorCase));
 
         final Set<CaseSummary> candidateCases = dtspb5472MigrationHandler.getCandidateCases(
@@ -116,7 +119,7 @@ class Dtspb5472MigrationHandlerTest {
                         eq(userToken),
                         eq(s2sToken),
                         eq(CaseType.GRANT_OF_REPRESENTATION),
-                        any()),
+                        anyQuery()),
                 () -> assertThat(candidateCases, hasSize(1)),
                 () -> assertThat(candidateCases, contains(gorCase)));
     }
@@ -498,5 +501,9 @@ class Dtspb5472MigrationHandlerTest {
                         any(),
                         anyBoolean(),
                         any()));
+    }
+
+    private static Function<Optional<Long>, JSONObject> anyQuery() {
+        return any();
     }
 }

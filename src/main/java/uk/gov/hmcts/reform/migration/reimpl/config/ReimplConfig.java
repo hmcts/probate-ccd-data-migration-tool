@@ -8,19 +8,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5005.Dtspb5005RollbackMigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5064.Dtspb5064RollbackMigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5113.Dtspb5113RollbackMigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5130.Dtspb5130RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586.Dtspb5586MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5586.Dtspb5586RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.time.Clock;
@@ -29,6 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,10 +32,13 @@ public class ReimplConfig {
     private final String migrationId;
     private final Duration userTokenRefreshMargin;
     private final Duration s2sTokenRefreshMargin;
-    private final Optional<Set<CaseSummary>> caseReferences;
+    private final Optional<Set<CaseSummary>> casesToExclude;
+    private final Optional<Set<CaseSummary>> casesToMigrate;
     private final Optional<Set<CaseSummary>> casesToRestrictTo;
     private final int querySize;
     private final boolean dryRun;
+    private final boolean initialRun;
+    private final int initialSize;
 
     public ReimplConfig(
             @Value("${default.thread.limit}")
@@ -55,22 +49,37 @@ public class ReimplConfig {
             final long userTokenRefreshMarginMins,
             @Value("${migration.reimpl.s2s_token_refresh_margin_mins}")
             final long s2sTokenRefreshMarginMins,
-            @Value("${case.migration.processing.caseReferences:}")
-            final String caseReferences,
-            @Value("${migration.reimpl.cases_to_restrict_to}")
+            @Value("${migration.reimpl.cases_to_exclude:}")
+            final String casesToExclude,
+            @Value("${migration.reimpl.cases_to_migrate:}")
+            final String casesToMigrate,
+            @Value("${migration.reimpl.cases_to_restrict_to:}")
             final String casesToRestrictTo,
             @Value("${case-migration.elasticsearch.querySize}")
             final int querySize,
             @Value("${migration.dryrun}")
-            final boolean dryRun) {
+            final boolean dryRun,
+            @Value("${migration.reimpl.initial_run:}")
+            final boolean initialRun,
+            @Value("${migration.reimpl.initial_size:}")
+            final int initialSize) {
+        if (initialRun && initialSize <= 0) {
+            throw new IllegalArgumentException(
+                "MIGRATION_INITIAL_SIZE must be greater than zero when MIGRATION_INITIAL_RUN is enabled"
+            );
+        }
         this.defaultThreadlimit = defaultThreadlimit;
         this.migrationId = Objects.requireNonNull(migrationId);
         this.userTokenRefreshMargin = Duration.ofMinutes(userTokenRefreshMarginMins);
         this.s2sTokenRefreshMargin = Duration.ofMinutes(s2sTokenRefreshMarginMins);
-        this.caseReferences = processCasesConfig(caseReferences);
+        this.casesToExclude = processCasesConfig(casesToExclude);
+        this.casesToMigrate = processCasesConfig(casesToMigrate);
         this.casesToRestrictTo = processCasesConfig(casesToRestrictTo);
         this.querySize = querySize;
         this.dryRun = dryRun;
+        this.initialRun = initialRun;
+        this.initialSize = initialSize;
+        validateCaseSelectionConfiguration();
     }
 
     public String getMigrationId() {
@@ -85,8 +94,12 @@ public class ReimplConfig {
         return s2sTokenRefreshMargin;
     }
 
-    public Optional<Set<CaseSummary>> getCaseReferences() {
-        return caseReferences;
+    public Optional<Set<CaseSummary>> getCasesToExclude() {
+        return casesToExclude;
+    }
+
+    public Optional<Set<CaseSummary>> getCasesToMigrate() {
+        return casesToMigrate;
     }
 
     public Optional<Set<CaseSummary>> getCasesToRestrictTo() {
@@ -101,6 +114,12 @@ public class ReimplConfig {
         return dryRun;
     }
 
+    public OptionalInt getMaximumResults() {
+        return initialRun
+            ? OptionalInt.of(initialSize)
+            : OptionalInt.empty();
+    }
+
     /**
      * Creates and returns a NEW ExecutorService on each call. The caller MUST close it (e.g. by using a
      * try-with-resources when requesting it).
@@ -112,33 +131,13 @@ public class ReimplConfig {
 
     @Bean
     public Map<String, MigrationHandler> migrationHandlers(
-        final Dtspb5005MigrationHandler dtspb5005MigrationHandler,
-        final Dtspb5005RollbackMigrationHandler dtspb5005RollbackMigrationHandler,
-        final Dtspb5130MigrationHandler dtspb5130MigrationHandler,
-        final Dtspb5130RollbackMigrationHandler dtspb5130RollbackMigrationHandler,
-        final Dtspb5113MigrationHandler dtspb5113MigrationHandler,
-        final Dtspb5113RollbackMigrationHandler dtspb5113RollbackMigrationHandler,
         final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
         final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
-        final Dtspb5539MigrationHandler dtspb5539MigrationHandler,
-        final Dtspb5064MigrationHandler dtspb5064MigrationHandler,
-        final Dtspb5064RollbackMigrationHandler dtspb5064RollbackMigrationHandler,
-        final Dtspb5586MigrationHandler dtspb5586MigrationHandler,
-        final Dtspb5586RollbackMigrationHandler dtspb5586RollbackMigrationHandler
+        final Dtspb5539MigrationHandler dtspb5539MigrationHandler
     ) {
         return Map.ofEntries(
-            Map.entry("DTSPB-5005", dtspb5005MigrationHandler),
-            Map.entry("DTSPB-5005_rollback", dtspb5005RollbackMigrationHandler),
-            Map.entry("DTSPB-5130", dtspb5130MigrationHandler),
-            Map.entry("DTSPB-5130_rollback", dtspb5130RollbackMigrationHandler),
-            Map.entry("DTSPB-5113", dtspb5113MigrationHandler),
-            Map.entry("DTSPB-5113_rollback", dtspb5113RollbackMigrationHandler),
             Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
             Map.entry("DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler),
-            Map.entry("DTSPB-5064", dtspb5064MigrationHandler),
-            Map.entry("DTSPB-5064_rollback", dtspb5064RollbackMigrationHandler),
-            Map.entry("DTSPB-5586", dtspb5586MigrationHandler),
-            Map.entry("DTSPB-5586_rollback", dtspb5586RollbackMigrationHandler),
             Map.entry("DTSPB-5539", dtspb5539MigrationHandler)
             );
     }
@@ -195,5 +194,14 @@ public class ReimplConfig {
             }
         }
         return Optional.of(caseSummarySet);
+    }
+
+    private void validateCaseSelectionConfiguration() {
+        if (casesToMigrate.isPresent()
+            && casesToRestrictTo.isPresent()) {
+            throw new IllegalArgumentException(
+                "MIGRATION_CASES_TO_MIGRATE and MIGRATION_CASES_TO_RESTRICT_TO cannot both be configured"
+            );
+        }
     }
 }

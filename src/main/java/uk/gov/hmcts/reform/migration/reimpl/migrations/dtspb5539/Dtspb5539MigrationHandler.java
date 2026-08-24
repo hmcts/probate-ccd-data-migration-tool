@@ -36,7 +36,6 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     private final Dtspb5539Config config;
     static final String MIGRATION_SUMMARY = "DTSPB-5539 - Add metadata for Global Search";
     static final String MIGRATION_DESCRIPTION = "Add metadata for Global Search";
-    static final String ROLLBACK_ID = "DTSPB-5539";
     private final ReimplConfig commonConfig;
     private static final String SUPPLEMENTARY_FIELD = "supplementary_data_updates";
     private static final String SET_OPERATION = "$set";
@@ -60,23 +59,18 @@ public class Dtspb5539MigrationHandler implements MigrationHandler {
     @Override
     public Set<CaseSummary> getCandidateCases(UserToken userToken, S2sToken s2sToken) {
         final Set<CaseSummary> candidateCases = new HashSet<>();
-        for (CaseType caseType : config.getCaseTypes()) {
-            log.info("Starting candidate case search for case type: {}",
-                caseType);
-            final Set<CaseSummary> candidates = elasticSearchHandler.searchCases(
-                "DTSPB-5539",
-                userToken,
-                s2sToken,
-                caseType,
-                fR -> elasticQueries.getMigrationQuery(commonConfig.getQuerySize(), fR));
 
-            if (config.isInitialRun()) {
-                candidates.stream()
-                    .limit(config.getInitialSize())
-                    .forEach(candidateCases::add);
-            } else {
-                candidateCases.addAll(candidates);
-            }
+        for (CaseType caseType : config.getCaseTypes()) {
+            log.info("Starting candidate case search for case type: {}", caseType);
+            candidateCases.addAll(
+                elasticSearchHandler.searchCases(
+                    "DTSPB-5539",
+                    userToken,
+                    s2sToken,
+                    caseType,
+                    elasticQueries::getMigrationQuery
+                )
+            );
         }
 
         return Set.copyOf(candidateCases);
