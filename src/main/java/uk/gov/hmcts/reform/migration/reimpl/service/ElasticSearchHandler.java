@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.service;
 
+import feign.FeignException;
+import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,7 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -26,6 +29,9 @@ import java.util.function.Function;
 public class ElasticSearchHandler {
     private final CoreCaseDataApi coreCaseDataApi;
     private final ReimplConfig reimplConfig;
+
+    private static final int SEARCH_MAX_ATTEMPTS = 3;
+    private static final int SEARCH_RETRY_DELAY_SECONDS = 2;
 
     public ElasticSearchHandler(CoreCaseDataApi coreCaseDataApi,
                                 final ReimplConfig reimplConfig) {
@@ -147,11 +153,12 @@ public class ElasticSearchHandler {
                 migrationId,
                 caseType,
                 initialPageSize);
-        final SearchResult initialResult = coreCaseDataApi.searchCases(
-                userToken.getBearerToken(),
-                s2sToken.s2sToken(),
-                caseType.getCcdValue(),
-                initialQuery.toString());
+        final SearchResult initialResult = searchCasesWithRetry(
+                migrationId,
+                userToken,
+                s2sToken,
+                caseType,
+                initialQuery);
 
         if (initialResult == null
                 || initialResult.getTotal() == 0) {
@@ -195,11 +202,12 @@ public class ElasticSearchHandler {
                     migrationId,
                     caseType,
                     nextPageSize);
-            final SearchResult nextResult = coreCaseDataApi.searchCases(
-                    userToken.getBearerToken(),
-                    s2sToken.s2sToken(),
-                    caseType.getCcdValue(),
-                    nextQuery.toString());
+            final SearchResult nextResult = searchCasesWithRetry(
+                    migrationId,
+                    userToken,
+                    s2sToken,
+                    caseType,
+                    nextQuery);
 
             if (nextResult == null) {
                 keepSearching = false;
@@ -244,5 +252,63 @@ public class ElasticSearchHandler {
                     caseType);
         }
         return Set.copyOf(candidateCases);
+    }
+
+    private SearchResult searchCasesWithRetry(
+        final String migrationId,
+        final UserToken userToken,
+        final S2sToken s2sToken,
+        final CaseType caseType,
+        final JSONObject query) {
+
+        for (int attempt = 1; attempt <= SEARCH_MAX_ATTEMPTS; attempt++) {
+            try {
+                return coreCaseDataApi.searchCases(
+                    userToken.getBearerToken(),
+                    s2sToken.s2sToken(),
+                    caseType.getCcdValue(),
+                    query.toString()
+                );
+            } catch (final FeignException e) {
+                if (!isRetryable(e) || attempt == SEARCH_MAX_ATTEMPTS) {
+                    throw e;
+                }
+
+                final long delaySeconds = (long) SEARCH_RETRY_DELAY_SECONDS * attempt;
+
+                log.warn(
+                    "{}: {} case search failed with status {} on attempt {}/{}; retrying in {} seconds",
+                    migrationId,
+                    caseType,
+                    e.status(),
+                    attempt,
+                    SEARCH_MAX_ATTEMPTS,
+                    delaySeconds
+                );
+
+                delayBeforeRetry(delaySeconds);
+            }
+        }
+
+        throw new IllegalStateException("Unexpected end of CCD search retry loop");
+    }
+
+    private boolean isRetryable(final FeignException e) {
+        return e instanceof RetryableException
+            || e.status() == 502
+            || e.status() == 503
+            || e.status() == 504;
+    }
+
+    void delayBeforeRetry(final long delaySeconds) {
+        try {
+            Thread.sleep(Duration.ofSeconds(delaySeconds));
+        } catch (final InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(
+                "Interrupted while waiting to retry CCD case search",
+                e
+            );
+        }
     }
 }

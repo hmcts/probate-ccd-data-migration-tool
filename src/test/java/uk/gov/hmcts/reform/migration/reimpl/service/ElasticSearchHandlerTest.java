@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.migration.reimpl.service;
 
+import feign.FeignException;
+import feign.RetryableException;
 import org.hamcrest.Matchers;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -438,5 +440,170 @@ class ElasticSearchHandlerTest {
         verify(querySource).apply(2, Optional.of(1L));
         verify(coreCaseDataApiMock, times(2))
             .searchCases(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRetryGatewayTimeoutAndSucceed() {
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(1));
+
+        final JSONObject queryJson = mock();
+        when(queryJson.toString()).thenReturn("RETRY_QUERY");
+
+        final BiFunction<Integer, Optional<Long>, JSONObject> querySource = mock();
+        when(querySource.apply(1, Optional.empty()))
+            .thenReturn(queryJson);
+
+        final SearchResult searchResult = mock();
+        final List<CaseDetails> resultCases = caseDetailsMocks(1L, 1L);
+
+        when(searchResult.getTotal()).thenReturn(1);
+        when(searchResult.getCases()).thenReturn(resultCases);
+
+        final FeignException gatewayTimeout = mock(FeignException.class);
+        when(gatewayTimeout.status()).thenReturn(504);
+
+        when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
+            .thenThrow(gatewayTimeout)
+            .thenReturn(searchResult);
+
+        final ElasticSearchHandler handler = handlerWithoutRetryDelay();
+
+        final Set<CaseSummary> result = handler.searchCases(
+            "RETRY_504",
+            mock(UserToken.class),
+            mock(S2sToken.class),
+            CaseType.CAVEAT,
+            querySource
+        );
+
+        assertThat(result, Matchers.hasSize(1));
+
+        verify(coreCaseDataApiMock, times(2))
+            .searchCases(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRethrowGatewayTimeoutAfterMaximumAttempts() {
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(1));
+
+        final JSONObject queryJson = mock();
+        when(queryJson.toString()).thenReturn("RETRY_QUERY");
+
+        final BiFunction<Integer, Optional<Long>, JSONObject> querySource = mock();
+        when(querySource.apply(1, Optional.empty()))
+            .thenReturn(queryJson);
+
+        final FeignException gatewayTimeout = mock(FeignException.class);
+        when(gatewayTimeout.status()).thenReturn(504);
+
+        when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
+            .thenThrow(gatewayTimeout);
+
+        final ElasticSearchHandler handler = handlerWithoutRetryDelay();
+
+        assertThrows(
+            FeignException.class,
+            () -> handler.searchCases(
+                "RETRY_504_EXHAUSTED",
+                mock(UserToken.class),
+                mock(S2sToken.class),
+                CaseType.CAVEAT,
+                querySource
+            )
+        );
+
+        verify(coreCaseDataApiMock, times(3))
+            .searchCases(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldNotRetryNonTransientError() {
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(1));
+
+        final JSONObject queryJson = mock();
+        when(queryJson.toString()).thenReturn("NON_RETRYABLE_QUERY");
+
+        final BiFunction<Integer, Optional<Long>, JSONObject> querySource = mock();
+        when(querySource.apply(1, Optional.empty()))
+            .thenReturn(queryJson);
+
+        final FeignException badRequest = mock(FeignException.class);
+        when(badRequest.status()).thenReturn(400);
+
+        when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
+            .thenThrow(badRequest);
+
+        final ElasticSearchHandler handler = handlerWithoutRetryDelay();
+
+        assertThrows(
+            FeignException.class,
+            () -> handler.searchCases(
+                "NON_RETRYABLE",
+                mock(UserToken.class),
+                mock(S2sToken.class),
+                CaseType.CAVEAT,
+                querySource
+            )
+        );
+
+        verify(coreCaseDataApiMock, times(1))
+            .searchCases(any(), any(), any(), any());
+    }
+
+    @Test
+    void shouldRetryRetryableException() {
+        when(reimplConfigMock.getMaximumResults())
+            .thenReturn(OptionalInt.of(1));
+
+        final JSONObject queryJson = mock();
+        when(queryJson.toString()).thenReturn("RETRYABLE_QUERY");
+
+        final BiFunction<Integer, Optional<Long>, JSONObject> querySource = mock();
+        when(querySource.apply(1, Optional.empty()))
+            .thenReturn(queryJson);
+
+        final SearchResult searchResult = mock();
+        final List<CaseDetails> resultCases = caseDetailsMocks(1L, 1L);
+
+        when(searchResult.getTotal()).thenReturn(1);
+        when(searchResult.getCases()).thenReturn(resultCases);
+
+        final RetryableException retryableException =
+            mock(RetryableException.class);
+        when(retryableException.status()).thenReturn(-1);
+
+        when(coreCaseDataApiMock.searchCases(any(), any(), any(), any()))
+            .thenThrow(retryableException)
+            .thenReturn(searchResult);
+
+        final ElasticSearchHandler handler = handlerWithoutRetryDelay();
+
+        final Set<CaseSummary> result = handler.searchCases(
+            "RETRYABLE_EXCEPTION",
+            mock(UserToken.class),
+            mock(S2sToken.class),
+            CaseType.CAVEAT,
+            querySource
+        );
+
+        assertThat(result, Matchers.hasSize(1));
+
+        verify(coreCaseDataApiMock, times(2))
+            .searchCases(any(), any(), any(), any());
+    }
+
+    private ElasticSearchHandler handlerWithoutRetryDelay() {
+        return new ElasticSearchHandler(
+            coreCaseDataApiMock,
+            reimplConfigMock
+        ) {
+            @Override
+            void delayBeforeRetry(final long delaySeconds) {
+                // no delay in tests
+            }
+        };
     }
 }
