@@ -10,7 +10,7 @@
     {
       "description": "IDAM client 4.x targets Spring Boot 4; keep this repo on the Boot 3 compatible 3.x line.",
       "matchPackageNames": ["com.github.hmcts:idam-java-client"],
-      "allowedVersions": "<4.0.0"
+      "allowedVersions": "<3.1.0"
     },
     {
       "description": "Spring Cloud 2025.1.x targets Spring Boot 4; keep this repo on the Boot 3 compatible 2025.0.x line.",
