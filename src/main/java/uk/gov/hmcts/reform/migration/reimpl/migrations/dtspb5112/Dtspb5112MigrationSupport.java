@@ -58,6 +58,14 @@ public class Dtspb5112MigrationSupport {
         data.put(Dtspb5112Constants.MIGRATION_CALLBACK_METADATA, metadata.toString());
     }
 
+    public void addMigrationCallbackMetadata(Map<String, Object> data, String migrationId, String originalState) {
+        JSONObject metadata = new JSONObject()
+            .put("migrationId", migrationId)
+            .put("originalState", originalState);
+
+        data.put(Dtspb5112Constants.MIGRATION_CALLBACK_METADATA, metadata.toString());
+    }
+
     public boolean submit(MigrationEvent migrationEvent, Map<String, Object> data, String summary, String description) {
         if (commonConfig.isDryRun()) {
             return true;
