@@ -9,7 +9,9 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112Constants.ROLLBACK_EVENT;
 
@@ -19,6 +21,7 @@ abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements Migrati
     private final Dtspb5112ElasticQueries queries;
     protected final Dtspb5112MigrationSupport support;
     private final Dtspb5112RollbackSupport rollbackSupport;
+    private final Map<Long, String> originalStates = new ConcurrentHashMap<>();
 
     AbstractDtspb5112CloseRollbackMigrationHandler(
         ElasticSearchHandler elasticSearchHandler,
@@ -65,14 +68,48 @@ abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements Migrati
 
     @Override
     public boolean shouldMigrateCase(MigrationEvent migrationEvent) {
-        return Dtspb5112Constants.CAVEAT_CLOSED.equals(support.requireCaseDetails(migrationEvent).getState())
-            && rollbackSupport.hasMigrationEvent(migrationEvent, migrationDescription());
+        if (!Dtspb5112Constants.CAVEAT_CLOSED.equals(
+            support.requireCaseDetails(migrationEvent).getState()
+        )) {
+            return false;
+        }
+
+        Optional<String> originalState =
+            rollbackSupport.findOriginalStateForMigration(
+                    migrationEvent,
+                    migrationDescription()
+                )
+                .filter(Dtspb5112Constants.LIVE_STATES::contains);
+
+        originalState.ifPresent(state ->
+            originalStates.put(
+                migrationEvent.caseSummary().reference(),
+                state
+            )
+        );
+
+        return originalState.isPresent();
     }
 
     @Override
     public boolean migrate(MigrationEvent migrationEvent) {
+        Long reference = migrationEvent.caseSummary().reference();
+
+        String originalState = originalStates.remove(reference);
+
+        if (originalState == null) {
+            originalState = rollbackSupport
+                .findOriginalStateForMigration(
+                    migrationEvent,
+                    migrationDescription()
+                )
+                .filter(Dtspb5112Constants.LIVE_STATES::contains)
+                .orElseThrow(() -> new IllegalStateException(
+                    "Unable to determine original state for case " + reference
+                ));
+        }
         Map<String, Object> data = support.mutableData(migrationEvent);
-        support.addMigrationCallbackMetadata(data, rollbackId());
+        support.addMigrationCallbackMetadata(data, rollbackId(), originalState);
         return support.submit(migrationEvent, data, rollbackSummary(), rollbackDescription());
     }
 }

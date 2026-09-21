@@ -66,7 +66,7 @@ public class Dtspb5112PaAppCreatedRollbackMigrationHandler implements MigrationH
             && rollbackSupport.hasMigrationEvent(
                 migrationEvent,
                 Dtspb5112PaAppCreatedMigrationHandler.DESCRIPTION
-            );
+        );
     }
 
     @Override

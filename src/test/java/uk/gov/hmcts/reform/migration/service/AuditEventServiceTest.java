@@ -65,7 +65,7 @@ class AuditEventServiceTest {
             .thenReturn(AuditEventsResponse.builder().auditEvents(List.of(expectedAuditEvent)).build());
 
         Optional<AuditEvent> actualAuditEvent
-            = auditEventService.getLatestAuditEventByName(CASE_ID, Arrays.asList("boCorrection"), USER_TOKEN,
+            = auditEventService.getLatestAuditEventExcluding(CASE_ID, Arrays.asList("boCorrection"), USER_TOKEN,
             SERVICE_TOKEN);
 
         assertTrue(actualAuditEvent.isPresent());
@@ -82,7 +82,7 @@ class AuditEventServiceTest {
         when(auditEventsResponse.getAuditEvents()).thenReturn(List.of(expectedAuditEvent));
 
         Optional<AuditEvent> actualAuditEvent
-            = auditEventService.getLatestAuditEventByName(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
+            = auditEventService.getLatestAuditEventExcluding(CASE_ID, eventName, USER_TOKEN, SERVICE_TOKEN);
 
         assertThat(actualAuditEvent).isEmpty();
     }
