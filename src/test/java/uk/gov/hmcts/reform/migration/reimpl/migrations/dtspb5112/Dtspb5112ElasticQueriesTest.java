@@ -48,8 +48,9 @@ class Dtspb5112ElasticQueriesTest {
         );
 
         String queryString = query.toString();
-        assertThat(queryString).contains("data.expiryDate");
-        assertThat(queryString).doesNotContain("last_modified");
+        assertThat(queryString)
+            .contains("data.expiryDate")
+            .doesNotContain("last_modified");
     }
 
     @Test
@@ -63,9 +64,6 @@ class Dtspb5112ElasticQueriesTest {
             any(JSONObject.class),
             eq(Optional.empty())
         )).thenAnswer(invocation -> invocation.getArgument(0));
-
-        Dtspb5112ElasticQueries queries =
-            new Dtspb5112ElasticQueries(utils);
 
         JSONObject query = queries.stateOnlyModifiedSince(
             1000,

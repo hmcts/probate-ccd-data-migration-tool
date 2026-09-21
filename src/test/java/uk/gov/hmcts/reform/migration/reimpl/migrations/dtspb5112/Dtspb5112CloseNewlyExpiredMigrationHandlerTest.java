@@ -44,11 +44,11 @@ class Dtspb5112CloseNewlyExpiredMigrationHandlerTest {
 
         when(config.getRollbackDate()).thenReturn(LocalDate.of(2026, 9, 1));
         when(queries.expiredLastModifiedSince(
-            eq(50),
-            eq(Dtspb5112Constants.LIVE_STATES),
-            eq(LocalDate.of(2026, 9, 14)),
-            eq(LocalDate.of(2026, 9, 1)),
-            eq(Optional.empty())
+            50,
+            Dtspb5112Constants.LIVE_STATES,
+            LocalDate.of(2026, 9, 14),
+            LocalDate.of(2026, 9, 1),
+            Optional.empty()
         )).thenReturn(new JSONObject());
 
         when(elasticSearchHandler.searchCases(

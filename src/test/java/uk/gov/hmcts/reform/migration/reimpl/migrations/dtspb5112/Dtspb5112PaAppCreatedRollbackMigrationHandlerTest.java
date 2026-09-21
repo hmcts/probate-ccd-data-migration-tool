@@ -11,6 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,5 +51,48 @@ class Dtspb5112PaAppCreatedRollbackMigrationHandlerTest {
 
         assertThat(handler.migrate(event)).isTrue();
         verify(support).addMigrationCallbackMetadata(data, Dtspb5112Constants.S1_ROLLBACK_ID);
+    }
+
+    @Test
+    void shouldNotMigrateWhenCaseIsNotCaveatRaised() {
+        Dtspb5112MigrationSupport support = mock();
+        Dtspb5112RollbackSupport rollbackSupport = mock();
+        MigrationEvent event = mock();
+        CaseDetails details = mock();
+
+        when(support.requireCaseDetails(event)).thenReturn(details);
+        when(details.getState()).thenReturn(Dtspb5112Constants.CAVEAT_CLOSED);
+
+        Dtspb5112PaAppCreatedRollbackMigrationHandler handler =
+            new Dtspb5112PaAppCreatedRollbackMigrationHandler(
+                mock(), mock(), mock(), support, rollbackSupport
+            );
+
+        assertThat(handler.shouldMigrateCase(event)).isFalse();
+
+        verify(rollbackSupport, never())
+            .hasMigrationEvent(any(), any());
+    }
+
+    @Test
+    void shouldNotMigrateWhenOriginalMigrationEventDoesNotExist() {
+        Dtspb5112MigrationSupport support = mock();
+        Dtspb5112RollbackSupport rollbackSupport = mock();
+        MigrationEvent event = mock();
+        CaseDetails details = mock();
+
+        when(support.requireCaseDetails(event)).thenReturn(details);
+        when(details.getState()).thenReturn(Dtspb5112Constants.CAVEAT_RAISED);
+        when(rollbackSupport.hasMigrationEvent(
+            event,
+            Dtspb5112PaAppCreatedMigrationHandler.DESCRIPTION
+        )).thenReturn(false);
+
+        Dtspb5112PaAppCreatedRollbackMigrationHandler handler =
+            new Dtspb5112PaAppCreatedRollbackMigrationHandler(
+                mock(), mock(), mock(), support, rollbackSupport
+            );
+
+        assertThat(handler.shouldMigrateCase(event)).isFalse();
     }
 }

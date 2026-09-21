@@ -73,4 +73,42 @@ class Dtspb5112CloseExistingExpiredMigrationHandlerTest {
         assertThat(handler.migrate(event)).isTrue();
         verify(support).addMigrationCallbackMetadata(data, Dtspb5112Constants.S4_ID);
     }
+
+    @Test
+    void shouldNotMigrateExpiredCaseWhenStateIsNotLive() {
+        Dtspb5112MigrationSupport support = mock();
+        MigrationEvent event = mock();
+        CaseDetails details = mock();
+
+        when(support.requireCaseDetails(event)).thenReturn(details);
+        when(details.getState()).thenReturn(Dtspb5112Constants.CAVEAT_CLOSED);
+        when(details.getData()).thenReturn(
+            Map.of(Dtspb5112Constants.EXPIRY_DATE, "2026-09-13")
+        );
+
+        Dtspb5112CloseExistingExpiredMigrationHandler handler =
+            new Dtspb5112CloseExistingExpiredMigrationHandler(
+                mock(), mock(), support, CLOCK
+            );
+
+        assertThat(handler.shouldMigrateCase(event)).isFalse();
+    }
+
+    @Test
+    void shouldNotMigrateWhenExpiryDateIsMissing() {
+        Dtspb5112MigrationSupport support = mock();
+        MigrationEvent event = mock();
+        CaseDetails details = mock();
+
+        when(support.requireCaseDetails(event)).thenReturn(details);
+        when(details.getState()).thenReturn(Dtspb5112Constants.CAVEAT_RAISED);
+        when(details.getData()).thenReturn(Map.of());
+
+        Dtspb5112CloseExistingExpiredMigrationHandler handler =
+            new Dtspb5112CloseExistingExpiredMigrationHandler(
+                mock(), mock(), support, CLOCK
+            );
+
+        assertThat(handler.shouldMigrateCase(event)).isFalse();
+    }
 }
