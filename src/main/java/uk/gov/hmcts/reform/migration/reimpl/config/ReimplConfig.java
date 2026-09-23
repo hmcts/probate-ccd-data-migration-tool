@@ -8,6 +8,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112CloseExistingExpiredMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112CloseExistingExpiredRollbackMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112CloseNewlyExpiredMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112CloseNewlyExpiredRollbackMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112PaAppCreatedMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112PaAppCreatedRollbackMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112SetExpiryMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112SetExpiryRollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
@@ -133,12 +141,30 @@ public class ReimplConfig {
     public Map<String, MigrationHandler> migrationHandlers(
         final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
         final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
-        final Dtspb5539MigrationHandler dtspb5539MigrationHandler
+        final Dtspb5539MigrationHandler dtspb5539MigrationHandler,
+        final Dtspb5112PaAppCreatedMigrationHandler dtspb5112PaAppCreatedMigrationHandler,
+        final Dtspb5112PaAppCreatedRollbackMigrationHandler dtspb5112PaAppCreatedRollbackMigrationHandler,
+        final Dtspb5112SetExpiryMigrationHandler dtspb5112SetExpiryMigrationHandler,
+        final Dtspb5112SetExpiryRollbackMigrationHandler dtspb5112SetExpiryRollbackMigrationHandler,
+        final Dtspb5112CloseNewlyExpiredMigrationHandler dtspb5112CloseNewlyExpiredMigrationHandler,
+        final Dtspb5112CloseNewlyExpiredRollbackMigrationHandler dtspb5112CloseNewlyExpiredRollbackMigrationHandler,
+        final Dtspb5112CloseExistingExpiredMigrationHandler dtspb5112CloseExistingExpiredMigrationHandler,
+        final Dtspb5112CloseExistingExpiredRollbackMigrationHandler
+            dtspb5112CloseExistingExpiredRollbackMigrationHandler
     ) {
         return Map.ofEntries(
             Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
             Map.entry("DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler),
-            Map.entry("DTSPB-5539", dtspb5539MigrationHandler)
+            Map.entry("DTSPB-5539", dtspb5539MigrationHandler),
+            Map.entry("DTSPB-5112-pa-app-created", dtspb5112PaAppCreatedMigrationHandler),
+            Map.entry("DTSPB-5112-pa-app-created-rollback", dtspb5112PaAppCreatedRollbackMigrationHandler),
+            Map.entry("DTSPB-5112-set-expiry", dtspb5112SetExpiryMigrationHandler),
+            Map.entry("DTSPB-5112-set-expiry-rollback", dtspb5112SetExpiryRollbackMigrationHandler),
+            Map.entry("DTSPB-5112-close-newly-expired", dtspb5112CloseNewlyExpiredMigrationHandler),
+            Map.entry("DTSPB-5112-close-newly-expired-rollback", dtspb5112CloseNewlyExpiredRollbackMigrationHandler),
+            Map.entry("DTSPB-5112-close-existing-expired", dtspb5112CloseExistingExpiredMigrationHandler),
+            Map.entry("DTSPB-5112-close-existing-expired-rollback",
+                dtspb5112CloseExistingExpiredRollbackMigrationHandler)
             );
     }
 
