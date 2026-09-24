@@ -218,7 +218,7 @@ dependencies {
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '6.0.1'
   testImplementation group: 'com.github.npathai', name: 'hamcrest-optional', version: '2.0.0'
 
-  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.23.0'
+  testImplementation group:'org.mockito', name: 'mockito-junit-jupiter', version:'5.24.0'
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   testAnnotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
