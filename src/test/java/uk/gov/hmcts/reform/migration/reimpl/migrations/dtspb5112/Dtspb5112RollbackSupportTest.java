@@ -148,7 +148,7 @@ class Dtspb5112RollbackSupportTest {
         when(migrationEvent.getId())
             .thenReturn(Dtspb5112Constants.MIGRATION_EVENT);
         when(migrationEvent.getDescription())
-            .thenReturn(Dtspb5112CloseExistingExpiredMigrationHandler.DESCRIPTION);
+            .thenReturn(Dtspb5112CloseExpiredMigrationHandler.DESCRIPTION);
         when(migrationEvent.getStateId())
             .thenReturn(Dtspb5112Constants.CAVEAT_CLOSED);
         when(migrationEvent.getCreatedDate())
@@ -175,7 +175,7 @@ class Dtspb5112RollbackSupportTest {
         assertThat(
             rollbackSupport.findOriginalStateForMigration(
                 event,
-                Dtspb5112CloseExistingExpiredMigrationHandler.DESCRIPTION
+                Dtspb5112CloseExpiredMigrationHandler.DESCRIPTION
             )
         ).contains(Dtspb5112Constants.AWAITING_WARNING_RESPONSE);
     }
