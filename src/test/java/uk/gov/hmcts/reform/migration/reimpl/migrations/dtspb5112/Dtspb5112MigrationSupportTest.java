@@ -35,12 +35,12 @@ class Dtspb5112MigrationSupportTest {
         Dtspb5112MigrationSupport support = new Dtspb5112MigrationSupport(mock(), mock());
         Map<String, Object> data = new HashMap<>();
 
-        support.addMigrationCallbackMetadata(data, Dtspb5112Constants.S3_ID);
+        support.addMigrationCallbackMetadata(data, Dtspb5112Constants.CLOSE_EXPIRED_ID);
 
         JSONObject metadata = new JSONObject(
             data.get(Dtspb5112Constants.MIGRATION_CALLBACK_METADATA).toString()
         );
-        assertThat(metadata.getString("migrationId")).isEqualTo(Dtspb5112Constants.S3_ID);
+        assertThat(metadata.getString("migrationId")).isEqualTo(Dtspb5112Constants.CLOSE_EXPIRED_ID);
     }
 
     @Test
@@ -232,7 +232,7 @@ class Dtspb5112MigrationSupportTest {
 
         support.addMigrationCallbackMetadata(
             data,
-            Dtspb5112Constants.S4_ROLLBACK_ID,
+            Dtspb5112Constants.CLOSE_EXPIRED_ROLLBACK_ID,
             Dtspb5112Constants.AWAITING_WARNING_RESPONSE
         );
 
@@ -243,7 +243,7 @@ class Dtspb5112MigrationSupportTest {
         );
 
         assertThat(metadata.getString("migrationId"))
-            .isEqualTo(Dtspb5112Constants.S4_ROLLBACK_ID);
+            .isEqualTo(Dtspb5112Constants.CLOSE_EXPIRED_ROLLBACK_ID);
 
         assertThat(metadata.getString("originalState"))
             .isEqualTo(Dtspb5112Constants.AWAITING_WARNING_RESPONSE);

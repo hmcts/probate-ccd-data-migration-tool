@@ -30,13 +30,11 @@ final class Dtspb5112Constants {
 
     static final String S1_ID = "DTSPB-5112-pa-app-created";
     static final String S2_ID = "DTSPB-5112-set-expiry";
-    static final String S3_ID = "DTSPB-5112-close-newly-expired";
-    static final String S4_ID = "DTSPB-5112-close-existing-expired";
+    static final String CLOSE_EXPIRED_ID = "DTSPB-5112-close-expired";
 
     static final String S1_ROLLBACK_ID = "DTSPB-5112-pa-app-created-rollback";
     static final String S2_ROLLBACK_ID = "DTSPB-5112-set-expiry-rollback";
-    static final String S3_ROLLBACK_ID = "DTSPB-5112-close-newly-expired-rollback";
-    static final String S4_ROLLBACK_ID = "DTSPB-5112-close-existing-expired-rollback";
+    static final String CLOSE_EXPIRED_ROLLBACK_ID = "DTSPB-5112-close-expired-rollback";
 
     private Dtspb5112Constants() {
     }
