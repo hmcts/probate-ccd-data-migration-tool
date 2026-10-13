@@ -42,19 +42,6 @@ public class Dtspb5112ElasticQueries {
         return finish(query, size, fromReference);
     }
 
-    public JSONObject expiredLastModifiedSince(
-        Integer size,
-        Collection<String> states,
-        LocalDate today,
-        LocalDate lastModifiedSince,
-        Optional<Long> fromReference
-    ) {
-        JSONObject query = base(states);
-        addExpiryBefore(query, today);
-        JSONObject finished = finish(query, size, fromReference);
-        return utils.addLastModifiedFilter(finished, lastModifiedSince);
-    }
-
     private void addExpiryBefore(JSONObject query, LocalDate today) {
         query.getJSONObject("query")
             .getJSONObject("bool")

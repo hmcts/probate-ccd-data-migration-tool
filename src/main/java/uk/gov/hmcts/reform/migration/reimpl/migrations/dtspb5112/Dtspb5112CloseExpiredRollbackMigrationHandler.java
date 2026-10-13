@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112;
 
+import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
@@ -15,15 +16,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112Constants.ROLLBACK_EVENT;
 
-abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements MigrationHandler {
+@Component
+public class Dtspb5112CloseExpiredRollbackMigrationHandler implements MigrationHandler {
     private final Dtspb5112Config config;
     private final ElasticSearchHandler elasticSearchHandler;
     private final Dtspb5112ElasticQueries queries;
-    protected final Dtspb5112MigrationSupport support;
+    private final Dtspb5112MigrationSupport support;
     private final Dtspb5112RollbackSupport rollbackSupport;
     private final Map<Long, String> originalStates = new ConcurrentHashMap<>();
 
-    AbstractDtspb5112CloseRollbackMigrationHandler(
+    public Dtspb5112CloseExpiredRollbackMigrationHandler(
         ElasticSearchHandler elasticSearchHandler,
         Dtspb5112Config config,
         Dtspb5112ElasticQueries queries,
@@ -37,18 +39,10 @@ abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements Migrati
         this.rollbackSupport = rollbackSupport;
     }
 
-    abstract String rollbackId();
-
-    abstract String migrationDescription();
-
-    abstract String rollbackSummary();
-
-    abstract String rollbackDescription();
-
     @Override
     public Set<CaseSummary> getCandidateCases(UserToken userToken, S2sToken s2sToken) {
         return elasticSearchHandler.searchCases(
-            rollbackId(),
+            Dtspb5112Constants.CLOSE_EXPIRED_ROLLBACK_ID,
             userToken,
             s2sToken,
             CaseType.CAVEAT,
@@ -68,6 +62,8 @@ abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements Migrati
 
     @Override
     public boolean shouldMigrateCase(MigrationEvent migrationEvent) {
+        Long reference = migrationEvent.caseSummary().reference();
+        originalStates.remove(reference);
         if (!Dtspb5112Constants.CAVEAT_CLOSED.equals(
             support.requireCaseDetails(migrationEvent).getState()
         )) {
@@ -77,13 +73,13 @@ abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements Migrati
         Optional<String> originalState =
             rollbackSupport.findOriginalStateForMigration(
                     migrationEvent,
-                    migrationDescription()
+                    Dtspb5112CloseExpiredMigrationHandler.DESCRIPTION
                 )
                 .filter(Dtspb5112Constants.LIVE_STATES::contains);
 
         originalState.ifPresent(state ->
             originalStates.put(
-                migrationEvent.caseSummary().reference(),
+                reference,
                 state
             )
         );
@@ -101,7 +97,7 @@ abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements Migrati
             originalState = rollbackSupport
                 .findOriginalStateForMigration(
                     migrationEvent,
-                    migrationDescription()
+                    Dtspb5112CloseExpiredMigrationHandler.DESCRIPTION
                 )
                 .filter(Dtspb5112Constants.LIVE_STATES::contains)
                 .orElseThrow(() -> new IllegalStateException(
@@ -109,7 +105,12 @@ abstract class AbstractDtspb5112CloseRollbackMigrationHandler implements Migrati
                 ));
         }
         Map<String, Object> data = support.mutableData(migrationEvent);
-        support.addMigrationCallbackMetadata(data, rollbackId(), originalState);
-        return support.submit(migrationEvent, data, rollbackSummary(), rollbackDescription());
+        support.addMigrationCallbackMetadata(data, Dtspb5112Constants.CLOSE_EXPIRED_ROLLBACK_ID, originalState);
+        return support.submit(
+            migrationEvent,
+            data,
+            "DTSPB-5112 - Rollback expired caveat closure",
+            "Rollback DTSPB-5112 expired caveat closure"
+        );
     }
 }
