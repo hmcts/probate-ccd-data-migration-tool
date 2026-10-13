@@ -62,8 +62,6 @@ public class Dtspb5112CloseExpiredRollbackMigrationHandler implements MigrationH
 
     @Override
     public boolean shouldMigrateCase(MigrationEvent migrationEvent) {
-        Long reference = migrationEvent.caseSummary().reference();
-        originalStates.remove(reference);
         if (!Dtspb5112Constants.CAVEAT_CLOSED.equals(
             support.requireCaseDetails(migrationEvent).getState()
         )) {
@@ -72,14 +70,13 @@ public class Dtspb5112CloseExpiredRollbackMigrationHandler implements MigrationH
 
         Optional<String> originalState =
             rollbackSupport.findOriginalStateForMigration(
-                    migrationEvent,
-                    Dtspb5112CloseExpiredMigrationHandler.DESCRIPTION
-                )
-                .filter(Dtspb5112Constants.LIVE_STATES::contains);
+                migrationEvent,
+                Dtspb5112CloseExpiredMigrationHandler.DESCRIPTION
+            ).filter(Dtspb5112Constants.LIVE_STATES::contains);
 
         originalState.ifPresent(state ->
             originalStates.put(
-                reference,
+                migrationEvent.caseSummary().reference(),
                 state
             )
         );
