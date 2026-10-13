@@ -195,16 +195,15 @@ class Dtspb5112CloseExpiredRollbackMigrationHandlerTest {
         MigrationEvent event = mock();
         CaseDetails details = mock();
 
+        when(event.caseSummary()).thenReturn(
+            new CaseSummary(123L, CaseType.CAVEAT)
+        );
         when(support.requireCaseDetails(event)).thenReturn(details);
         when(details.getState()).thenReturn(Dtspb5112Constants.CAVEAT_RAISED);
 
         Dtspb5112CloseExpiredRollbackMigrationHandler handler =
             new Dtspb5112CloseExpiredRollbackMigrationHandler(
-                mock(),
-                mock(),
-                mock(),
-                support,
-                rollbackSupport
+                mock(), mock(), mock(), support, rollbackSupport
             );
 
         assertThat(handler.shouldMigrateCase(event)).isFalse();
@@ -315,6 +314,7 @@ class Dtspb5112CloseExpiredRollbackMigrationHandlerTest {
             Dtspb5112CloseExpiredMigrationHandler.DESCRIPTION
         );
     }
+
     @Test
     void rollbackShouldQueryClosedCasesModifiedSinceRollbackDate() {
         ElasticSearchHandler elasticSearchHandler = mock();
