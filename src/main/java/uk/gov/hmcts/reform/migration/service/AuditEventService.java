@@ -19,7 +19,7 @@ import java.util.Optional;
 public class AuditEventService {
     private final CaseDataApiV2 caseDataApi;
 
-    public Optional<AuditEvent> getLatestAuditEventByName(String caseId, List<String> eventName,
+    public Optional<AuditEvent> getLatestAuditEventExcluding(String caseId, List<String> eventName,
                                                           String userToken, String authToken) {
         AuditEventsResponse auditEventsResponse
             = caseDataApi.getAuditEvents(userToken, authToken, false, caseId);
