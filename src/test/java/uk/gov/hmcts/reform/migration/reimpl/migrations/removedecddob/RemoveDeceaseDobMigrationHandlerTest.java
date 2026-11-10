@@ -58,8 +58,6 @@ public class RemoveDeceaseDobMigrationHandlerTest {
     @Mock
     RemoveDeceasedDobConfig removeDeceasedDobConfig;
     @Mock
-    RemoveDeceasedDobElasticQueries removeDeceasedDobElasticQueries;
-    @Mock
     ReimplConfig reimplConfigMock;
 
     RemoveDeceasedDobMigrationHandler removeDeceasedDobMigrationHandler;
@@ -74,8 +72,7 @@ public class RemoveDeceaseDobMigrationHandlerTest {
             coreCaseDataApiMock,
             elasticSearchHandlerMock,
             reimplConfigMock,
-            removeDeceasedDobConfig,
-            removeDeceasedDobElasticQueries);
+            removeDeceasedDobConfig);
     }
 
     @AfterEach

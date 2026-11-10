@@ -31,7 +31,6 @@ public class RemoveDeceasedDobMigrationHandler implements MigrationHandler {
 
     private final ReimplConfig commonConfig;
     private final RemoveDeceasedDobConfig config;
-    private final RemoveDeceasedDobElasticQueries elasticQueries;
 
     static final String GRANT_OF_REPRESENTATION = "GrantOfRepresentation";
     static final String JURISDICTION = "PROBATE";
@@ -45,13 +44,11 @@ public class RemoveDeceasedDobMigrationHandler implements MigrationHandler {
             final CoreCaseDataApi coreCaseDataApi,
             final ElasticSearchHandler elasticSearchHandler,
             final ReimplConfig commonConfig,
-            final RemoveDeceasedDobConfig config,
-            final RemoveDeceasedDobElasticQueries elasticQueries) {
+            final RemoveDeceasedDobConfig config) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
         this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
         this.commonConfig = Objects.requireNonNull(commonConfig);
         this.config = Objects.requireNonNull(config);
-        this.elasticQueries = Objects.requireNonNull(elasticQueries);
     }
 
     @Override
@@ -62,18 +59,7 @@ public class RemoveDeceasedDobMigrationHandler implements MigrationHandler {
         final Set<CaseSummary> casesToHandle = config.getCaseRefs().orElseThrow(
             () -> new IllegalStateException("No CaseRefs configured"));
 
-        final Set<CaseSummary> gorCandidates = elasticSearchHandler.searchCases(
-                "remove_deceased_dob",
-                userToken,
-                s2sToken,
-                CaseType.GRANT_OF_REPRESENTATION,
-                fR -> elasticQueries.getGorMigrationQuery(
-                    casesToHandle,
-                    commonConfig.getQuerySize(),
-                    fR));
-        final Set<CaseSummary> candidateCases = new HashSet<>(gorCandidates);
-
-        return Set.copyOf(candidateCases);
+        return Set.copyOf(casesToHandle);
     }
 
     @Override
