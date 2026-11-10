@@ -190,6 +190,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aspectj'
   implementation group: 'org.springframework.boot', name: 'spring-boot-jackson2'
   implementation group: 'org.springframework', name: 'spring-context-support'
+  implementation group: 'org.springframework.boot', name:'spring-boot-restclient'
   implementation group: 'com.github.hmcts', name: 'idam-java-client', version: '4.0.0'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '6.1.2'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.4.0'
