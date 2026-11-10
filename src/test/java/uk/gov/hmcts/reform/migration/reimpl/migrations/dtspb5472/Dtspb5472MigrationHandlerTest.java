@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472;
 
-import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,10 +22,8 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -44,6 +41,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.migration.reimpl.TestUtils.anyQuery;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.GRANT_OF_REPRESENTATION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.JURISDICTION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.MIGRATION_DESCRIPTION;
@@ -501,9 +499,5 @@ class Dtspb5472MigrationHandlerTest {
                         any(),
                         anyBoolean(),
                         any()));
-    }
-
-    private static Function<Optional<Long>, JSONObject> anyQuery() {
-        return any();
     }
 }
