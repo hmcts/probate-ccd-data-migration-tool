@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.RemoveDeceasedDobMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.time.Clock;
@@ -131,14 +132,15 @@ public class ReimplConfig {
 
     @Bean
     public Map<String, MigrationHandler> migrationHandlers(
-        final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
-        final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
-        final Dtspb5539MigrationHandler dtspb5539MigrationHandler
-    ) {
+            final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
+            final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
+            final Dtspb5539MigrationHandler dtspb5539MigrationHandler,
+            final RemoveDeceasedDobMigrationHandler removeDeceasedDobMigrationHandler) {
         return Map.ofEntries(
             Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
             Map.entry("DTSPB-5472_rollback", dtspb5472RollbackMigrationHandler),
-            Map.entry("DTSPB-5539", dtspb5539MigrationHandler)
+            Map.entry("DTSPB-5539", dtspb5539MigrationHandler),
+            Map.entry("remove_deceased_dob", removeDeceasedDobMigrationHandler)
             );
     }
 
