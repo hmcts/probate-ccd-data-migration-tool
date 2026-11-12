@@ -186,6 +186,7 @@ ext {
 
 dependencies {
   implementation("org.springframework.cloud:spring-cloud-starter-bootstrap")
+  implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
@@ -231,7 +232,7 @@ dependencyManagement {
   }
 
   dependencies {
-    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.22.4') {
+    dependencySet(group: 'com.fasterxml.jackson.core', version: '2.23.0') {
       entry 'jackson-core'
       entry 'jackson-databind'
     }
