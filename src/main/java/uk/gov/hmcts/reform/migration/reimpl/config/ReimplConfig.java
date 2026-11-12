@@ -147,7 +147,7 @@ public class ReimplConfig {
         final Dtspb5112SetExpiryRollbackMigrationHandler dtspb5112SetExpiryRollbackMigrationHandler,
         final Dtspb5112CloseExpiredMigrationHandler dtspb5112CloseExpiredMigrationHandler,
         final Dtspb5112CloseExpiredRollbackMigrationHandler dtspb5112CloseExpiredRollbackMigrationHandler,
-        final RemoveDeceasedDobMigrationHandler removeDeceasedDobMigrationHandler)
+        final RemoveDeceasedDobMigrationHandler removeDeceasedDobMigrationHandler
     ) {
         return Map.ofEntries(
             Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
