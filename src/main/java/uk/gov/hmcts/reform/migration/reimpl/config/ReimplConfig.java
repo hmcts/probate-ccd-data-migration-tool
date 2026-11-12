@@ -138,7 +138,6 @@ public class ReimplConfig {
 
     @Bean
     public Map<String, MigrationHandler> migrationHandlers(
-
         final Dtspb5472MigrationHandler dtspb5472MigrationHandler,
         final Dtspb5472RollbackMigrationHandler dtspb5472RollbackMigrationHandler,
         final Dtspb5539MigrationHandler dtspb5539MigrationHandler,
