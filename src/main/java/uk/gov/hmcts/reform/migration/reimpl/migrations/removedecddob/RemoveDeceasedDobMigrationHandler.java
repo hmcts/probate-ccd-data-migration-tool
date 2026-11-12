@@ -14,7 +14,6 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseSummary;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
-import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.util.Map;
@@ -25,7 +24,6 @@ import java.util.Set;
 @Slf4j
 public class RemoveDeceasedDobMigrationHandler implements MigrationHandler {
     private final CoreCaseDataApi coreCaseDataApi;
-    private final ElasticSearchHandler elasticSearchHandler;
 
     private final ReimplConfig commonConfig;
     private final RemoveDeceasedDobConfig config;
@@ -40,11 +38,9 @@ public class RemoveDeceasedDobMigrationHandler implements MigrationHandler {
 
     public RemoveDeceasedDobMigrationHandler(
             final CoreCaseDataApi coreCaseDataApi,
-            final ElasticSearchHandler elasticSearchHandler,
             final ReimplConfig commonConfig,
             final RemoveDeceasedDobConfig config) {
         this.coreCaseDataApi = Objects.requireNonNull(coreCaseDataApi);
-        this.elasticSearchHandler = Objects.requireNonNull(elasticSearchHandler);
         this.commonConfig = Objects.requireNonNull(commonConfig);
         this.config = Objects.requireNonNull(config);
     }

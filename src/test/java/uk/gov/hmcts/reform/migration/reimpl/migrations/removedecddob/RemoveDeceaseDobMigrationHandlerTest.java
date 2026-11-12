@@ -19,19 +19,14 @@ import uk.gov.hmcts.reform.migration.reimpl.dto.CaseType;
 import uk.gov.hmcts.reform.migration.reimpl.dto.MigrationEvent;
 import uk.gov.hmcts.reform.migration.reimpl.dto.S2sToken;
 import uk.gov.hmcts.reform.migration.reimpl.dto.UserToken;
-import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -42,7 +37,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.migration.reimpl.TestUtils.anyQuery;
 import static uk.gov.hmcts.reform.migration.reimpl.TestUtils.jsonHasString;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.RemoveDeceasedDobMigrationHandler.GRANT_OF_REPRESENTATION;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.RemoveDeceasedDobMigrationHandler.JURISDICTION;
@@ -53,8 +47,6 @@ import static uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.Remo
 public class RemoveDeceaseDobMigrationHandlerTest {
     @Mock
     CoreCaseDataApi coreCaseDataApiMock;
-    @Mock
-    ElasticSearchHandler elasticSearchHandlerMock;
     @Mock
     RemoveDeceasedDobConfig removeDeceasedDobConfig;
     @Mock
@@ -70,7 +62,6 @@ public class RemoveDeceaseDobMigrationHandlerTest {
 
         removeDeceasedDobMigrationHandler = new RemoveDeceasedDobMigrationHandler(
             coreCaseDataApiMock,
-            elasticSearchHandlerMock,
             reimplConfigMock,
             removeDeceasedDobConfig);
     }
@@ -82,39 +73,6 @@ public class RemoveDeceaseDobMigrationHandlerTest {
         } catch (Exception e) {
             // Nothing to do
         }
-    }
-
-    @Test
-    void getCandidateCasesCallsElasticSearchOnce() {
-        final UserToken userToken = mock();
-        final S2sToken s2sToken = mock();
-
-        final CaseSummary gorCase = new CaseSummary(1L, CaseType.GRANT_OF_REPRESENTATION);
-
-        when(elasticSearchHandlerMock.searchCases(
-                any(),
-                any(),
-                any(),
-                eq(CaseType.GRANT_OF_REPRESENTATION),
-                anyQuery()))
-                .thenReturn(Set.of(gorCase));
-
-        when(removeDeceasedDobConfig.getCaseRefs())
-                .thenReturn(Optional.of(Set.of(gorCase)));
-
-        final Set<CaseSummary> candidateCases = removeDeceasedDobMigrationHandler.getCandidateCases(
-                userToken,
-                s2sToken);
-
-        assertAll(
-                () -> verify(elasticSearchHandlerMock).searchCases(
-                        any(),
-                        eq(userToken),
-                        eq(s2sToken),
-                        eq(CaseType.GRANT_OF_REPRESENTATION),
-                        anyQuery()),
-                () -> assertThat(candidateCases, hasSize(1)),
-                () -> assertThat(candidateCases, contains(gorCase)));
     }
 
     @Test
