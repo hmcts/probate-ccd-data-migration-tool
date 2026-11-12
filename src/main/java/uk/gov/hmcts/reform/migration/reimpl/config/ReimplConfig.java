@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112SetExp
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.RemoveDeceasedDobMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.time.Clock;
@@ -145,7 +146,8 @@ public class ReimplConfig {
         final Dtspb5112SetExpiryMigrationHandler dtspb5112SetExpiryMigrationHandler,
         final Dtspb5112SetExpiryRollbackMigrationHandler dtspb5112SetExpiryRollbackMigrationHandler,
         final Dtspb5112CloseExpiredMigrationHandler dtspb5112CloseExpiredMigrationHandler,
-        final Dtspb5112CloseExpiredRollbackMigrationHandler dtspb5112CloseExpiredRollbackMigrationHandler
+        final Dtspb5112CloseExpiredRollbackMigrationHandler dtspb5112CloseExpiredRollbackMigrationHandler,
+        final RemoveDeceasedDobMigrationHandler removeDeceasedDobMigrationHandler
     ) {
         return Map.ofEntries(
             Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
@@ -156,7 +158,8 @@ public class ReimplConfig {
             Map.entry("DTSPB-5112-set-expiry", dtspb5112SetExpiryMigrationHandler),
             Map.entry("DTSPB-5112-set-expiry-rollback", dtspb5112SetExpiryRollbackMigrationHandler),
             Map.entry("DTSPB-5112-close-expired", dtspb5112CloseExpiredMigrationHandler),
-            Map.entry("DTSPB-5112-close-expired-rollback", dtspb5112CloseExpiredRollbackMigrationHandler)
+            Map.entry("DTSPB-5112-close-expired-rollback", dtspb5112CloseExpiredRollbackMigrationHandler),
+            Map.entry("remove_deceased_dob", removeDeceasedDobMigrationHandler)
             );
     }
 
