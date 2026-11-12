@@ -29,7 +29,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasKey;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
@@ -123,13 +122,45 @@ public class RemoveDeceaseDobMigrationHandlerTest {
     }
 
     @Test
-    void shouldMigrateCaseReturnsTrue() {
-        final boolean firstActual = removeDeceasedDobMigrationHandler.shouldMigrateCase(null);
-        final boolean secondActual = removeDeceasedDobMigrationHandler.shouldMigrateCase(mock());
+    void shouldMigrateCaseReturnsTrueIfDobPresent() {
+        final MigrationEvent migrationEvent = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        final Long caseId = 1L;
+        final Map<String, Object> caseData = Map.of("deceasedDateOfBirth", "2026-11-12");
 
-        assertAll(
-            () -> assertTrue(firstActual),
-            () -> assertTrue(secondActual));
+        when(migrationEvent.startEventResponse())
+                .thenReturn(startEventResponse);
+        when(startEventResponse.getCaseDetails())
+                .thenReturn(caseDetails);
+        when(caseDetails.getId())
+                .thenReturn(caseId);
+        when(caseDetails.getData())
+                .thenReturn(caseData);
+        final boolean actual = removeDeceasedDobMigrationHandler.shouldMigrateCase(migrationEvent);
+
+        assertThat(actual, equalTo(true));
+    }
+
+    @Test
+    void shouldMigrateCaseReturnsFalseIfDobAbsent() {
+        final MigrationEvent migrationEvent = mock();
+        final StartEventResponse startEventResponse = mock();
+        final CaseDetails caseDetails = mock();
+        final Long caseId = 1L;
+        final Map<String, Object> caseData = Map.of();
+
+        when(migrationEvent.startEventResponse())
+                .thenReturn(startEventResponse);
+        when(startEventResponse.getCaseDetails())
+                .thenReturn(caseDetails);
+        when(caseDetails.getId())
+                .thenReturn(caseId);
+        when(caseDetails.getData())
+                .thenReturn(caseData);
+        final boolean actual = removeDeceasedDobMigrationHandler.shouldMigrateCase(migrationEvent);
+
+        assertThat(actual, equalTo(false));
     }
 
     @Test

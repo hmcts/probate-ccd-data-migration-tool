@@ -21,14 +21,14 @@ public class RemoveDeceasedDobConfig {
     public RemoveDeceasedDobConfig(
             @Value("${removeDecdDob.caseRefs}")
             final String caseRefs) {
-        this.caseRefs = something(caseRefs);
+        this.caseRefs = parseCaseReferences(caseRefs);
     }
 
     public Optional<Set<CaseSummary>> getCaseRefs() {
         return caseRefs;
     }
 
-    static Optional<Set<CaseSummary>> something(final String caseRefs) {
+    static Optional<Set<CaseSummary>> parseCaseReferences(final String caseRefs) {
         if (StringUtils.isBlank(caseRefs)) {
             log.info("Returning empty optional for cases config input [{}]", caseRefs);
             return Optional.empty();

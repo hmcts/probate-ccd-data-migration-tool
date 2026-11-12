@@ -90,7 +90,18 @@ public class RemoveDeceasedDobMigrationHandler implements MigrationHandler {
     @Override
     public boolean shouldMigrateCase(
             final MigrationEvent migrationEvent) {
-        return true;
+        final StartEventResponse startEventResponse = migrationEvent.startEventResponse();
+        final CaseDetails caseDetails = startEventResponse.getCaseDetails();
+        final Long caseId = caseDetails.getId();
+        final Map<String, Object> caseData = caseDetails.getData();
+
+        final boolean hasDeceasedDob = caseData.containsKey("deceasedDateOfBirth");
+
+        if (!hasDeceasedDob) {
+            log.info("remove_deceased_dob: case {} does not hold deceasedDateOfBirth so no need to migrate",
+                caseId);
+        }
+        return hasDeceasedDob;
     }
 
     @Override
