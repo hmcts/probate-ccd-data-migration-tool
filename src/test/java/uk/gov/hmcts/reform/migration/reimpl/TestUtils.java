@@ -7,6 +7,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.time.LocalDate;
+import java.util.Optional;
+import java.util.function.Function;
+
+import static org.mockito.ArgumentMatchers.any;
 
 public class TestUtils {
 
@@ -126,5 +130,9 @@ public class TestUtils {
                 return jsonValueString.equals(value);
             }
         };
+    }
+
+    public static Function<Optional<Long>, JSONObject> anyQuery() {
+        return any();
     }
 }
