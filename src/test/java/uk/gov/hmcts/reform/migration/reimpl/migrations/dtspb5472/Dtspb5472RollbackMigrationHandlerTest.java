@@ -29,10 +29,8 @@ import uk.gov.hmcts.reform.migration.reimpl.service.ElasticSearchHandler;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -50,6 +48,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.migration.reimpl.TestUtils.anyQuery;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_ADOPTED_CHILD;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_CHILD;
 import static uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler.PA_RELATIONSHIP_TO_DECEASED;
@@ -596,9 +595,5 @@ class Dtspb5472RollbackMigrationHandlerTest {
                 return jsonValueString.equals(value);
             }
         };
-    }
-
-    private static Function<Optional<Long>, JSONObject> anyQuery() {
-        return any();
     }
 }
