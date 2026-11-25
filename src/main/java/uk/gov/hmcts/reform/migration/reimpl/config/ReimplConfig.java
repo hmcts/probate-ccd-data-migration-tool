@@ -17,9 +17,9 @@ import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5112.Dtspb5112SetExp
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
-import uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.RemoveDeceasedDobMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb6221.Dtspb6221MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb6221.Dtspb6221RollbackMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.RemoveDeceasedDobMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.time.Clock;
