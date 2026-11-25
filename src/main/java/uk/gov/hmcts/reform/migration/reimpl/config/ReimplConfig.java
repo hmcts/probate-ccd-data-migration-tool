@@ -18,6 +18,8 @@ import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472Migrat
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5472.Dtspb5472RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb5539.Dtspb5539MigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.migrations.removedecddob.RemoveDeceasedDobMigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb6221.Dtspb6221MigrationHandler;
+import uk.gov.hmcts.reform.migration.reimpl.migrations.dtspb6221.Dtspb6221RollbackMigrationHandler;
 import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 
 import java.time.Clock;
@@ -147,7 +149,9 @@ public class ReimplConfig {
         final Dtspb5112SetExpiryRollbackMigrationHandler dtspb5112SetExpiryRollbackMigrationHandler,
         final Dtspb5112CloseExpiredMigrationHandler dtspb5112CloseExpiredMigrationHandler,
         final Dtspb5112CloseExpiredRollbackMigrationHandler dtspb5112CloseExpiredRollbackMigrationHandler,
-        final RemoveDeceasedDobMigrationHandler removeDeceasedDobMigrationHandler
+        final RemoveDeceasedDobMigrationHandler removeDeceasedDobMigrationHandler,
+        final Dtspb6221MigrationHandler dtspb6221MigrationHandler,
+        final Dtspb6221RollbackMigrationHandler dtspb6221RollbackMigrationHandler
     ) {
         return Map.ofEntries(
             Map.entry("DTSPB-5472", dtspb5472MigrationHandler),
@@ -159,7 +163,9 @@ public class ReimplConfig {
             Map.entry("DTSPB-5112-set-expiry-rollback", dtspb5112SetExpiryRollbackMigrationHandler),
             Map.entry("DTSPB-5112-close-expired", dtspb5112CloseExpiredMigrationHandler),
             Map.entry("DTSPB-5112-close-expired-rollback", dtspb5112CloseExpiredRollbackMigrationHandler),
-            Map.entry("remove_deceased_dob", removeDeceasedDobMigrationHandler)
+            Map.entry("remove_deceased_dob", removeDeceasedDobMigrationHandler),
+            Map.entry("DTSPB-6221", dtspb6221MigrationHandler),
+            Map.entry("DTSPB-6221-ROLLBACK", dtspb6221RollbackMigrationHandler)
             );
     }
 
