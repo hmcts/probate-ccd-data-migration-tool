@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.migration.reimpl.service.MigrationHandler;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 @Component
@@ -71,8 +72,13 @@ public class Dtspb6221RollbackMigrationHandler
             );
 
         final boolean correctDescription =
-            Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION
-                .equals(caseEventDetail.getDescription());
+            Optional.ofNullable(caseEventDetail.getDescription())
+                .map(description ->
+                    description.startsWith(
+                        Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION
+                    )
+                )
+                .orElse(false);
 
         return correctEvent
             && correctDescription;
@@ -141,7 +147,17 @@ public class Dtspb6221RollbackMigrationHandler
                 caseDetails.getId().toString()
             );
 
-        return findOriginalLocation(caseEvents) != null;
+        final String originalLocation =
+            findOriginalLocation(caseEvents);
+
+        log.info(
+            "Case {} originalLocation={}",
+            migrationEvent.caseSummary().reference(),
+            originalLocation
+        );
+
+        return originalLocation != null;
+
     }
 
     @Override
@@ -244,38 +260,12 @@ public class Dtspb6221RollbackMigrationHandler
         final List<CaseEventDetail> caseEvents
     ) {
 
-        for (int i = 0; i < caseEvents.size(); i++) {
-
-            final CaseEventDetail event =
-                caseEvents.get(i);
-
-            if (findDtspb6221MigrationEvent(event)) {
-
-                if (i == 0) {
-                    return null;
-                }
-
-                final CaseEventDetail previousEvent =
-                    caseEvents.get(i - 1);
-
-                final Map<String, Object> previousData =
-                    previousEvent.getData();
-
-                if (previousData == null) {
-                    return null;
-                }
-
-                final Object registryLocation =
-                    previousData.get("registryLocation");
-
-                if (registryLocation instanceof String location) {
-                    return location;
-                }
-
-                return null;
-            }
-        }
-
-        return null;
+        return caseEvents.stream()
+            .filter(this::findDtspb6221MigrationEvent)
+            .findFirst()
+            .map(CaseEventDetail::getDescription)
+            .filter(description -> description.contains("?"))
+            .map(description -> description.split("\\?", 2)[1])
+            .orElse(null);
     }
 }

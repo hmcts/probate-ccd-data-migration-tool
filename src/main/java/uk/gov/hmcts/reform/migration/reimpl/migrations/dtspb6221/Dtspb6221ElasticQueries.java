@@ -20,7 +20,7 @@ public class Dtspb6221ElasticQueries {
                     "filter": [
                         {
                             "terms": {
-                                "data.registryLocation": [
+                                "data.registryLocation.keyword": [
                                     "London",
                                     "Manchester",
                                     "Birmingham",
@@ -83,7 +83,7 @@ public class Dtspb6221ElasticQueries {
                 fromReference
             );
 
-        log.debug("Migration query: {}", searchAfterQuery);
+        log.info("DTSPB-6221 query: {}", searchAfterQuery.toString(2));
 
         return searchAfterQuery;
     }

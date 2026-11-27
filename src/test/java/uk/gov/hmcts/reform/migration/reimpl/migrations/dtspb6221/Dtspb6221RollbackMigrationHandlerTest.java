@@ -59,7 +59,7 @@ class Dtspb6221RollbackMigrationHandlerTest {
             CaseEventDetail.builder()
                 .id("boHistoryCorrection")
                 .description(
-                    Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION
+                    Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION + "?London"
                 )
                 .build();
 
@@ -124,7 +124,7 @@ class Dtspb6221RollbackMigrationHandlerTest {
             CaseEventDetail.builder()
                 .id("boHistoryCorrection")
                 .description(
-                    Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION
+                    Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION + "?London"
                 )
                 .build();
 
@@ -137,8 +137,8 @@ class Dtspb6221RollbackMigrationHandlerTest {
             any()
         )).thenReturn(
             List.of(
-                previousEvent,
-                migrationHistoryEvent
+                migrationHistoryEvent,
+                previousEvent
             )
         );
 
@@ -239,21 +239,12 @@ class Dtspb6221RollbackMigrationHandlerTest {
         when(startEventResponse.getToken())
             .thenReturn("token");
 
-        CaseEventDetail previousEvent =
-            CaseEventDetail.builder()
-                .data(
-                    Map.of(
-                        "registryLocation",
-                        "London"
-                    )
-                )
-                .build();
-
         CaseEventDetail migrationHistoryEvent =
             CaseEventDetail.builder()
                 .id("boHistoryCorrection")
                 .description(
                     Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION
+                        + "?London"
                 )
                 .build();
 
@@ -266,7 +257,6 @@ class Dtspb6221RollbackMigrationHandlerTest {
             any()
         )).thenReturn(
             List.of(
-                previousEvent,
                 migrationHistoryEvent
             )
         );
@@ -335,7 +325,7 @@ class Dtspb6221RollbackMigrationHandlerTest {
             CaseEventDetail.builder()
                 .id("boHistoryCorrection")
                 .description(
-                    Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION
+                    Dtspb6221MigrationHandler.MIGRATION_DESCRIPTION + "?London"
                 )
                 .build();
 

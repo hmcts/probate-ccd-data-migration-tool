@@ -188,10 +188,13 @@ public class Dtspb6221MigrationHandler implements MigrationHandler {
             migratedData.put("registryLocation", CTSC);
         }
 
+        final String migrationDescription =
+            MIGRATION_DESCRIPTION + "?" + registryLocation;
+
         final Event event = Event.builder()
             .id(startEventResponse.getEventId())
             .summary(MIGRATION_SUMMARY)
-            .description(MIGRATION_DESCRIPTION)
+            .description(migrationDescription)
             .build();
 
         final CaseDataContent caseDataContent =
