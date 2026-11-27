@@ -100,6 +100,20 @@ public class Dtspb6221ElasticQueries {
                                     "data.registryLocation.keyword": "ctsc"
                                 }
                             }
+                        ],
+                        "must_not": [
+                            {
+                                "terms": {
+                                    "state": [
+                                        "BOCaseMatchingReissue",
+                                        "BOCaseStoppedReissue",
+                                        "BOExaminingReissue",
+                                        "BOGrantIssued",
+                                        "BOGrantIssuedRegistrarEscalation",
+                                        "BOPostGrantIssued"
+                                    ]
+                                }
+                            }
                         ]
                     }
                 },
